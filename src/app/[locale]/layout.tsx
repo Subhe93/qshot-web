@@ -12,8 +12,9 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+// Mobile app uses IBM Plex Sans Arabic as the single font family for every locale.
 const plexArabic = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic"],
+  subsets: ["arabic", "latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-plex-arabic",
 });
@@ -49,10 +50,9 @@ export default async function LocaleLayout({
       className={`${inter.variable} ${plexArabic.variable} h-full antialiased`}
       style={
         {
+          // Match the mobile app: IBM Plex Sans Arabic everywhere, Inter as fallback.
           "--font-sans-stack":
-            dir === "rtl"
-              ? "var(--font-plex-arabic), var(--font-inter)"
-              : "var(--font-inter), var(--font-plex-arabic)",
+            "var(--font-plex-arabic), var(--font-inter)",
         } as React.CSSProperties
       }
     >

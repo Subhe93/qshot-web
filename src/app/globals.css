@@ -5,15 +5,16 @@
  * Brand: blue #4488FF, purple #C389FF, gradient purple→blue.
  */
 :root {
-  --background: #f2f2f7;
+  --background: #ffffff;
   --foreground: #1f1f26;
   --card: #ffffff;
   --card-foreground: #1f1f26;
   --muted: #f4f5f7;
-  --muted-foreground: #818490;
-  --border: #e6e7eb;
-  --input: #e6e7eb;
+  --muted-foreground: #5d5f69; /* grey.600 — subtitles/hints */
+  --border: #e4e7ed; /* grey.100 */
+  --input: #d6d7db; /* grey.200 — field borders */
   --ring: #4488ff;
+  --dark: #1f1f26; /* AppColors.black — primary buttons */
 
   --primary: #4488ff;
   --primary-foreground: #ffffff;
@@ -44,6 +45,7 @@
   --color-success: var(--success);
   --color-error: var(--error);
   --color-warning: var(--warning);
+  --color-dark: var(--dark);
 
   --font-sans: var(--font-sans-stack);
   --radius-lg: var(--radius);
