@@ -58,10 +58,30 @@ messages/          <locale>.json
 ## Status (MVP, phase 0–1 of the study)
 
 - [x] i18n + RTL + design tokens
-- [x] Auth (email login/register) wired to the real API, token persisted
+- [x] Auth (email login/register) — pixel-matched to the mobile app, token persisted
 - [x] Auth-guarded dashboard listing user profiles
 - [x] TS model for all 16 block types
-- [ ] OAuth (Google/Apple) · profile builder · QR · booking · analytics (next phases)
+- [x] Profile **builder** skeleton: 3-pane editor (palette / live phone preview /
+      settings), drag-reorder (dnd-kit), click-to-select, add/delete, save to API.
+      Blocks live now: Header, Text, Button, Social, Divider, Spacer + Hero header.
+- [ ] OAuth (Google/Apple) — pending backend web-flow confirmation
+- [ ] Remaining 10 blocks (Images, Products, Reviews, Booking, …) · QR · booking
+      dashboard · analytics (next phases)
+
+### Builder structure
+
+```
+src/stores/editor-store.ts          editor state (blocks, settings, select, CRUD)
+src/lib/builder/catalog.ts          palette entries + default block factories
+src/lib/builder/color.ts            ARGB <-> CSS (mirrors the Nuxt renderer)
+src/components/builder/
+  BuilderShell.tsx                  3-pane layout + top bar + load/save
+  BuilderCanvas.tsx                 phone frame + dnd-kit sortable list
+  SortableBlock.tsx                 draggable/selectable block wrapper
+  AddBlockMenu.tsx                  palette
+  SettingsPanel.tsx                 hero + per-block forms
+  preview/Hero.tsx, preview/BlockView.tsx   read-only renderers
+```
 
 ## Notes
 

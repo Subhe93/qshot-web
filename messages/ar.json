@@ -65,5 +65,41 @@
       "analytics": "الإحصائيات",
       "settings": "الإعدادات"
     }
+  },
+  "builder": {
+    "addBlock": "إضافة بلوك",
+    "save": "حفظ",
+    "saved": "تم الحفظ",
+    "emptyCanvas": "صفحتك فارغة. أضف بلوكًا للبدء.",
+    "heroSettings": "ترويسة البروفايل",
+    "noSettings": "لا توجد إعدادات لهذا البلوك.",
+    "blocks": {
+      "header": "عنوان",
+      "paragraph": "نص",
+      "button": "زر",
+      "social": "تواصل",
+      "divider": "فاصل",
+      "spacer": "مسافة",
+      "block": "بلوك"
+    },
+    "fields": {
+      "name": "الاسم",
+      "bio": "النبذة",
+      "avatarUrl": "رابط الصورة",
+      "coverUrl": "رابط الغلاف",
+      "text": "النص",
+      "size": "الحجم",
+      "align": "المحاذاة",
+      "layout": "التخطيط",
+      "button": "زر",
+      "title": "العنوان",
+      "addButton": "إضافة زر",
+      "link": "رابط",
+      "addLink": "إضافة رابط",
+      "thickness": "السماكة",
+      "color": "اللون",
+      "height": "الارتفاع",
+      "background": "الخلفية"
+    }
   }
 }

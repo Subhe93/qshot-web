@@ -54,7 +54,7 @@ export default function AppLayout({
           </Button>
         </div>
       </header>
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

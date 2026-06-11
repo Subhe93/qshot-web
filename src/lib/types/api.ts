@@ -16,7 +16,8 @@ export interface AuthUser {
 }
 
 export interface LoginResponse {
-  token: string;
+  // Backend returns the bearer token as `access_token` (see mobile AuthData).
+  access_token: string;
   user?: AuthUser;
   [key: string]: unknown;
 }

@@ -83,7 +83,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-5 h-12 w-full rounded-lg bg-dark text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="brand-gradient mt-5 h-12 w-full rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {t("login")}
         </button>

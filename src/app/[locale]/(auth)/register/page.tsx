@@ -110,7 +110,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-6 h-12 w-full rounded-lg bg-dark text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="brand-gradient mt-6 h-12 w-full rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {t("getStarted")}
         </button>

@@ -65,5 +65,41 @@
       "analytics": "Analytics",
       "settings": "Settings"
     }
+  },
+  "builder": {
+    "addBlock": "Add block",
+    "save": "Save",
+    "saved": "Saved",
+    "emptyCanvas": "Your page is empty. Add a block to start.",
+    "heroSettings": "Profile header",
+    "noSettings": "No settings for this block.",
+    "blocks": {
+      "header": "Header",
+      "paragraph": "Text",
+      "button": "Button",
+      "social": "Social",
+      "divider": "Divider",
+      "spacer": "Spacer",
+      "block": "Block"
+    },
+    "fields": {
+      "name": "Name",
+      "bio": "Bio",
+      "avatarUrl": "Avatar URL",
+      "coverUrl": "Cover URL",
+      "text": "Text",
+      "size": "Size",
+      "align": "Align",
+      "layout": "Layout",
+      "button": "Button",
+      "title": "Title",
+      "addButton": "Add button",
+      "link": "Link",
+      "addLink": "Add link",
+      "thickness": "Thickness",
+      "color": "Color",
+      "height": "Height",
+      "background": "Background"
+    }
   }
 }
