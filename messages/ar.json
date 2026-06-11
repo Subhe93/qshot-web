@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "QShot",
+    "loading": "جارٍ التحميل…",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "back": "رجوع",
+    "next": "التالي",
+    "search": "بحث",
+    "language": "اللغة",
+    "logout": "تسجيل الخروج",
+    "comingSoon": "قريبًا"
+  },
+  "auth": {
+    "loginTitle": "مرحبًا بعودتك",
+    "loginSubtitle": "سجّل الدخول لإدارة بروفايلاتك",
+    "registerTitle": "أنشئ حسابك",
+    "registerSubtitle": "ابدأ ببناء بروفايلك خلال دقائق",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "noAccount": "ليس لديك حساب؟",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "continueWithGoogle": "المتابعة عبر Google",
+    "continueWithApple": "المتابعة عبر Apple",
+    "or": "أو",
+    "errors": {
+      "invalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا",
+      "passwordMin": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+      "passwordMismatch": "كلمتا المرور غير متطابقتين",
+      "required": "هذا الحقل مطلوب",
+      "generic": "حدث خطأ ما. حاول مرة أخرى."
+    }
+  },
+  "dashboard": {
+    "title": "بروفايلاتي",
+    "subtitle": "أنشئ وأدر بروفايلات QShot الخاصة بك",
+    "newProfile": "بروفايل جديد",
+    "empty": "لم تُنشئ أي بروفايل بعد.",
+    "createFirst": "أنشئ أول بروفايل لك",
+    "nav": {
+      "profiles": "البروفايلات",
+      "qrCodes": "أكواد QR",
+      "bookings": "الحجوزات",
+      "analytics": "الإحصائيات",
+      "settings": "الإعدادات"
+    }
+  }
+}

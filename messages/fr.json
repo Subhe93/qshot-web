@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "QShot",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "language": "Language",
+    "logout": "Log out",
+    "comingSoon": "Coming soon"
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Sign in to manage your profiles",
+    "registerTitle": "Create your account",
+    "registerSubtitle": "Start building your profile in minutes",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "confirmPassword": "Confirm password",
+    "login": "Log in",
+    "register": "Sign up",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "or": "or",
+    "errors": {
+      "invalidEmail": "Enter a valid email",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordMismatch": "Passwords do not match",
+      "required": "This field is required",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "dashboard": {
+    "title": "My Profiles",
+    "subtitle": "Create and manage your QShot profiles",
+    "newProfile": "New profile",
+    "empty": "You haven't created any profiles yet.",
+    "createFirst": "Create your first profile",
+    "nav": {
+      "profiles": "Profiles",
+      "qrCodes": "QR Codes",
+      "bookings": "Bookings",
+      "analytics": "Analytics",
+      "settings": "Settings"
+    }
+  }
+}
