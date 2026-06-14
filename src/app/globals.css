@@ -20,6 +20,7 @@
   --primary-foreground: #ffffff;
   --secondary: #c389ff;
   --secondary-foreground: #ffffff;
+  --surface: #f2f2f7; /* grouped-card / field background (mobile surfaceColor) */
 
   --success: #34c360;
   --error: #f35054;
@@ -46,6 +47,7 @@
   --color-error: var(--error);
   --color-warning: var(--warning);
   --color-dark: var(--dark);
+  --color-surface: var(--surface);
 
   --font-sans: var(--font-sans-stack);
   --radius-lg: var(--radius);
@@ -57,8 +59,64 @@ body {
   font-family: var(--font-sans-stack), system-ui, sans-serif;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Tailwind v4 dropped the default pointer cursor on buttons — restore it for UX. */
+button:not(:disabled),
+[role="button"]:not(:disabled),
+a[href],
+label[for],
+summary {
+  cursor: pointer;
+}
+
 .brand-gradient {
   background-image: linear-gradient(135deg, #c389ff 0%, #4488ff 100%);
+}
+
+/* Soft card shadow, mirroring the mobile QR cards (black 6%, blur 12, y+3). */
+.shadow-soft {
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Selected option tint — the brand gradient at low opacity (mobile scale 0.4). */
+.brand-tint {
+  background-image: linear-gradient(
+    135deg,
+    rgba(195, 137, 255, 0.22) 0%,
+    rgba(68, 136, 255, 0.22) 100%
+  );
+}
+
+/* Lighter brand gradient (mobile scale 0.1) — info/explanation cards. */
+.brand-tint-soft {
+  background-image: linear-gradient(
+    135deg,
+    rgba(195, 137, 255, 0.1) 0%,
+    rgba(68, 136, 255, 0.1) 100%
+  );
+}
+
+/*
+ * App SVG icon recolored to the current text color via CSS mask — mirrors the
+ * mobile ColorFilter(srcIn). Use: <span class="app-icon size-5 text-..."
+ * style="--icon: url(/qr/icons/icon_x.svg)" />
+ */
+.app-icon {
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon);
+  mask-image: var(--icon);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 
 .brand-gradient-text {
@@ -66,4 +124,115 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/*
+ * Builder live-preview isolation scope. The preview re-renders the published
+ * website inside the dashboard, so it must NOT inherit the dashboard's cascade
+ * (body font-family/color, RTL direction, line-height, etc.) — that distorts
+ * element rendering and diverges from the real site. Resetting every inherited
+ * typographic property to its initial value severs that cascade; the website's
+ * own font/colour are then re-applied inline on this same element. New text
+ * defaults (size/colour/weight) are restored so descendants start from a clean,
+ * dashboard-independent baseline rather than `initial`'s unusable values.
+ */
+.builder-preview-isolate {
+  /* Sever inheritance from the dashboard. */
+  font: revert;
+  font-family: initial;
+  font-size: initial;
+  font-weight: initial;
+  font-style: initial;
+  font-variant: initial;
+  font-stretch: initial;
+  font-feature-settings: initial;
+  font-variation-settings: initial;
+  line-height: initial;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-align: start;
+  text-indent: 0;
+  text-transform: none;
+  text-shadow: none;
+  white-space: normal;
+  color: initial;
+  -webkit-text-stroke: 0;
+  -webkit-font-smoothing: auto;
+  tab-size: initial;
+  /* Clean, dashboard-independent baseline for the website content. */
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1f1f26;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Marching-ants dashed outline for selected blocks in the builder canvas —
+ * mirrors the mobile AnimatedDashedBorder (primary, dashPattern [12,2]). */
+@keyframes march {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+.builder-dash-selected {
+  animation: march 0.6s linear infinite;
+}
+
+/* Subtle popover entrance — used by the language switcher dropdown. */
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-popover-in {
+  animation: popover-in 0.14s ease-out;
+}
+
+/* Brand-gradient FontAwesome icons (mirrors the mobile ShaderMask). Requires
+ * <BrandIconDefs/> mounted once so #brandGrad resolves. */
+.brand-icon path {
+  fill: url(#brandGrad);
+}
+
+/* Bottom sheet (mobile-style block editors / add-block). */
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-sheet-up {
+  animation: sheet-up 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* QR scanner viewfinder line. */
+@keyframes qr-scan {
+  0%,
+  100% {
+    top: 0;
+  }
+  50% {
+    top: calc(100% - 2px);
+  }
+}
+.qr-scanline {
+  animation: qr-scan 2.4s ease-in-out infinite;
 }

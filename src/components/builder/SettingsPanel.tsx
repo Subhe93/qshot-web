@@ -1,23 +1,53 @@
 "use client";
 
+import { useState } from "react";
+import { ChevronUp, ChevronDown, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Plus, Trash2 } from "lucide-react";
 import { useEditorStore } from "@/stores/editor-store";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { argbToHex, hexToArgb } from "@/lib/builder/color";
+import { hexToArgbA } from "@/lib/builder/color";
+import { solid } from "@/lib/builder/color-value";
+import { ColorPickerField, ColorValueField } from "@/components/ui/color-picker";
 import type {
   Block,
   ButtonBlock,
-  ButtonItem,
   DividerBlock,
   HeaderBlock,
   ParagraphBlock,
   SocialLinksBlock,
   SpacerBlock,
+  ImagesBlock,
+  ProductsBlock,
+  ExternalLinksBlock,
+  VideoLinksBlock,
+  ReviewsBlock,
+  SocialFeedBlock,
+  FormBlock,
+  LocationBlock,
+  EmbedBlock,
+  IntroductionVideoBlock,
+  BookingBlock,
 } from "@/lib/types/blocks";
-import { nanoid } from "nanoid";
+import { HeaderBlockEditor } from "./editors/HeaderBlockEditor";
+import { ParagraphBlockEditor } from "./editors/ParagraphBlockEditor";
+import { DividerBlockEditor } from "./editors/DividerBlockEditor";
+import { SpacerBlockEditor } from "./editors/SpacerBlockEditor";
+import { ButtonBlockEditor } from "./editors/ButtonBlockEditor";
+import { SocialBlockEditor } from "./editors/SocialBlockEditor";
+import { ImagesBlockEditor } from "./editors/ImagesBlockEditor";
+import { ProductsBlockEditor } from "./editors/ProductsBlockEditor";
+import { ExternalLinksBlockEditor } from "./editors/ExternalLinksBlockEditor";
+import { VideoLinksBlockEditor } from "./editors/VideoLinksBlockEditor";
+import { ReviewsBlockEditor } from "./editors/ReviewsBlockEditor";
+import { SocialFeedBlockEditor } from "./editors/SocialFeedBlockEditor";
+import { FormBlockEditor } from "./editors/FormBlockEditor";
+import { LocationBlockEditor } from "./editors/LocationBlockEditor";
+import { EmbedBlockEditor } from "./editors/EmbedBlockEditor";
+import { IntroductionVideoBlockEditor } from "./editors/IntroductionVideoBlockEditor";
+import { BookingBlockEditor } from "./editors/BookingBlockEditor";
 
 export function SettingsPanel() {
   const selectedId = useEditorStore((s) => s.selectedId);
@@ -35,8 +65,8 @@ function HeroSettings() {
   const t = useTranslations("builder");
   const settings = useEditorStore((s) => s.settings);
   const update = useEditorStore((s) => s.updateSettings);
-  const name = typeof settings.name === "object" ? settings.name?.text : "";
-  const bio = typeof settings.bio === "string" ? settings.bio : settings.bio?.text;
+  const name = settings.name?.text;
+  const bio = settings.bio?.text;
 
   return (
     <Section title={t("heroSettings")}>
@@ -46,10 +76,16 @@ function HeroSettings() {
           onChange={(e) => update({ name: { ...settings.name, text: e.target.value } })}
         />
       </Field>
+      <Field label={t("fields.nameColor")}>
+        <ColorPickerField
+          value={settings.name?.color ?? hexToArgbA("#111111")!}
+          onChange={(c) => update({ name: { ...settings.name, color: c } })}
+        />
+      </Field>
       <Field label={t("fields.bio")}>
         <Textarea
           value={bio ?? ""}
-          onChange={(e) => update({ bio: e.target.value })}
+          onChange={(e) => update({ bio: { ...settings.bio, text: e.target.value } })}
         />
       </Field>
       <Field label={t("fields.avatarUrl")}>
@@ -77,246 +113,194 @@ function HeroSettings() {
           }
         />
       </Field>
+      <Field label={t("fields.pageBackground")}>
+        <ColorValueField
+          value={settings.background?.color_value ?? solid(hexToArgbA("#ffffff")!)}
+          onChange={(cv) =>
+            update({
+              background: { ...settings.background, color_value: cv },
+            })
+          }
+        />
+      </Field>
     </Section>
   );
 }
 
 function BlockSettings({ block }: { block: Block }) {
   const t = useTranslations("builder");
-  const update = useEditorStore((s) => s.updateBlock);
-  const set = (patch: Partial<Block>) => update(block.id, patch);
+  const tc = useTranslations("common");
+  const blocks = useEditorStore((s) => s.blocks);
+  const updateBlock = useEditorStore((s) => s.updateBlock);
+  const moveBlock = useEditorStore((s) => s.moveBlock);
+  const removeBlock = useEditorStore((s) => s.removeBlock);
+  const select = useEditorStore((s) => s.select);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  let body: React.ReactNode = null;
+  const hidden = block.hide === true;
+  const index = blocks.findIndex((b) => b.id === block.id);
+  const isFirst = index <= 0;
+  const isLast = index === blocks.length - 1;
 
-  switch (block.type) {
-    case "HeaderBlock": {
-      const b = block as HeaderBlock;
-      body = (
-        <>
-          <Field label={t("fields.text")}>
-            <Input value={b.value} onChange={(e) => set({ value: e.target.value } as Partial<Block>)} />
-          </Field>
-          <Field label={t("fields.size")}>
-            <Input
-              type="number"
-              value={b.size}
-              onChange={(e) => set({ size: Number(e.target.value) } as Partial<Block>)}
-            />
-          </Field>
-          <Field label={t("fields.align")}>
-            <Segmented
-              value={b.align}
-              options={["left", "center", "right"]}
-              onChange={(v) => set({ align: v } as Partial<Block>)}
-            />
-          </Field>
-        </>
-      );
-      break;
-    }
-    case "ParagraphBlock": {
-      const b = block as ParagraphBlock;
-      body = (
-        <Field label={t("fields.text")}>
-          <Textarea
-            value={b.content}
-            onChange={(e) => set({ content: e.target.value } as Partial<Block>)}
+  // Mirrors the mobile block settings-sheet: a light brand-gradient strip on top,
+  // a header toolbar (move up/down · hide · delete), the editor, then Save.
+  return (
+    <div className="space-y-4">
+      {/* Light blue gradient at the top of the block popup */}
+      <div className="-mx-4 -mt-4 h-2 bg-linear-to-r from-primary/40 via-primary/20 to-transparent" />
+
+      {/* Header toolbar */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {t(`blocks.${labelKeyOf(block.type)}`)}
+          </p>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            {t("nav.settings")}
+          </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <ToolBtn
+            icon={ChevronUp}
+            label="Move up"
+            disabled={isFirst}
+            onClick={() => !isFirst && moveBlock(index, index - 1)}
           />
-        </Field>
-      );
-      break;
-    }
-    case "ButtonBlock": {
-      const b = block as ButtonBlock;
-      const buttons = b.buttons ?? [];
-      const setButtons = (next: ButtonItem[]) =>
-        set({ buttons: next } as Partial<Block>);
-      body = (
-        <>
-          <Field label={t("fields.layout")}>
-            <Segmented
-              value={b.layout_type ?? "list"}
-              options={["list", "grid"]}
-              onChange={(v) => set({ layout_type: v } as Partial<Block>)}
-            />
-          </Field>
-          {buttons.map((btn, i) => (
-            <div key={btn.id ?? i} className="space-y-2 rounded-lg border border-border p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
-                  {t("fields.button")} {i + 1}
-                </span>
-                <button
-                  type="button"
-                  className="text-error"
-                  onClick={() => setButtons(buttons.filter((_, j) => j !== i))}
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-              <Input
-                placeholder={t("fields.title")}
-                value={btn.title}
-                onChange={(e) =>
-                  setButtons(
-                    buttons.map((x, j) =>
-                      j === i ? { ...x, title: e.target.value } : x,
-                    ),
-                  )
-                }
-              />
-              <Input
-                placeholder="https://…"
-                value={btn.url ?? ""}
-                onChange={(e) =>
-                  setButtons(
-                    buttons.map((x, j) =>
-                      j === i ? { ...x, url: e.target.value } : x,
-                    ),
-                  )
-                }
-              />
-            </div>
-          ))}
-          <AddRow
-            label={t("fields.addButton")}
-            onClick={() =>
-              setButtons([...buttons, { id: nanoid(), title: "Button", url: "" }])
-            }
+          <ToolBtn
+            icon={ChevronDown}
+            label="Move down"
+            disabled={isLast}
+            onClick={() => !isLast && moveBlock(index, index + 1)}
           />
-        </>
-      );
-      break;
-    }
-    case "SocialLinksBlock": {
-      const b = block as SocialLinksBlock;
-      const links = b.links ?? [];
-      const setLinks = (next: typeof links) => set({ links: next } as Partial<Block>);
-      body = (
-        <>
-          {links.map((l, i) => (
-            <div key={l.id ?? i} className="space-y-2 rounded-lg border border-border p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
-                  {t("fields.link")} {i + 1}
-                </span>
-                <button
-                  type="button"
-                  className="text-error"
-                  onClick={() => setLinks(links.filter((_, j) => j !== i))}
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-              <select
-                value={l.type}
-                onChange={(e) =>
-                  setLinks(
-                    links.map((x, j) => (j === i ? { ...x, type: e.target.value } : x)),
-                  )
-                }
-                className="h-10 w-full rounded-lg border border-input bg-card px-2 text-sm"
-              >
-                {["instagram", "twitter", "facebook", "linkedin", "github", "youtube"].map(
-                  (s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ),
-                )}
-              </select>
-              <Input
-                placeholder="https://…"
-                value={l.url}
-                onChange={(e) =>
-                  setLinks(
-                    links.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)),
-                  )
-                }
-              />
-            </div>
-          ))}
-          <AddRow
-            label={t("fields.addLink")}
-            onClick={() =>
-              setLinks([
-                ...links,
-                { id: nanoid(), type: "instagram", url: "" },
-              ])
-            }
+          <ToolBtn
+            icon={hidden ? EyeOff : Eye}
+            label="Hide"
+            active={hidden}
+            onClick={() => updateBlock(block.id, { hide: !hidden })}
           />
-        </>
-      );
-      break;
-    }
-    case "DividerBlock": {
-      const b = block as DividerBlock;
-      body = (
-        <>
-          <Field label={t("fields.thickness")}>
-            <Input
-              type="number"
-              value={b.space}
-              onChange={(e) => set({ space: Number(e.target.value) } as Partial<Block>)}
-            />
-          </Field>
-          <Field label={t("fields.color")}>
-            <input
-              type="color"
-              value={typeof b.color === "string" ? b.color : "#e4e7ed"}
-              onChange={(e) => set({ color: e.target.value } as Partial<Block>)}
-              className="h-10 w-full rounded-lg border border-input"
-            />
-          </Field>
-        </>
-      );
-      break;
-    }
-    case "SpacerBlock": {
-      const b = block as SpacerBlock;
-      body = (
-        <Field label={t("fields.height")}>
-          <Input
-            type="number"
-            value={b.space}
-            onChange={(e) => set({ space: Number(e.target.value) } as Partial<Block>)}
+          <ToolBtn
+            icon={Trash2}
+            label="Delete"
+            danger
+            onClick={() => setConfirmDelete(true)}
           />
-        </Field>
-      );
-      break;
-    }
-    default:
-      body = (
-        <p className="text-sm text-muted-foreground">{t("noSettings")}</p>
-      );
+        </div>
+      </div>
+
+      {blockEditor(block)}
+
+      {/* Save — edits apply live; this confirms & closes the sheet. */}
+      <button
+        type="button"
+        onClick={() => select(null)}
+        className="brand-gradient w-full rounded-xl py-3 text-sm font-semibold text-white hover:opacity-90"
+      >
+        {t("save")}
+      </button>
+
+      {/* Delete needs a confirmation (mobile showDeleteBlockDialog). */}
+      <ConfirmDialog
+        open={confirmDelete}
+        type="danger"
+        title={tc("delete")}
+        message={t("deleteBlockConfirm")}
+        confirmText={tc("delete")}
+        cancelText={tc("cancel")}
+        onConfirm={() => removeBlock(block.id)}
+        onCancel={() => setConfirmDelete(false)}
+      />
+    </div>
+  );
+}
+
+function ToolBtn({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+  active,
+  danger,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  active?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className={`flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-30 ${
+        danger ? "text-error" : active ? "text-primary" : "text-foreground/60"
+      }`}
+    >
+      <Icon className="size-4" />
+    </button>
+  );
+}
+
+function blockEditor(block: Block) {
+  // Each block routes to its dedicated mobile-style editor.
+  if (block.type === "HeaderModule") {
+    return <HeaderBlockEditor block={block as HeaderBlock} />;
+  }
+  if (block.type === "ParagraphModule") {
+    return <ParagraphBlockEditor block={block as ParagraphBlock} />;
+  }
+  if (block.type === "DividerModule") {
+    return <DividerBlockEditor block={block as DividerBlock} />;
+  }
+  if (block.type === "SpacerModule") {
+    return <SpacerBlockEditor block={block as SpacerBlock} />;
+  }
+  if (block.type === "ButtonModule") {
+    return <ButtonBlockEditor block={block as ButtonBlock} />;
+  }
+  if (block.type === "social_links") {
+    return <SocialBlockEditor block={block as SocialLinksBlock} />;
+  }
+  if (block.type === "ImageModule") {
+    return <ImagesBlockEditor block={block as ImagesBlock} />;
+  }
+  if (block.type === "ProductsModule") {
+    return <ProductsBlockEditor block={block as ProductsBlock} />;
+  }
+  if (block.type === "ExternalLinksModule") {
+    return <ExternalLinksBlockEditor block={block as ExternalLinksBlock} />;
+  }
+  if (block.type === "VideoLinksModule") {
+    return <VideoLinksBlockEditor block={block as VideoLinksBlock} />;
+  }
+  if (block.type === "ReviewsModule") {
+    return <ReviewsBlockEditor block={block as ReviewsBlock} />;
+  }
+  if (block.type === "SocialFeedModule") {
+    return <SocialFeedBlockEditor block={block as SocialFeedBlock} />;
+  }
+  if (block.type === "FormModule") {
+    return <FormBlockEditor block={block as FormBlock} />;
+  }
+  if (block.type === "LocationModule") {
+    return <LocationBlockEditor block={block as LocationBlock} />;
+  }
+  if (block.type === "EmbedModule") {
+    return <EmbedBlockEditor block={block as EmbedBlock} />;
+  }
+  if (block.type === "IntroductionVideoModule") {
+    return <IntroductionVideoBlockEditor block={block as IntroductionVideoBlock} />;
+  }
+  if (block.type === "BookingModule") {
+    return <BookingBlockEditor block={block as BookingBlock} />;
   }
 
-  const supportsBg = block.type !== "SpacerBlock" && block.type !== "DividerBlock";
-
+  // Every block type is handled by a dedicated editor above (unreachable).
   return (
-    <Section title={t(`blocks.${labelKeyOf(block.type)}`)}>
-      {body}
-      {supportsBg && (
-        <Field label={t("fields.background")}>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={!!block.useBackgroundColor}
-              onChange={(e) =>
-                set({ useBackgroundColor: e.target.checked } as Partial<Block>)
-              }
-            />
-            <input
-              type="color"
-              value={argbToHex(block.backgroundColor ?? undefined)}
-              onChange={(e) =>
-                set({ backgroundColor: hexToArgb(e.target.value) } as Partial<Block>)
-              }
-              className="h-10 flex-1 rounded-lg border border-input"
-            />
-          </div>
-        </Field>
-      )}
+    <Section title={(block as Block).type}>
+      <p className="text-sm text-muted-foreground">—</p>
     </Section>
   );
 }
@@ -340,55 +324,25 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Segmented({
-  value,
-  options,
-  onChange,
-}: {
-  value: string;
-  options: string[];
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex rounded-lg border border-input p-0.5">
-      {options.map((o) => (
-        <button
-          key={o}
-          type="button"
-          onClick={() => onChange(o)}
-          className={
-            "flex-1 rounded-md py-1.5 text-xs capitalize " +
-            (value === o ? "bg-primary text-white" : "text-muted-foreground")
-          }
-        >
-          {o}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function AddRow({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-2 text-sm text-primary"
-    >
-      <Plus className="size-4" />
-      {label}
-    </button>
-  );
-}
-
 function labelKeyOf(type: string): string {
   const map: Record<string, string> = {
-    HeaderBlock: "header",
-    ParagraphBlock: "paragraph",
-    ButtonBlock: "button",
-    SocialLinksBlock: "social",
-    DividerBlock: "divider",
-    SpacerBlock: "spacer",
+    HeaderModule: "header",
+    ParagraphModule: "paragraph",
+    ButtonModule: "button",
+    social_links: "social",
+    DividerModule: "divider",
+    SpacerModule: "spacer",
+    ImageModule: "images",
+    ProductsModule: "products",
+    ExternalLinksModule: "externalLinks",
+    VideoLinksModule: "videoLinks",
+    ReviewsModule: "reviews",
+    SocialFeedModule: "socialFeed",
+    FormModule: "form",
+    LocationModule: "location",
+    EmbedModule: "embed",
+    IntroductionVideoModule: "introVideo",
+    BookingModule: "booking",
   };
   return map[type] ?? "block";
 }

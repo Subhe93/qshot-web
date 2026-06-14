@@ -10,7 +10,8 @@ import { FancyField } from "@/components/ui/fancy-field";
 import { PasswordEye } from "@/components/ui/password-eye";
 import { DividerText } from "@/components/ui/divider-text";
 import { SocialButton } from "@/components/ui/social-button";
-import { login } from "@/lib/api/auth";
+import { login, socialLogin } from "@/lib/api/auth";
+import { getGoogleAccessToken } from "@/lib/auth/google-signin";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function LoginPage() {
@@ -19,6 +20,22 @@ export default function LoginPage() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+
+  async function onGoogle() {
+    setServerError(null);
+    setGoogleBusy(true);
+    try {
+      const token = await getGoogleAccessToken();
+      const data = await socialLogin({ type: "google", token, version: "1.0.0" });
+      setAuth(data.token, data.user ?? null);
+      router.push("/dashboard");
+    } catch {
+      setServerError(t("errors.generic"));
+    } finally {
+      setGoogleBusy(false);
+    }
+  }
 
   const schema = z.object({
     email: z.string().email(t("errors.invalidEmail")),
@@ -119,6 +136,8 @@ export default function LoginPage() {
           variant="google"
           label={t("continueWithGoogle")}
           iconSrc="/brand/icon_social_google.svg"
+          disabled={googleBusy}
+          onClick={onGoogle}
         />
       </div>
 

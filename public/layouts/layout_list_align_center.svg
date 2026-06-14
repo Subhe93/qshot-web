@@ -1,0 +1,60 @@
+<svg width="281" height="112" viewBox="0 0 281 112" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g clip-path="url(#clip0_listcenter)">
+        <path d="M271 0H10C4.47715 0 0 3.91751 0 8.75V102.375C0 107.208 4.47715 111.125 10 111.125H271C276.523 111.125 281 107.208 281 102.375V8.75C281 3.91751 276.523 0 271 0Z" fill="white"/>
+        <path d="M223 14H58C53.5817 14 50 17.1145 50 20.9565V47.0435C50 50.8855 53.5817 54 58 54H223C227.418 54 231 50.8855 231 47.0435V20.9565C231 17.1145 227.418 14 223 14Z" fill="#E4E7ED"/>
+        <path d="M223 58H58C53.5817 58 50 61.0483 50 64.8085V91.1915C50 94.9515 53.5817 98 58 98H223C227.418 98 231 94.9515 231 91.1915V64.8085C231 61.0483 227.418 58 223 58Z" fill="#E4E7ED"/>
+        <g filter="url(#filter0_d_listcenter)">
+            <rect x="132" y="18" width="17" height="14" rx="3" fill="#F5F7FA"/>
+        </g>
+        <g filter="url(#filter1_d_listcenter)">
+            <rect x="132" y="62" width="17" height="14" rx="3" fill="#F5F7FA"/>
+        </g>
+        <g filter="url(#filter2_d_listcenter)">
+            <rect x="110" y="38" width="61" height="6" rx="2" fill="#F5F7FA"/>
+        </g>
+        <g filter="url(#filter3_d_listcenter)">
+            <rect x="110" y="82" width="61" height="6" rx="2" fill="#F5F7FA"/>
+        </g>
+    </g>
+    <defs>
+        <filter id="filter0_d_listcenter" x="112" y="-2" width="57" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+            <feOffset/>
+            <feGaussianBlur stdDeviation="10"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.059 0"/>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_listcenter"/>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_listcenter" result="shape"/>
+        </filter>
+        <filter id="filter1_d_listcenter" x="112" y="42" width="57" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+            <feOffset/>
+            <feGaussianBlur stdDeviation="10"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.059 0"/>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_listcenter"/>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_listcenter" result="shape"/>
+        </filter>
+        <filter id="filter2_d_listcenter" x="86" y="17" width="109" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+            <feOffset dy="3"/>
+            <feGaussianBlur stdDeviation="12"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.059 0"/>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_listcenter"/>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_listcenter" result="shape"/>
+        </filter>
+        <filter id="filter3_d_listcenter" x="86" y="61" width="109" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+            <feOffset dy="3"/>
+            <feGaussianBlur stdDeviation="12"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.059 0"/>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_listcenter"/>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_listcenter" result="shape"/>
+        </filter>
+        <clipPath id="clip0_listcenter">
+            <rect width="281" height="112" fill="white"/>
+        </clipPath>
+    </defs>
+</svg>

@@ -1,84 +1,186 @@
 import { nanoid } from "nanoid";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
-  Heading,
-  Type,
-  MousePointerClick,
-  Minus,
-  MoveVertical,
-  Share2,
-  type LucideIcon,
-} from "lucide-react";
+  faHeading,
+  faParagraph,
+  faHandPointer,
+  faLink,
+  faGripLines,
+  faArrowsUpDown,
+  faImage,
+  faBagShopping,
+  faUpRightFromSquare,
+  faVideo,
+  faStar,
+  faHashtag,
+  faListCheck,
+  faLocationDot,
+  faCode,
+  faCirclePlay,
+  faCalendarCheck,
+} from "@fortawesome/free-solid-svg-icons";
 import type { Block, BlockType } from "@/lib/types/blocks";
 
 export interface CatalogEntry {
   type: BlockType;
   labelKey: string; // key under builder.blocks.*
-  Icon: LucideIcon;
+  icon: IconDefinition; // FontAwesome icon, matching the mobile app
+  /** "rich" blocks show as a list row with a description; "basic" as a round button. */
+  kind: "rich" | "basic";
   make: () => Block;
 }
 
-// Simple blocks supported in this first builder iteration.
+// Blocks supported in this builder iteration. Icons + rich/basic split mirror the
+// mobile BlockSelectorSheet.
 export const BLOCK_CATALOG: CatalogEntry[] = [
   {
-    type: "HeaderBlock",
-    labelKey: "header",
-    Icon: Heading,
+    type: "social_links",
+    labelKey: "social",
+    icon: faLink,
+    kind: "rich",
     make: () => ({
       id: nanoid(),
-      type: "HeaderBlock",
+      type: "social_links",
+      layout_type: "list",
+      icon_type: "darkFilled",
+      links: [],
+    }),
+  },
+  {
+    type: "HeaderModule",
+    labelKey: "header",
+    icon: faHeading,
+    kind: "basic",
+    make: () => ({
+      id: nanoid(),
+      type: "HeaderModule",
       value: "Heading",
       size: 20,
       align: "center",
     }),
   },
   {
-    type: "ParagraphBlock",
+    type: "ParagraphModule",
     labelKey: "paragraph",
-    Icon: Type,
+    icon: faParagraph,
+    kind: "basic",
     make: () => ({
       id: nanoid(),
-      type: "ParagraphBlock",
-      content: "Write something about yourself…",
+      type: "ParagraphModule",
+      content: JSON.stringify([
+        { insert: "Write something about yourself…\n" },
+      ]),
     }),
   },
   {
-    type: "ButtonBlock",
+    type: "ButtonModule",
     labelKey: "button",
-    Icon: MousePointerClick,
+    icon: faHandPointer,
+    kind: "basic",
     make: () => ({
       id: nanoid(),
-      type: "ButtonBlock",
+      type: "ButtonModule",
+      title: "",
+      theme: "solid",
       layout_type: "list",
       buttons: [{ id: nanoid(), title: "Button", url: "" }],
     }),
   },
   {
-    type: "SocialLinksBlock",
-    labelKey: "social",
-    Icon: Share2,
-    make: () => ({
-      id: nanoid(),
-      type: "SocialLinksBlock",
-      layout_type: "list",
-      links: [],
-    }),
-  },
-  {
-    type: "DividerBlock",
+    type: "DividerModule",
     labelKey: "divider",
-    Icon: Minus,
+    icon: faGripLines,
+    kind: "basic",
     make: () => ({
       id: nanoid(),
-      type: "DividerBlock",
+      type: "DividerModule",
       space: 1,
-      color: "#E4E7ED",
+      color: 0xffe4e7ed,
     }),
   },
   {
-    type: "SpacerBlock",
+    type: "SpacerModule",
     labelKey: "spacer",
-    Icon: MoveVertical,
-    make: () => ({ id: nanoid(), type: "SpacerBlock", space: 24 }),
+    icon: faArrowsUpDown,
+    kind: "basic",
+    make: () => ({ id: nanoid(), type: "SpacerModule", space: 24 }),
+  },
+  {
+    type: "ImageModule",
+    labelKey: "images",
+    icon: faImage,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "ImageModule", layout_type: "swiper", items: [] }),
+  },
+  {
+    type: "ProductsModule",
+    labelKey: "products",
+    icon: faBagShopping,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "ProductsModule", title: "", layout_type: "grid", items: [] }),
+  },
+  {
+    type: "ExternalLinksModule",
+    labelKey: "externalLinks",
+    icon: faUpRightFromSquare,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "ExternalLinksModule", title: "", layout_type: "list", links: [] }),
+  },
+  {
+    type: "VideoLinksModule",
+    labelKey: "videoLinks",
+    icon: faVideo,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "VideoLinksModule", title: "", layout_type: "list", items: [] }),
+  },
+  {
+    type: "ReviewsModule",
+    labelKey: "reviews",
+    icon: faStar,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "ReviewsModule", title: "", layout_type: "cards", reviews: [] }),
+  },
+  {
+    type: "SocialFeedModule",
+    labelKey: "socialFeed",
+    icon: faHashtag,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "SocialFeedModule", title: "", configuration: "instagram", layout_type: "grid", info: {} }),
+  },
+  {
+    type: "FormModule",
+    labelKey: "form",
+    icon: faListCheck,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "FormModule", title: "", questions: [] }),
+  },
+  {
+    type: "LocationModule",
+    labelKey: "location",
+    icon: faLocationDot,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "LocationModule", title: "", value: {} }),
+  },
+  {
+    type: "EmbedModule",
+    labelKey: "embed",
+    icon: faCode,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "EmbedModule", configuration: "custom", data: {} }),
+  },
+  {
+    type: "IntroductionVideoModule",
+    labelKey: "introVideo",
+    icon: faCirclePlay,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "IntroductionVideoModule", url: "", thumbnail_url: "" }),
+  },
+  {
+    type: "BookingModule",
+    labelKey: "booking",
+    icon: faCalendarCheck,
+    kind: "rich",
+    make: () => ({ id: nanoid(), type: "BookingModule", title: "", button_label: "Book Now" }),
   },
 ];
 

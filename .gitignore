@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .shots/
+
+.eprof*/
+.edgeprof*/
+.shots/
+public/seed.html

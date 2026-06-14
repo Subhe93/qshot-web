@@ -4,8 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
-import { LanguageSwitcher } from "@/components/language-switcher";
-import { Button } from "@/components/ui/button";
+import { AppShell } from "@/components/app-shell";
 
 export default function AppLayout({
   children,
@@ -15,7 +14,6 @@ export default function AppLayout({
   const t = useTranslations();
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
-  const logout = useAuthStore((s) => s.logout);
 
   // Client-side auth guard. Zustand persist hydrates on mount.
   useEffect(() => {
@@ -36,25 +34,5 @@ export default function AppLayout({
     );
   }
 
-  return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="flex items-center justify-between border-b border-border bg-card px-6 py-3">
-        <span className="brand-gradient-text text-xl font-bold">QShot</span>
-        <div className="flex items-center gap-3">
-          <LanguageSwitcher />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              logout();
-              router.replace("/login");
-            }}
-          >
-            {t("common.logout")}
-          </Button>
-        </div>
-      </header>
-      <main className="flex-1">{children}</main>
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }

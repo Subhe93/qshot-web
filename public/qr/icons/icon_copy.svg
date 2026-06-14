@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16">
+    <g id="Copy_Link_16_PX" data-name="Copy Link 16 PX" transform="translate(-114 -333)">
+        <g id="Group_4155" data-name="Group 4155" transform="translate(115 334)">
+            <path id="Path_902" data-name="Path 902"
+                d="M11.45,11.307v2.835c0,2.362-.945,3.307-3.307,3.307H5.307C2.945,17.45,2,16.5,2,14.142V11.307C2,8.945,2.945,8,5.307,8H8.142C10.5,8,11.45,8.945,11.45,11.307Z"
+                transform="translate(-2 -3.95)" fill="none" stroke="#3E3E3E" stroke-linecap="round"
+                stroke-linejoin="round" stroke-width="1.3" />
+            <path id="Path_903" data-name="Path 903"
+                d="M17.45,5.307V8.142c0,2.362-.945,3.307-3.307,3.307H13.4V9.357c0-2.362-.945-3.307-3.307-3.307H8V5.307C8,2.945,8.945,2,11.307,2h2.835C16.5,2,17.45,2.945,17.45,5.307Z"
+                transform="translate(-3.95 -2)" fill="none" stroke="#3E3E3E" stroke-linecap="round"
+                stroke-linejoin="round" stroke-width="1.3" />
+        </g>
+        <rect id="Rectangle_2460" data-name="Rectangle 2460" width="16" height="16"
+            transform="translate(114 333)" fill="none" />
+    </g>
+</svg>
