@@ -5,7 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { listProfiles } from "@/lib/api/profiles";
 import { Plus, Sparkles } from "lucide-react";
-import { ProfileSlider } from "@/components/dashboard/profile-slider";
+import { ProfileSlider, CreateCard } from "@/components/dashboard/profile-slider";
+import { ProfileCard } from "@/components/profile-card";
 import { CreateWebsiteWizard } from "@/components/builder/CreateWebsiteWizard";
 import { AiWebsiteWizard } from "@/components/dashboard/AiWebsiteWizard";
 
@@ -55,7 +56,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="mt-6 min-h-0 flex-1">
+      <div className="mt-6 min-h-0 flex-1 lg:overflow-y-auto">
         {isLoading && (
           <div className="flex h-full items-stretch gap-5 overflow-hidden">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -88,7 +89,23 @@ export default function DashboardPage() {
         )}
 
         {!isLoading && !isError && items.length > 0 && (
-          <ProfileSlider items={items} onCreate={() => setCreating(true)} />
+          <>
+            {/* Mobile/tablet: keep the full-height horizontal slider. */}
+            <div className="h-full lg:hidden">
+              <ProfileSlider items={items} onCreate={() => setCreating(true)} />
+            </div>
+            {/* Desktop: a 3-per-row card grid; each card is a 1:2 portrait. */}
+            <div className="hidden auto-rows-min grid-cols-3 gap-5 pb-4 lg:grid">
+              {items.map((p) => (
+                <div key={p._id ?? p.id} className="aspect-[1/1.7]">
+                  <ProfileCard profile={p} />
+                </div>
+              ))}
+              <div className="aspect-[1/1.7]">
+                <CreateCard onClick={() => setCreating(true)} />
+              </div>
+            </div>
+          </>
         )}
       </div>
 

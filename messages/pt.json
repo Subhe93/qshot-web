@@ -1,4 +1,11 @@
 {
+  "appPromo": {
+    "bar": "Baixe o QShot para {platform} e navegue mais rápido",
+    "title": "Baixe o app QShot",
+    "badge": "Melhor experiência",
+    "body": "Baixe nosso app para o melhor desempenho e a experiência QShot completa.",
+    "continue": "Continuar no navegador"
+  },
   "common": {
     "appName": "QShot",
     "loading": "Loading…",
@@ -486,7 +493,9 @@
         "name": "Telegram",
         "desc": "QR code to open a Telegram chat."
       }
-    }
+    },
+    "sortNewest": "Mais recentes",
+    "sortOldest": "Mais antigos"
   },
   "feedback": {
     "title": "Feedback",

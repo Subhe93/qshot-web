@@ -163,39 +163,40 @@ export function ProfileCard({ profile }: { profile: ProfileSummary }) {
           </div>
         </div>
 
-        {/* Action toolbar */}
-        <div className="mt-2.5 flex items-center justify-evenly rounded-xl bg-black/[0.06] py-1">
+        {/* Action toolbar — larger, colorful tiles to draw attention. */}
+        <div className="mt-3 flex items-center justify-between gap-1.5">
           <ToolbarIcon
             Icon={PieChart}
             label="Analytics"
+            color="#4488ff"
             onClick={() => router.push(`/sites/${id}/analytics`)}
           />
-          <ToolbarIcon Icon={QrCode} label="QR" onClick={() => setQrOpen(true)} />
+          <ToolbarIcon Icon={QrCode} label="QR" color="#5856d6" onClick={() => setQrOpen(true)} />
           <ToolbarIcon
             Icon={Share2}
             label="Share"
+            color="#34c759"
             onClick={() => setShareOpen(true)}
           />
           <span className="relative">
             <ToolbarIcon
               Icon={Mail}
               label="Messages"
+              color="#ff9500"
               onClick={() => router.push(`/sites/${id}/messages`)}
             />
             {unread > 0 && (
-              <span className="absolute -end-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-[#d73c3c] px-1 text-[9px] font-bold text-white">
+              <span className="absolute -end-1 -top-1 flex min-w-4.5 items-center justify-center rounded-full bg-[#d73c3c] px-1 text-[10px] font-bold text-white">
                 {unread}
               </span>
             )}
           </span>
-          <button
-            type="button"
-            aria-label={t("deleteTitle")}
+          <ToolbarIcon
+            Icon={Trash2}
+            label={t("deleteTitle")}
+            color="#f35054"
             onClick={() => setConfirm(true)}
-            className="p-2.5 text-black/55 transition-colors hover:text-error"
-          >
-            <Trash2 className="size-[18px]" />
-          </button>
+          />
         </div>
       </div>
 
@@ -278,20 +279,24 @@ export function ProfileCard({ profile }: { profile: ProfileSummary }) {
 function ToolbarIcon({
   Icon,
   label,
+  color,
   onClick,
 }: {
   Icon: React.ComponentType<{ className?: string }>;
   label: string;
+  color: string;
   onClick?: () => void;
 }) {
   return (
     <button
       type="button"
       aria-label={label}
+      title={label}
       onClick={onClick}
-      className="p-2.5 text-black/55 transition-colors hover:text-foreground"
+      className="flex size-11 items-center justify-center rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-soft active:scale-95"
+      style={{ backgroundColor: `${color}1f`, color }}
     >
-      <Icon className="size-[18px]" />
+      <Icon className="size-5.5" />
     </button>
   );
 }

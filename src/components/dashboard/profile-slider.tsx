@@ -189,7 +189,7 @@ function NavButton({
 }
 
 /** Creative call-to-action card shown when the user has few sites. */
-function CreateCard({ onClick }: { onClick: () => void }) {
+export function CreateCard({ onClick }: { onClick: () => void }) {
   const t = useTranslations("dashboard");
   return (
     <button

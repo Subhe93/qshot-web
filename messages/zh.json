@@ -1,4 +1,11 @@
 {
+  "appPromo": {
+    "bar": "获取 {platform} 版 QShot，浏览更快",
+    "title": "获取 QShot 应用",
+    "badge": "最佳体验",
+    "body": "下载我们的应用，获得最佳性能和完整的 QShot 体验。",
+    "continue": "在浏览器中继续"
+  },
   "common": {
     "appName": "QShot",
     "loading": "Loading…",
@@ -486,7 +493,9 @@
         "name": "Telegram",
         "desc": "QR code to open a Telegram chat."
       }
-    }
+    },
+    "sortNewest": "最新",
+    "sortOldest": "最早"
   },
   "feedback": {
     "title": "反馈",

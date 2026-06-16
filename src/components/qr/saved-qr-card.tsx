@@ -123,32 +123,36 @@ export function SavedQrCard({
     <>
       {view === "list" ? (
         // ─── List tile ───────────────────────────────────────────────
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-2.5">
-          <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-white">
-            {item.pngImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={pngUrl} alt={item.name} className="size-14 object-contain" />
-            ) : null}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              {typeIcon && (
+        // On mobile the actions wrap to their own row so the name/type aren't
+        // squeezed by five icon buttons; on ≥sm everything sits inline.
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-2.5 sm:flex-row sm:items-center sm:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-white">
+              {item.pngImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={typeIcon} alt="" className="size-4 shrink-0" />
-              )}
-              <p className="line-clamp-1 font-semibold text-foreground">
-                {item.name || "—"}
-              </p>
-              {badge}
+                <img src={pngUrl} alt={item.name} className="size-14 object-contain" />
+              ) : null}
             </div>
-            {typeName && (
-              <p className="line-clamp-1 text-xs text-muted-foreground">{typeName}</p>
-            )}
-            {createdAt && (
-              <p className="text-xs text-muted-foreground/80">{createdAt}</p>
-            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                {typeIcon && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={typeIcon} alt="" className="size-4 shrink-0" />
+                )}
+                <p className="line-clamp-1 font-semibold text-foreground">
+                  {item.name || "—"}
+                </p>
+                {badge}
+              </div>
+              {typeName && (
+                <p className="line-clamp-1 text-xs text-muted-foreground">{typeName}</p>
+              )}
+              {createdAt && (
+                <p className="text-xs text-muted-foreground/80">{createdAt}</p>
+              )}
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-0.5">
+          <div className="flex shrink-0 items-center justify-end gap-0.5 border-t border-border pt-1.5 sm:border-t-0 sm:pt-0">
             {launchUrl && (
               <IconBtn
                 as="a"

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Menu } from "lucide-react";
 import { usePathname } from "@/i18n/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
+import { AppPromo } from "@/components/AppPromo";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -36,6 +37,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="flex h-dvh min-w-0 flex-1 flex-col overflow-hidden">
+        {/* Mobile-only "get the app" bar/popup (pushes content down). */}
+        <AppPromo />
         {/* Mobile top bar: logo (leading) + burger menu (trailing) */}
         <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-3 md:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}

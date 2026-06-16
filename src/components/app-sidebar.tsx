@@ -11,11 +11,11 @@ import { FeedbackButton } from "@/components/feedback-button";
 import { AppIcon } from "@/components/qr/app-icon";
 import { cn } from "@/lib/utils";
 
-// Icons pulled from the mobile app's bottom nav (portfolio / qr_code / scanner).
+// Icons pulled from the mobile app's bottom nav (portfolio / qr_code).
+// Scan QR is reached from a button inside the Generate QR page, not the sidebar.
 const NAV = [
   { href: "/dashboard", labelKey: "profiles", svg: "/nav/portfolio.svg" },
   { href: "/qr-codes", labelKey: "qrCodes", svg: "/nav/qr_code.svg" },
-  { href: "/scan", labelKey: "scanQr", svg: "/nav/scanner.svg" },
   { href: "/bookings", labelKey: "bookings", Icon: CalendarCheck },
   { href: "/settings", labelKey: "settings", Icon: Settings },
 ] as const;
