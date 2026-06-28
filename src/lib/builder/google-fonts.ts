@@ -70,8 +70,12 @@ export function ensureGoogleFonts(names: string[]): void {
   const fresh = names.filter((n) => n && !loaded.has(n));
   if (!fresh.length) return;
   fresh.forEach((n) => loaded.add(n));
+  // Match the Nuxt public site EXACTLY (pages/[slug].vue loads only :wght@100;200;
+  // 300;400). Loading the same weights makes the builder preview render headings/
+  // bold text the same way the live site does (faux-bold over 400) instead of with
+  // true heavy faces, and makes thin weights (e.g. style3's 100) available.
   const families = fresh
-    .map((n) => `family=${familyParam(n)}:wght@400;500;600;700;800;900`)
+    .map((n) => `family=${familyParam(n)}:wght@100;200;300;400`)
     .join("&");
   const link = document.createElement("link");
   link.rel = "stylesheet";

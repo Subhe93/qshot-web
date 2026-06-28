@@ -196,7 +196,10 @@ export function VideoLinksBlockView({ block }: { block: VideoLinksBlock }) {
           <div
             key={item.id ?? i}
             className="h-[148px] shrink-0 px-1"
-            style={{ width: 148 * (16 / 9) }}
+            // The card has 10px vertical padding inside the 148px row, so the
+            // visible 16:9 thumbnail is (148 - 10) tall — size width to match
+            // (mobile AspectRatio inside SizedBox(height: 148)).
+            style={{ width: (148 - 10) * (16 / 9) }}
           >
             <VideoCard item={item} />
           </div>
@@ -223,6 +226,14 @@ export function VideoLinksBlockView({ block }: { block: VideoLinksBlock }) {
         }
       >
         {body}
+        {/* Divider(indent 8, endIndent 8) at foreground@20% (mobile parity). */}
+        <div className="h-[5px]" />
+        <div className="px-5">
+          <div
+            className="mx-2 h-px"
+            style={{ backgroundColor: "color-mix(in srgb, currentColor 20%, transparent)" }}
+          />
+        </div>
       </Foldable>
     </div>
   );

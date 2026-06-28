@@ -71,6 +71,7 @@ export function SavedQrCard({
   const typeName = cfg?.name;
   const typeIcon = cfg?.icon ? cdnUrl(cfg.icon) : null;
   const editHref = `/qr-codes/new?edit=${item._id}`;
+  const detailHref = `/qr-codes/${item._id}`;
 
   const del = useMutation({
     mutationFn: () => deleteQrCode(item._id),
@@ -126,7 +127,7 @@ export function SavedQrCard({
         // On mobile the actions wrap to their own row so the name/type aren't
         // squeezed by five icon buttons; on ≥sm everything sits inline.
         <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-2.5 sm:flex-row sm:items-center sm:gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Link href={detailHref} className="flex min-w-0 flex-1 items-center gap-3">
             <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-white">
               {item.pngImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -151,7 +152,7 @@ export function SavedQrCard({
                 <p className="text-xs text-muted-foreground/80">{createdAt}</p>
               )}
             </div>
-          </div>
+          </Link>
           <div className="flex shrink-0 items-center justify-end gap-0.5 border-t border-border pt-1.5 sm:border-t-0 sm:pt-0">
             {launchUrl && (
               <IconBtn
@@ -179,7 +180,10 @@ export function SavedQrCard({
       ) : (
         // ─── Gallery card ────────────────────────────────────────────
         <div className="rounded-2xl border border-border bg-muted p-2">
-          <div className="flex items-center justify-center rounded-xl bg-white p-5">
+          <Link
+            href={detailHref}
+            className="flex items-center justify-center rounded-xl bg-white p-5 transition-opacity hover:opacity-90"
+          >
             {item.pngImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -190,7 +194,7 @@ export function SavedQrCard({
             ) : (
               <div className="aspect-square w-full max-w-[200px]" />
             )}
-          </div>
+          </Link>
 
           <div className="mt-2 rounded-xl bg-card p-3">
             <div className="flex items-start gap-2">

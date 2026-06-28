@@ -19,13 +19,8 @@ import type { NameField, BioField } from "@/lib/types/profile";
  * name/bio settings sheets: text, alignment, color (name only), and a hide
  * toggle. Reads/writes the editor store directly. Changes apply live.
  */
-export function NameBioSheet({
-  which,
-  onClose,
-}: {
-  which: "name" | "bio";
-  onClose: () => void;
-}) {
+/** Inner content — shared by the mobile sheet and the desktop left panel. */
+export function NameBioContent({ which }: { which: "name" | "bio" }) {
   const settings = useEditorStore((s) => s.settings);
   const update = useEditorStore((s) => s.updateSettings);
 
@@ -33,12 +28,7 @@ export function NameBioSheet({
   const isName = which === "name";
 
   return (
-    <BottomSheet
-      title={isName ? "Name" : "Bio"}
-      subtitle="Settings"
-      onClose={onClose}
-    >
-      <div className="space-y-5">
+    <div className="space-y-5">
         {/* Text */}
         <div>
           <SectionLabel>{isName ? "Name" : "Bio"}</SectionLabel>
@@ -118,7 +108,24 @@ export function NameBioSheet({
             />
           </GroupedCard>
         </div>
-      </div>
+    </div>
+  );
+}
+
+export function NameBioSheet({
+  which,
+  onClose,
+}: {
+  which: "name" | "bio";
+  onClose: () => void;
+}) {
+  return (
+    <BottomSheet
+      title={which === "name" ? "Name" : "Bio"}
+      subtitle="Settings"
+      onClose={onClose}
+    >
+      <NameBioContent which={which} />
     </BottomSheet>
   );
 }

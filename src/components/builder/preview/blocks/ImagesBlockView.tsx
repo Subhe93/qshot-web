@@ -53,13 +53,12 @@ function renderContent(items: ImageItem[], layout: ImagesBlock["layout_type"]) {
           style={{ backgroundColor: "color-mix(in srgb, currentColor 10%, transparent)" }}
         >
           <svg
-            width={40}
-            height={40}
+            width={56}
+            height={56}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth={1.5}
-            opacity={0.6}
             aria-hidden
           >
             <rect x="3" y="3" width="18" height="18" rx="2" />

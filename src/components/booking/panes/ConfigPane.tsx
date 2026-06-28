@@ -16,7 +16,6 @@ import {
   RotateCcw,
   Percent,
   ChevronRight,
-  Check,
   Minus,
   Plus,
 } from "lucide-react";
@@ -31,11 +30,59 @@ import {
 } from "@/lib/api/booking";
 import { Button } from "@/components/ui/button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { PaneLoading } from "../shared";
 import { Switch } from "./ServicesPane";
-import { cn } from "@/lib/utils";
 
-const CURRENCIES = ["USD", "EUR", "GBP", "SAR", "AED", "EGP", "SEK", "TRY", "KWD"];
+const CURRENCIES = [
+  "USD", "EUR", "GBP", "SAR", "AED", "EGP", "SEK", "TRY", "KWD", "QAR", "BHD",
+  "OMR", "JOD", "LBP", "DZD", "MAD", "TND", "IQD", "CAD", "AUD", "NZD", "CHF",
+  "JPY", "CNY", "INR", "PKR", "BDT", "IDR", "MYR", "SGD", "HKD", "KRW", "THB",
+  "PHP", "ZAR", "NGN", "KES", "BRL", "MXN", "ARS", "CLP", "COP", "RUB", "UAH",
+  "PLN", "CZK", "HUF", "RON", "DKK", "NOK", "ILS",
+];
+
+// Mobile seeds non-zero defaults for a brand-new config (booking_config_cubit.dart).
+const CONFIG_DEFAULTS: BookingConfig = {
+  defaultCurrency: "USD",
+  minNoticeTime: 0,
+  maxAdvancedBooking: 30,
+  softHoldDuration: 10,
+  generalGapBefore: 0,
+  generalGapAfter: 0,
+  userBookingLimit: 20,
+  cooldownBetweenBookings: 0,
+  cancellationCutoffHours: 0,
+  cancellationRefundPercent: 50,
+  depositPercent: 100,
+  platformFeePercent: 10,
+};
+
+// Exactly the keys the mobile create/update body sends (booking_config_cubit.dart) —
+// never echo back _id / isEnabled / stripe / timestamps (the server may reject them
+// or unintentionally flip the enabled flag).
+const CONFIG_KEYS: (keyof BookingConfig)[] = [
+  "defaultCurrency",
+  "generalGapBefore",
+  "generalGapAfter",
+  "minNoticeTime",
+  "maxAdvancedBooking",
+  "userBookingLimit",
+  "cooldownBetweenBookings",
+  "softHoldDuration",
+  "cancellationCutoffHours",
+  "cancellationRefundPercent",
+  "depositPercent",
+  "platformFeePercent",
+];
+function configPayload(draft: BookingConfig): Partial<BookingConfig> {
+  const out: Partial<BookingConfig> = {};
+  for (const k of CONFIG_KEYS) {
+    const v = draft[k] ?? CONFIG_DEFAULTS[k];
+    if (v !== undefined) (out as Record<string, unknown>)[k] = v;
+  }
+  return out;
+}
 
 type NumKey =
   | "minNoticeTime"
@@ -50,7 +97,15 @@ type NumKey =
   | "depositPercent"
   | "platformFeePercent";
 
-export function ConfigPane({ profileId }: { profileId: string }) {
+export function ConfigPane({
+  profileId,
+  onboarding = false,
+}: {
+  profileId: string;
+  /** First-run setup: shows an intro banner, hides the enable toggle (Save
+   *  creates an already-active config in one step). */
+  onboarding?: boolean;
+}) {
   const t = useTranslations("booking");
   const tc = useTranslations("booking.config");
   const tcom = useTranslations("common");
@@ -62,18 +117,21 @@ export function ConfigPane({ profileId }: { profileId: string }) {
   });
   const stripe = useQuery({
     queryKey: ["booking-stripe", profileId],
-    queryFn: () => getStripeStatus(profileId),
+    queryFn: () => getStripeStatus(),
   });
 
-  const [draft, setDraft] = useState<BookingConfig>({});
+  const [draft, setDraft] = useState<BookingConfig>(CONFIG_DEFAULTS);
   const exists = !!data?._id;
   useEffect(() => {
-    if (data) setDraft(data);
+    // Existing config → edit it; no config yet → start from the mobile defaults.
+    setDraft(data ? data : CONFIG_DEFAULTS);
   }, [data]);
 
   const save = useMutation({
     mutationFn: () =>
-      exists ? updateBookingConfig(profileId, draft) : createBookingConfig(profileId, draft),
+      exists
+        ? updateBookingConfig(profileId, configPayload(draft))
+        : createBookingConfig(profileId, configPayload(draft)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["booking-config", profileId] }),
   });
   const toggle = useMutation({
@@ -84,7 +142,7 @@ export function ConfigPane({ profileId }: { profileId: string }) {
   async function connectStripe() {
     setConnecting(true);
     try {
-      const res = await getStripeOnboardUrl(profileId);
+      const res = await getStripeOnboardUrl();
       if (res?.onboardingUrl) window.location.href = res.onboardingUrl;
     } catch {
       /* ignore */
@@ -93,8 +151,8 @@ export function ConfigPane({ profileId }: { profileId: string }) {
     }
   }
 
-  // Active picker sheet (number key or "currency").
-  const [sheet, setSheet] = useState<NumKey | "currency" | null>(null);
+  // Active number picker sheet.
+  const [sheet, setSheet] = useState<NumKey | null>(null);
 
   if (isLoading) return <PaneLoading />;
   const set = (p: Partial<BookingConfig>) => setDraft((d) => ({ ...d, ...p }));
@@ -139,14 +197,35 @@ export function ConfigPane({ profileId }: { profileId: string }) {
           </Button>
         </div>
 
-        {/* Enable */}
-        <div className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
-          <span className="font-medium">{t(enabled ? "enabled" : "disabled")}</span>
-          <Switch on={enabled} onToggle={() => toggle.mutate()} />
-        </div>
+        {/* First-run setup banner: one Save activates booking. */}
+        {onboarding ? (
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+            <p className="text-sm font-semibold text-foreground">{tc("setupTitle")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{tc("setupDesc")}</p>
+          </div>
+        ) : (
+          /* Enable / disable (only after the module is set up) */
+          <div className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
+            <span className="font-medium">{t(enabled ? "enabled" : "disabled")}</span>
+            <Switch on={enabled} onToggle={() => toggle.mutate()} />
+          </div>
+        )}
 
         <Group title={tc("general")}>
-          <PickerRow icon={<Coins className="size-4" />} color="#d97706" label={tc("currency")} value={draft.defaultCurrency ?? "USD"} onClick={() => setSheet("currency")} />
+          <div className="flex w-full items-center gap-3 rounded-xl border border-input bg-card px-3 py-2.5">
+            <IconBox icon={<Coins className="size-4" />} color="#d97706" />
+            <span className="flex-1 truncate text-sm font-medium">{tc("currency")}</span>
+            <div className="w-32 shrink-0">
+              <SearchableSelect
+                value={draft.defaultCurrency ?? "USD"}
+                options={CURRENCIES.map((c) => ({ value: c, label: c }))}
+                onChange={(v) => set({ defaultCurrency: v })}
+                title={tc("currency")}
+                searchPlaceholder={tcom("search")}
+                className="h-9 border-0 bg-transparent px-0"
+              />
+            </div>
+          </div>
           {row("minNoticeTime")}
           {row("maxAdvancedBooking")}
           {row("softHoldDuration")}
@@ -186,30 +265,7 @@ export function ConfigPane({ profileId }: { profileId: string }) {
       </div>
 
       {/* Sheets */}
-      {sheet === "currency" && (
-        <BottomSheet title={tc("currency")} onClose={() => setSheet(null)}>
-          <div className="space-y-1">
-            {CURRENCIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => {
-                  set({ defaultCurrency: c });
-                  setSheet(null);
-                }}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-xl px-3 py-3 text-start text-sm",
-                  c === (draft.defaultCurrency ?? "USD") ? "bg-primary/10 font-semibold text-primary" : "hover:bg-muted",
-                )}
-              >
-                {c}
-                {c === (draft.defaultCurrency ?? "USD") && <Check className="size-4" />}
-              </button>
-            ))}
-          </div>
-        </BottomSheet>
-      )}
-      {sheet && sheet !== "currency" && (
+      {sheet && (
         <NumberSheet
           title={NUM_META[sheet].label}
           value={draft[sheet] ?? 0}

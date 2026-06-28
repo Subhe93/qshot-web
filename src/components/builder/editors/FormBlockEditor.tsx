@@ -38,10 +38,10 @@ import { GroupedCard, ColorRow } from "./sheet-kit";
 
 /** Question types — mobile FormBlockType enum order/labels. */
 const QUESTION_TYPES = [
-  { type: "text", Icon: Type, label: "Text" },
-  { type: "paragraph", Icon: AlignLeft, label: "Paragraph" },
-  { type: "choices", Icon: ListChecks, label: "Choices" },
-  { type: "rating", Icon: Star, label: "Rating" },
+  { type: "text", Icon: Type, labelKey: "typeText" },
+  { type: "paragraph", Icon: AlignLeft, labelKey: "typeParagraph" },
+  { type: "choices", Icon: ListChecks, labelKey: "typeChoices" },
+  { type: "rating", Icon: Star, labelKey: "typeRating" },
 ] as const;
 
 type QType = (typeof QUESTION_TYPES)[number]["type"];
@@ -111,7 +111,7 @@ export function FormBlockEditor({ block }: { block: FormBlock }) {
         onReorder={setQuestions}
         onEdit={(i) => setEditingIndex(i)}
         onDelete={(i) => setQuestions(questions.filter((_, idx) => idx !== i))}
-        defaultLabel="Default"
+        defaultLabel={t("form.defaultOption")}
       />
 
       <button
@@ -120,7 +120,7 @@ export function FormBlockEditor({ block }: { block: FormBlock }) {
         className="flex w-full items-center justify-center gap-2 rounded-[10px] border border-foreground/30 bg-foreground/[0.06] py-3 text-sm font-semibold text-primary transition-colors hover:bg-foreground/[0.1]"
       >
         <Plus className="size-4" />
-        {"New question"}
+        {t("form.newQuestion")}
       </button>
 
       {editingIndex != null && questions[editingIndex] && (
@@ -200,6 +200,8 @@ function SortableQuestionRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("builder");
+  const tc = useTranslations("common");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
   const data = question.data ?? {};
@@ -218,7 +220,7 @@ function SortableQuestionRow({
         {...attributes}
         {...listeners}
         className="flex cursor-grab items-center p-2 text-foreground active:cursor-grabbing"
-        aria-label="Drag"
+        aria-label={t("fields.drag")}
       >
         <GripVertical className="size-5" />
       </span>
@@ -240,7 +242,7 @@ function SortableQuestionRow({
       <button
         type="button"
         onClick={onDelete}
-        aria-label="Delete"
+        aria-label={tc("delete")}
         className="flex size-10 items-center justify-center text-foreground"
       >
         <Trash2 className="size-4" />
@@ -303,7 +305,7 @@ function QuestionEditor({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("form.close")}
             className="flex size-11 items-center justify-center rounded-full bg-surface text-foreground"
           >
             <X className="size-5" />
@@ -312,7 +314,7 @@ function QuestionEditor({
 
         {/* Type panel */}
         <div className="flex gap-2">
-          {QUESTION_TYPES.map(({ type: ty, Icon, label }) => {
+          {QUESTION_TYPES.map(({ type: ty, Icon, labelKey }) => {
             const selected = ty === type;
             return (
               <button
@@ -327,7 +329,7 @@ function QuestionEditor({
                 )}
               >
                 <Icon className="size-6" />
-                {label}
+                {t(`form.${labelKey}`)}
               </button>
             );
           })}
@@ -336,12 +338,12 @@ function QuestionEditor({
         {/* Question */}
         <div>
           <label className="mb-1 block text-xs text-muted-foreground">
-            Question
+            {t("form.question")}
           </label>
           <Input
             value={(data.question as string) ?? ""}
             maxLength={40}
-            placeholder="Add your question"
+            placeholder={t("form.questionPlaceholder")}
             onChange={(e) => put("question", e.target.value)}
           />
         </div>
@@ -349,13 +351,13 @@ function QuestionEditor({
         {/* Description */}
         <div>
           <label className="mb-1 block text-xs text-muted-foreground">
-            Description
+            {t("form.description")}
           </label>
           <textarea
             value={(data.description as string) ?? ""}
             maxLength={100}
             rows={2}
-            placeholder="Describe your question (optional)"
+            placeholder={t("form.descriptionPlaceholder")}
             onChange={(e) => put("description", e.target.value)}
             className="w-full resize-none rounded-md border border-border bg-card px-5 py-2.5 text-sm text-foreground outline-none focus:border-primary"
           />
@@ -363,10 +365,10 @@ function QuestionEditor({
 
         {/* Required / optional */}
         <ChipSelect
-          label={t("fields.required")}
+          label={t("form.required")}
           options={[
-            { label: t("fields.required"), value: true },
-            { label: "Optional", value: false },
+            { label: t("form.required"), value: true },
+            { label: t("form.optional"), value: false },
           ]}
           selected={data.required}
           onChange={(v) => put("required", v)}
@@ -376,11 +378,11 @@ function QuestionEditor({
         {(type === "text" || type === "paragraph") && (
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">
-              Hint
+              {t("form.hint")}
             </label>
             <Input
               value={(data.hint as string) ?? ""}
-              placeholder="Hint text (optional)"
+              placeholder={t("form.hintPlaceholder")}
               onChange={(e) => put("hint", e.target.value)}
             />
           </div>
@@ -389,13 +391,13 @@ function QuestionEditor({
         {type === "choices" && (
           <div className="space-y-2">
             <label className="block text-xs text-muted-foreground">
-              Choices
+              {t("form.choices")}
             </label>
             {choices.map((choice, i) => (
               <div key={i} className="relative">
                 <Input
                   value={choice}
-                  placeholder="Your option"
+                  placeholder={t("form.optionPlaceholder")}
                   onChange={(e) =>
                     put(
                       "choices",
@@ -406,7 +408,7 @@ function QuestionEditor({
                 />
                 <button
                   type="button"
-                  aria-label="Remove option"
+                  aria-label={t("form.removeOption")}
                   onClick={() => put("choices", choices.filter((_, idx) => idx !== i))}
                   className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
@@ -419,13 +421,13 @@ function QuestionEditor({
               onClick={() => put("choices", [...choices, ""])}
               className="w-full rounded-md border border-border py-2 text-sm font-medium italic text-primary"
             >
-              Add choice
+              {t("form.addOption")}
             </button>
             <ChipSelect
-              label={t("fields.type")}
+              label={t("form.choicesType")}
               options={[
-                { label: "Multiple choices", value: "multiple" },
-                { label: "Single choice", value: "single" },
+                { label: t("form.multipleChoices"), value: "multiple" },
+                { label: t("form.singleChoice"), value: "single" },
               ]}
               selected={data.choices_type}
               onChange={(v) => put("choices_type", v)}
@@ -436,7 +438,7 @@ function QuestionEditor({
         {type === "rating" && (
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">
-              Number of stars
+              {t("form.starsNumber")}
             </label>
             <Input
               type="number"

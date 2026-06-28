@@ -1,14 +1,19 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { uploadImage } from "@/lib/api/media";
 import { ImageCropper } from "@/components/ui/image-cropper";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { heroStyleFlags } from "@/lib/builder/hero-defaults";
 import { cn } from "@/lib/utils";
 import { ColorPickerField } from "@/components/ui/color-picker";
 import type { CoverPhotoSize, WebsiteSettings } from "@/lib/types/profile";
+
+// Cover sizes that overlay-limit the hero content (mobile CoverPhotoSize.limitedContent).
+const LIMITED_SIZES: CoverPhotoSize[] = ["horizontal", "square"];
 import {
   GroupedCard,
   GroupedRow,
@@ -37,12 +42,55 @@ export function CoverTab({
   settings: WebsiteSettings;
   update: (patch: Partial<WebsiteSettings>) => void;
 }) {
+  const t = useTranslations("builder");
+  const tc = useTranslations("common");
   const cover = settings.cover_photo ?? {};
   const setCover = (patch: Partial<typeof cover>) =>
     update({ cover_photo: { ...cover, ...patch } });
 
+  // Mirror the mobile `putCoverImage`: a colored overlay sits over the cover at
+  // `transparency` alpha, so an extreme value (e.g. style6 defaults to 1, fully
+  // opaque) would completely hide a newly-added image. When setting an image and
+  // the current transparency is extreme (<0.1 or >0.9), reset it to 0.1 so the
+  // image is actually visible.
+  const setCoverImage = (image_url?: string, extra?: Partial<typeof cover>) => {
+    if (!image_url) {
+      setCover({ image_url: undefined, ...extra });
+      return;
+    }
+    const tNow = cover.transparency ?? 0;
+    const patch: Partial<typeof cover> = { image_url, ...extra };
+    if (tNow < 0.1 || tNow > 0.9) patch.transparency = 0.1;
+    setCover(patch);
+  };
+
   const flags = heroStyleFlags(settings.style ?? "style2");
   const cardColor = settings.card_style?.color ?? 0xffffffff;
+
+  // Picking a limited cover size (16:9 / 1:1) hides the hero title/text/buttons —
+  // warn first (mobile showContentLimitDialog), only if the style has content.
+  const [pendingSize, setPendingSize] = useState<CoverPhotoSize | null>(null);
+  // After (optional) confirmation, the mobile re-crops the existing cover image
+  // to the new aspect ratio (cropImageRect) before saving the size — we open the
+  // cropper for the same reason. Cancelling the crop leaves the size unchanged.
+  const [cropSize, setCropSize] = useState<CoverPhotoSize | null>(null);
+  const hasContent =
+    flags.hasTitle || flags.hasText || flags.hasButton1 || flags.hasButton2;
+
+  function applySize(v: CoverPhotoSize) {
+    if (cover.image_url) {
+      setCropSize(v); // open the cropper at the new aspect ratio
+      return;
+    }
+    setCover({ size: v });
+  }
+  function chooseSize(v: CoverPhotoSize) {
+    if (LIMITED_SIZES.includes(v) && hasContent) {
+      setPendingSize(v);
+      return;
+    }
+    applySize(v);
+  }
 
   return (
     <div className="space-y-5">
@@ -51,7 +99,7 @@ export function CoverTab({
         <SectionLabel>Image</SectionLabel>
         <ImageUploader
           path={cover.image_url}
-          onUploaded={(p) => setCover({ image_url: p })}
+          onUploaded={(p) => setCoverImage(p)}
           onDelete={() => setCover({ image_url: undefined })}
           aspect={SIZE_ASPECT[cover.size ?? "horizontal"]}
         />
@@ -75,7 +123,7 @@ export function CoverTab({
         <Segmented
           options={SIZES}
           value={cover.size ?? "horizontal"}
-          onChange={(v) => setCover({ size: v })}
+          onChange={chooseSize}
         />
       </div>
 
@@ -130,6 +178,44 @@ export function CoverTab({
           )}
         </GroupedCard>
       </div>
+
+      {/* Limited cover size warning (mobile showContentLimitDialog). */}
+      <ConfirmDialog
+        open={pendingSize !== null}
+        type="warning"
+        title={t("careful")}
+        message={t("coverSizeWarning")}
+        confirmText={t("confirm")}
+        cancelText={tc("cancel")}
+        onConfirm={() => {
+          const v = pendingSize;
+          setPendingSize(null);
+          if (v) applySize(v);
+        }}
+        onCancel={() => setPendingSize(null)}
+      />
+
+      {/* Re-crop the cover image to the newly chosen aspect ratio (mobile
+          cropImageRect). Cancelling keeps the current size. */}
+      {cropSize !== null && cover.image_url && (
+        <ImageCropper
+          // Load through our same-origin proxy — the CDN has no CORS headers, so
+          // a direct CDN <img> would taint the canvas and break toBlob() export.
+          src={`/api/image-proxy?url=${encodeURIComponent(cdnUrl(cover.image_url))}`}
+          title="Crop image"
+          cancelLabel={tc("cancel")}
+          confirmLabel="Done"
+          aspect={SIZE_ASPECT[cropSize]}
+          onCancel={() => setCropSize(null)}
+          onCropped={async (blob) => {
+            const file = new File([blob], "cover.jpg", { type: "image/jpeg" });
+            const uploaded = await uploadImage(file);
+            if (uploaded) setCoverImage(uploaded, { size: cropSize });
+            else setCover({ size: cropSize });
+            setCropSize(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -152,6 +238,7 @@ export function ImageUploader({
   aspect?: number;
   cropShape?: "rect" | "round";
 }) {
+  const t = useTranslations("builder");
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
@@ -216,13 +303,13 @@ export function ImageUploader({
         onClick={() => inputRef.current?.click()}
         className="flex-1 rounded-xl border border-dashed border-primary/40 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
       >
-        {path ? "Change image" : "Upload image"}
+        {path ? t("fields.changeImage") : t("fields.uploadImage")}
       </button>
       {path && (
         <button
           type="button"
           onClick={onDelete}
-          aria-label="Delete image"
+          aria-label={t("fields.deleteImage")}
           className="flex size-9 shrink-0 items-center justify-center rounded-full text-error hover:bg-error/10"
         >
           <Trash2 className="size-4" />

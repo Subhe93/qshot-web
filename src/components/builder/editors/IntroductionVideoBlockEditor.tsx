@@ -1,6 +1,7 @@
 "use client";
 
 import { Film, Image as ImageIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/stores/editor-store";
 import { dirOf } from "@/lib/builder/text-direction";
 import type { IntroductionVideoBlock } from "@/lib/types/blocks";
@@ -17,6 +18,7 @@ export function IntroductionVideoBlockEditor({
 }: {
   block: IntroductionVideoBlock;
 }) {
+  const t = useTranslations("builder");
   const updateBlock = useEditorStore((s) => s.updateBlock);
   const setBlock = (patch: Partial<IntroductionVideoBlock>) =>
     updateBlock(block.id, patch);
@@ -25,9 +27,9 @@ export function IntroductionVideoBlockEditor({
     <div className="space-y-5">
       {/* Video URL */}
       <div className="space-y-2">
-        <SectionLabel>Video</SectionLabel>
+        <SectionLabel>{t("introVideo.video")}</SectionLabel>
         <GroupedCard>
-          <GroupedRow Icon={Film} title="Video URL" />
+          <GroupedRow Icon={Film} title={t("introVideo.videoUrl")} />
           <div className="px-3 pb-3">
             <input
               type="url"
@@ -35,7 +37,7 @@ export function IntroductionVideoBlockEditor({
               dir={dirOf(block.url ?? "")}
               value={block.url ?? ""}
               onChange={(e) => setBlock({ url: e.target.value })}
-              placeholder="https://example.com/video.mp4"
+              placeholder={t("introVideo.videoHint")}
               className="w-full rounded-xl border border-input bg-card px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
@@ -44,9 +46,9 @@ export function IntroductionVideoBlockEditor({
 
       {/* Thumbnail */}
       <div className="space-y-2">
-        <SectionLabel>Thumbnail</SectionLabel>
+        <SectionLabel>{t("introVideo.thumbnail")}</SectionLabel>
         <GroupedCard>
-          <GroupedRow Icon={ImageIcon} color="#7c3aed" title="Thumbnail image" />
+          <GroupedRow Icon={ImageIcon} color="#7c3aed" title={t("introVideo.thumbnailImage")} />
           <div className="px-3 pb-3">
             <ImageUploader
               path={block.thumbnail_url}

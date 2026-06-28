@@ -2,6 +2,7 @@ import type { ButtonBlock, ButtonItem } from "@/lib/types/blocks";
 import { argbToCss } from "@/lib/builder/color";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { dirOf } from "@/lib/builder/text-direction";
+import { Foldable } from "../Foldable";
 
 /**
  * Read-only preview for ButtonBlock ("ButtonModule"), faithful to the Flutter
@@ -143,32 +144,40 @@ export function ButtonBlockView({ block }: { block: ButtonBlock }) {
 
   return (
     <div className="py-2">
-      {title && (
-        <h2 dir={dirOf(title)} className="px-6 text-2xl font-bold text-foreground">
-          {title}
-        </h2>
-      )}
-      {title && <div className="h-[5px]" />}
-
-      {items.length === 0 ? (
-        <p className="px-6 py-4 text-center text-xs text-muted-foreground/60">
-          No buttons yet
-        </p>
-      ) : isGrid ? (
-        // 2 columns, gap 10 (crossAxis + mainAxis spacing), 16px horizontal pad.
-        <div className="grid grid-cols-2 gap-2.5 px-4">
-          {items.map((item, i) => (
-            <ButtonTile key={item.id ?? i} item={item} showArrow={showArrow} compact />
-          ))}
-        </div>
-      ) : (
-        // List: each tile vertical padding 5, 16px horizontal pad.
-        <div className="flex flex-col gap-2.5 px-4">
-          {items.map((item, i) => (
-            <ButtonTile key={item.id ?? i} item={item} showArrow={showArrow} />
-          ))}
-        </div>
-      )}
+      <Foldable
+        foldable={block.foldable}
+        header={
+          title ? (
+            <>
+              {/* Mobile headlineMedium = 20px (text-xl). */}
+              <h2 dir={dirOf(title)} className="px-6 text-xl font-bold text-foreground">
+                {title}
+              </h2>
+              <div className="h-[5px]" />
+            </>
+          ) : null
+        }
+      >
+        {items.length === 0 ? (
+          <p className="px-6 py-4 text-center text-xs text-muted-foreground/60">
+            No buttons yet
+          </p>
+        ) : isGrid ? (
+          // 2 columns, gap 10 (crossAxis + mainAxis spacing), 16px horizontal pad.
+          <div className="grid grid-cols-2 gap-2.5 px-4">
+            {items.map((item, i) => (
+              <ButtonTile key={item.id ?? i} item={item} showArrow={showArrow} compact />
+            ))}
+          </div>
+        ) : (
+          // List: each tile vertical padding 5, 16px horizontal pad.
+          <div className="flex flex-col gap-2.5 px-4">
+            {items.map((item, i) => (
+              <ButtonTile key={item.id ?? i} item={item} showArrow={showArrow} />
+            ))}
+          </div>
+        )}
+      </Foldable>
     </div>
   );
 }

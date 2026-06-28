@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { nanoid } from "nanoid";
 import {
@@ -14,9 +14,6 @@ import {
   EyeOff,
   Trash2,
   GripVertical,
-  Check,
-  ChevronLeft,
-  ChevronRight,
   Copy,
   ArrowRight,
   Type,
@@ -45,7 +42,6 @@ import { cn } from "@/lib/utils";
 import type {
   ButtonBlock,
   ButtonItem,
-  ButtonsLayoutType,
   ButtonThemeType,
 } from "@/lib/types/blocks";
 import {
@@ -57,6 +53,7 @@ import {
   type SheetTab,
 } from "./sheet-kit";
 import { ButtonItemEditor } from "./ButtonItemEditor";
+import { LayoutPicker } from "./LayoutPicker";
 
 type Tab = "sort" | "layout" | "theme" | "settings";
 
@@ -211,12 +208,13 @@ export function ButtonBlockEditor({ block }: { block: ButtonBlock }) {
       )}
 
       {tab === "layout" && (
-        <LayoutTab
+        <LayoutPicker
+          options={[
+            { type: "list", label: t("layoutList"), svg: "layout_list.svg" },
+            { type: "grid", label: t("layoutGrid"), svg: "layout_grid.svg" },
+          ]}
           value={block.layout_type ?? "list"}
           onChange={(v) => setBlock({ layout_type: v })}
-          listLabel={t("layoutList")}
-          gridLabel={t("layoutGrid")}
-          hint={t("swipeLayouts")}
         />
       )}
 
@@ -251,7 +249,7 @@ export function ButtonBlockEditor({ block }: { block: ButtonBlock }) {
             <GroupedRow
               Icon={FoldVertical}
               color="var(--primary)"
-              title="Dropdown"
+              title={t("dropdown")}
               trailing={
                 <ToggleSwitch
                   checked={!!block.foldable}
@@ -434,137 +432,6 @@ function SortableButtonRow({
         <Trash2 className="size-4" />
       </button>
     </div>
-  );
-}
-
-// ---- Layout tab ----
-
-/**
- * Layout tab — mirrors the mobile buttons settings PageView of layout previews
- * (buttons_settings_sheet.dart:391) with its swipe hint + SmoothPageIndicator.
- * Uses the same `layout_list.svg` / `layout_grid.svg` assets the mobile app
- * renders (Assets.svg.layoutList / layoutGrid).
- */
-function LayoutTab({
-  value,
-  onChange,
-  listLabel,
-  gridLabel,
-  hint,
-}: {
-  value: ButtonsLayoutType;
-  onChange: (v: ButtonsLayoutType) => void;
-  listLabel: string;
-  gridLabel: string;
-  hint: string;
-}) {
-  const layouts: { type: ButtonsLayoutType; label: string; svg: string }[] = [
-    { type: "list", label: listLabel, svg: "/layouts/layout_list.svg" },
-    { type: "grid", label: gridLabel, svg: "/layouts/layout_grid.svg" },
-  ];
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const selectedIndex = Math.max(
-    0,
-    layouts.findIndex((l) => l.type === value),
-  );
-
-  useEffect(() => {
-    const slide = scrollRef.current?.children[selectedIndex] as
-      | HTMLElement
-      | undefined;
-    slide?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [selectedIndex]);
-
-  const go = (index: number) => {
-    const i = Math.min(layouts.length - 1, Math.max(0, index));
-    onChange(layouts[i].type);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5">
-        <LayoutArrow dir="prev" disabled={selectedIndex === 0} onClick={() => go(selectedIndex - 1)} />
-        <div
-          ref={scrollRef}
-          className="flex flex-1 snap-x snap-mandatory gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {layouts.map((layout) => {
-            const selected = layout.type === value;
-            return (
-              <button
-                key={layout.type}
-                type="button"
-                onClick={() => onChange(layout.type)}
-                className={cn(
-                  "relative flex w-full shrink-0 snap-center flex-col items-center gap-3 rounded-2xl border p-3 transition-colors",
-                  selected ? "border-primary bg-primary/[0.04]" : "border-transparent",
-                )}
-              >
-                {selected && (
-                  <span className="absolute end-2.5 top-2.5 z-10 flex size-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    <Check className="size-3" />
-                  </span>
-                )}
-                <div className="flex h-32 w-full items-center justify-center rounded-xl bg-muted px-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={layout.svg} alt="" className="h-full w-full object-contain" />
-                </div>
-                <span className="text-sm font-semibold text-foreground">{layout.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <LayoutArrow
-          dir="next"
-          disabled={selectedIndex === layouts.length - 1}
-          onClick={() => go(selectedIndex + 1)}
-        />
-      </div>
-
-      <p className="text-center text-xs text-muted-foreground">{hint}</p>
-
-      <div className="flex justify-center gap-1.5">
-        {layouts.map((layout, i) => (
-          <button
-            key={layout.type}
-            type="button"
-            aria-label={layout.type}
-            onClick={() => onChange(layout.type)}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === selectedIndex ? "w-3.5 bg-primary" : "w-1.5 bg-primary/20",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LayoutArrow({
-  dir,
-  disabled,
-  onClick,
-}: {
-  dir: "prev" | "next";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={dir}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-opacity hover:bg-muted disabled:opacity-30"
-    >
-      {dir === "prev" ? (
-        <ChevronLeft className="size-5 rtl:rotate-180" />
-      ) : (
-        <ChevronRight className="size-5 rtl:rotate-180" />
-      )}
-    </button>
   );
 }
 

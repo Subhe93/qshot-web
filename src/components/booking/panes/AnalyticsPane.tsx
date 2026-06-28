@@ -9,6 +9,7 @@ import { PaneLoading } from "../shared";
 export function AnalyticsPane({ profileId }: { profileId: string }) {
   const t = useTranslations("booking.analytics");
   const tk = useTranslations("booking.kpi");
+  const tb = useTranslations("booking");
   const locale = useLocale();
 
   const { data, isLoading } = useQuery({
@@ -42,10 +43,19 @@ export function AnalyticsPane({ profileId }: { profileId: string }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {t("last30Days")}
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-4">
+          {/* revenue · collected · on-site due · bookings (mobile parity). */}
+          <div className="mt-3 grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div>
               <p className="text-xl font-extrabold text-success">{money(a.last30Days?.revenue)}</p>
               <p className="text-xs text-muted-foreground">{t("revenue")}</p>
+            </div>
+            <div>
+              <p className="text-xl font-extrabold text-success">{money(a.last30Days?.collectedRevenue)}</p>
+              <p className="text-xs text-muted-foreground">{tb("collected")}</p>
+            </div>
+            <div>
+              <p className="text-xl font-extrabold text-warning">{money(a.last30Days?.onSiteDue)}</p>
+              <p className="text-xs text-muted-foreground">{tb("onSiteDue")}</p>
             </div>
             <div>
               <p className="text-xl font-extrabold text-primary">{a.last30Days?.bookingCount ?? 0}</p>
@@ -95,10 +105,11 @@ function Breakdown({
   money,
 }: {
   title: string;
-  rows: Array<{ name?: string; bookingCount?: number; revenue?: number }>;
+  rows: Array<{ name?: string; _id?: string; bookingCount?: number; count?: number; revenue?: number }>;
   money: (n?: number) => string;
 }) {
-  const max = Math.max(...rows.map((r) => r.bookingCount ?? 0), 1);
+  const countOf = (r: { bookingCount?: number; count?: number }) => r.bookingCount ?? r.count ?? 0;
+  const max = Math.max(...rows.map(countOf), 1);
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <h3 className="mb-3 font-semibold">{title}</h3>
@@ -109,15 +120,15 @@ function Breakdown({
           {rows.map((r, i) => (
             <div key={i}>
               <div className="mb-1 flex items-center justify-between text-sm">
-                <span className="truncate font-medium">{r.name ?? "—"}</span>
+                <span className="truncate font-medium">{r.name ?? r._id ?? "—"}</span>
                 <span className="text-muted-foreground">
-                  {r.bookingCount ?? 0} · {money(r.revenue)}
+                  {countOf(r)} · {money(r.revenue)}
                 </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-primary"
-                  style={{ width: `${((r.bookingCount ?? 0) / max) * 100}%` }}
+                  style={{ width: `${(countOf(r) / max) * 100}%` }}
                 />
               </div>
             </div>

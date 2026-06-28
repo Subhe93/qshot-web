@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Home,
   GripVertical,
@@ -53,6 +54,7 @@ export function PagesPanel({
   profileId: string;
   onOpenPage: () => void;
 }) {
+  const t = useTranslations("builder.pages");
   const enterPage = useEditorStore((s) => s.enterPage);
   const exitToHome = useEditorStore((s) => s.exitToHome);
   const activePageId = useEditorStore((s) => s.pageId);
@@ -138,9 +140,9 @@ export function PagesPanel({
         <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Home className="size-[18px]" />
         </span>
-        <span className="flex-1 text-sm font-semibold text-foreground">Home</span>
+        <span className="flex-1 text-sm font-semibold text-foreground">{t("home")}</span>
         {activePageId === null && (
-          <span className="text-[11px] font-semibold text-primary">Editing</span>
+          <span className="text-[11px] font-semibold text-primary">{t("editing")}</span>
         )}
       </button>
 
@@ -174,7 +176,7 @@ export function PagesPanel({
         onClick={() => setEditing("new")}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-primary/40 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
       >
-        <Plus className="size-4" /> Add webpage
+        <Plus className="size-4" /> {t("addWebpage")}
       </button>
 
       {editing && (
@@ -207,6 +209,7 @@ function PageRow({
   onToggle: () => void;
   onEdit: () => void;
 }) {
+  const t = useTranslations("builder.pages");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: page._id });
   const listed = page.listViewStatus ?? false;
@@ -223,7 +226,7 @@ function PageRow({
         className="flex size-7 cursor-grab touch-none items-center justify-center text-muted-foreground/60"
         {...attributes}
         {...listeners}
-        aria-label="Reorder"
+        aria-label={t("reorder")}
       >
         <GripVertical className="size-4" />
       </button>
@@ -234,7 +237,7 @@ function PageRow({
       <button
         type="button"
         onClick={onToggle}
-        aria-label="Toggle listed"
+        aria-label={t("toggleListed")}
         className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-surface"
       >
         {listed ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
@@ -244,7 +247,7 @@ function PageRow({
         onClick={onOpen}
         className="flex h-8 items-center rounded-full bg-primary/10 px-3 text-xs font-semibold text-primary"
       >
-        {busy ? <Loader2 className="size-4 animate-spin" /> : "Open"}
+        {busy ? <Loader2 className="size-4 animate-spin" /> : t("open")}
       </button>
     </div>
   );
@@ -261,8 +264,13 @@ function PageEditorSheet({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const t = useTranslations("builder.pages");
+  const tc = useTranslations("common");
   const [name, setName] = useState(page?.listName ?? "");
   const [url, setUrl] = useState(page?.urlName ?? "");
+  // Whether the user edited the URL by hand. Until then, a new page's URL keeps
+  // following the name as it's typed.
+  const [urlTouched, setUrlTouched] = useState(false);
   const [checking, setChecking] = useState(false);
   const [taken, setTaken] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
@@ -316,43 +324,48 @@ function PageEditorSheet({
 
   return (
     <BottomSheet
-      title={page ? "Edit page" : "New page"}
+      title={page ? t("editTitle") : t("newTitle")}
       onClose={onClose}
       footer={
         <div className="flex gap-2 border-t border-border p-4">
           {page && (
-            <Button variant="outline" onClick={remove} disabled={saving} aria-label="Delete">
+            <Button variant="outline" onClick={remove} disabled={saving} aria-label={tc("delete")}>
               <Trash2 className="size-4 text-error" />
             </Button>
           )}
           <Button className="flex-1" onClick={save} disabled={!valid || saving}>
-            {saving ? <Loader2 className="size-4 animate-spin" /> : "Save"}
+            {saving ? <Loader2 className="size-4 animate-spin" /> : tc("save")}
           </Button>
         </div>
       }
     >
       <div className="space-y-4">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-foreground">Name</span>
+          <span className="mb-1 block text-sm font-medium text-foreground">{t("nameLabel")}</span>
           <input
             value={name}
             onChange={(e) => {
-              setName(e.target.value);
-              if (!page && !url) onUrlChange(e.target.value);
+              const v = e.target.value;
+              setName(v);
+              // Keep deriving the URL from the full name until the user edits it.
+              if (!page && !urlTouched) onUrlChange(v);
             }}
             className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-primary"
-            placeholder="Page name"
+            placeholder={t("namePlaceholder")}
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-foreground">URL</span>
+          <span className="mb-1 block text-sm font-medium text-foreground">{t("urlLabel")}</span>
           <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 focus-within:border-primary">
             <span className="text-sm text-muted-foreground">/</span>
             <input
               value={url}
-              onChange={(e) => onUrlChange(e.target.value)}
+              onChange={(e) => {
+                setUrlTouched(true);
+                onUrlChange(e.target.value);
+              }}
               className="w-full bg-transparent py-2.5 text-sm outline-none"
-              placeholder="page-url"
+              placeholder={t("urlPlaceholder")}
             />
             {checking ? (
               <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -363,7 +376,7 @@ function PageEditorSheet({
             ) : null}
           </div>
           {taken === true && (
-            <span className="mt-1 block text-[11px] text-error">This URL is taken</span>
+            <span className="mt-1 block text-[11px] text-error">{t("urlTaken")}</span>
           )}
         </label>
       </div>

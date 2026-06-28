@@ -54,7 +54,7 @@ const PROVIDERS: { name: EmbedConfiguration; title: string; hint?: string }[] = 
 ];
 
 const ASPECT_OPTIONS: { label: string; value: number | null }[] = [
-  { label: "Auto", value: null },
+  { label: "auto", value: null },
   { label: "16:9", value: 16 / 9 },
   { label: "4:3", value: 4 / 3 },
   { label: "1:1", value: 1 },
@@ -77,7 +77,7 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
     setBlock({ data: { ...data, ...patch } });
 
   const tabs: SheetTab<Tab>[] = [
-    { value: "content", label: "Embed", Icon: Code2 },
+    { value: "content", label: t("embed.embed"), Icon: Code2 },
     { value: "settings", label: t("tabs.settings"), Icon: SettingsIcon },
   ];
 
@@ -89,7 +89,7 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
         <div className="space-y-4">
           {/* Provider picker (mirrors EmbedSelectorSheet) */}
           <div>
-            <SectionLabel>Source</SectionLabel>
+            <SectionLabel>{t("embed.source")}</SectionLabel>
             <div className="grid grid-cols-4 gap-2">
               {PROVIDERS.map((p) => {
                 const selected = p.name === config;
@@ -148,7 +148,7 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
             </span>
             <textarea
               value={data.html ?? ""}
-              placeholder={isCustom ? provider.hint : "<iframe …>"}
+              placeholder={isCustom ? provider.hint : t("embed.codePlaceholder")}
               onChange={(e) => setData({ html: e.target.value })}
               rows={6}
               spellCheck={false}
@@ -159,7 +159,7 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
 
           {/* Aspect ratio — drives the preview's Center+AspectRatio vs dynamic. */}
           <div>
-            <SectionLabel>Aspect ratio</SectionLabel>
+            <SectionLabel>{t("embed.aspectRatio")}</SectionLabel>
             <div className="flex gap-1 rounded-xl bg-surface p-1">
               {ASPECT_OPTIONS.map((opt) => {
                 const active =
@@ -181,7 +181,7 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
                         : "text-foreground/45",
                     )}
                   >
-                    {opt.label}
+                    {opt.value === null ? t("embed.auto") : opt.label}
                   </button>
                 );
               })}

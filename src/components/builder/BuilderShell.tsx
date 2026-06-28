@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { nanoid } from "nanoid";
 import {
@@ -13,15 +13,19 @@ import {
   Files,
   Paintbrush,
   Settings as SettingsIcon,
+  CalendarCheck,
   Loader2,
   Check,
+  Save,
 } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useEditorStore } from "@/stores/editor-store";
 import { getProfile, saveProfile } from "@/lib/api/profiles";
 import { savePageBlocks } from "@/lib/api/pages";
 import { fillDefaults } from "@/lib/builder/hero-defaults";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { takeAiDraft, type AiDraft } from "@/lib/ai/draft-handoff";
+import { BuilderDesktop } from "./BuilderDesktop";
 import type { Block } from "@/lib/types/blocks";
 import { AddBlockMenu } from "./AddBlockMenu";
 import { BuilderCanvas } from "./BuilderCanvas";
@@ -77,9 +81,12 @@ export function BuilderShell({ id }: { id: string }) {
   const exitToHome = useEditorStore((s) => s.exitToHome);
   const previewEnabled = useEditorStore((s) => s.previewEnabled);
   const togglePreview = useEditorStore((s) => s.togglePreview);
+  const router = useRouter();
 
   const [panel, setPanel] = useState<Panel>("home");
   const [addOpen, setAddOpen] = useState(false);
+  // Desktop (≥lg) uses the Elementor-style two-pane layout; mobile keeps this tree.
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   // Consume any AI draft handed off by the wizard exactly once (the render guard
   // survives React Strict Mode's double-invoked effects in dev).
@@ -97,6 +104,8 @@ export function BuilderShell({ id }: { id: string }) {
   }, []);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  // Quick "Saved" toast so the silent auto-save (and manual save) is noticeable.
+  const [toast, setToast] = useState<string | null>(null);
   // A brand-new draft loads instantly; an existing profile is fetched, so show a
   // skeleton until its data lands in the store.
   const [loading, setLoading] = useState(id !== "new");
@@ -167,26 +176,43 @@ export function BuilderShell({ id }: { id: string }) {
     };
   }, [id, load]);
 
+  // The actual save — shared by the debounced auto-save and the manual button.
+  const doSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      // Sub-page edits save only blocks (update-info); home saves the profile.
+      if (pageId) await savePageBlocks(pageId, blocks);
+      else await saveProfile(id, name, blocks, settings);
+      markSaved();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+      setToast(t("saved"));
+    } catch {
+      setToast(tc("genericError"));
+    } finally {
+      setSaving(false);
+    }
+  }, [pageId, blocks, id, name, settings, markSaved, t, tc]);
+
+  // Manual save — runs immediately (markSaved clears `dirty`, which cancels any
+  // pending debounced save via the effect cleanup below).
+  const saveNow = useCallback(() => {
+    if (!saving) void doSave();
+  }, [saving, doSave]);
+
   // Debounced silent auto-save (mirrors the mobile app's auto-save).
   useEffect(() => {
     if (!dirty) return;
-    const handle = setTimeout(async () => {
-      setSaving(true);
-      try {
-        // Sub-page edits save only blocks (update-info); home saves the profile.
-        if (pageId) await savePageBlocks(pageId, blocks);
-        else await saveProfile(id, name, blocks, settings);
-        markSaved();
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
-      } catch {
-        // best-effort; a toast system comes later
-      } finally {
-        setSaving(false);
-      }
-    }, 1500);
+    const handle = setTimeout(() => void doSave(), 1500);
     return () => clearTimeout(handle);
-  }, [dirty, id, name, settings, blocks, markSaved, pageId]);
+  }, [dirty, doSave]);
+
+  // Auto-dismiss the toast.
+  useEffect(() => {
+    if (!toast) return;
+    const h = setTimeout(() => setToast(null), 2000);
+    return () => clearTimeout(h);
+  }, [toast]);
 
   function goPanel(p: Panel) {
     select(null);
@@ -194,6 +220,23 @@ export function BuilderShell({ id }: { id: string }) {
   }
 
   const blockSheetOpen = panel === "home" && selectedId != null;
+
+  if (isDesktop) {
+    return (
+      <>
+        <BuilderDesktop
+          id={id}
+          profileUrl={profileUrl}
+          loading={loading}
+          saving={saving}
+          saved={saved}
+          dirty={dirty}
+          onSave={saveNow}
+        />
+        <SaveToast text={toast} />
+      </>
+    );
+  }
 
   return (
     <div className="flex h-dvh flex-col bg-muted">
@@ -223,13 +266,23 @@ export function BuilderShell({ id }: { id: string }) {
             </>
           )}
         </div>
-        <span className="flex size-9 items-center justify-center text-muted-foreground">
+        {/* Manual save (auto-save still runs; this lets the user save on demand). */}
+        <button
+          type="button"
+          onClick={saveNow}
+          disabled={saving}
+          aria-label={t("save")}
+          className="flex h-9 items-center gap-1.5 rounded-full bg-muted px-3 text-sm font-semibold text-foreground hover:bg-border disabled:opacity-60"
+        >
           {saving ? (
             <Loader2 className="size-4 animate-spin" />
           ) : saved ? (
             <Check className="size-4 text-success" />
-          ) : null}
-        </span>
+          ) : (
+            <Save className="size-4" />
+          )}
+          <span className="hidden sm:inline">{t("save")}</span>
+        </button>
         {/* Preview toggle — flips the canvas between edit and live preview
             (mobile previewEnabled): no outlines/handles, links launch. */}
         <button
@@ -325,6 +378,12 @@ export function BuilderShell({ id }: { id: string }) {
           active={panel === "settings"}
           onClick={() => goPanel("settings")}
         />
+        <NavItem
+          label={t("nav.booking")}
+          Icon={CalendarCheck}
+          active={false}
+          onClick={() => router.push(`/sites/${id}/booking`)}
+        />
       </nav>
       )}
 
@@ -353,6 +412,21 @@ export function BuilderShell({ id }: { id: string }) {
       {panel === "home" && (heroTab === "name" || heroTab === "bio") && (
         <NameBioSheet which={heroTab} onClose={() => editHero(null)} />
       )}
+
+      <SaveToast text={toast} />
+    </div>
+  );
+}
+
+// Quick auto-dismissing "Saved" toast (bottom-center), shared by both layouts.
+export function SaveToast({ text }: { text: string | null }) {
+  if (!text) return null;
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[70] flex justify-center px-4">
+      <div className="animate-fade-in flex items-center gap-2 rounded-full bg-dark px-4 py-2 text-sm font-medium text-white shadow-lg">
+        <Check className="size-4 text-success" />
+        {text}
+      </div>
     </div>
   );
 }

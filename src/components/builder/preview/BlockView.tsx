@@ -70,22 +70,26 @@ export function BlockView({ block }: { block: Block }) {
       return <SocialLinksBlockView block={block as SocialLinksBlock} />;
     case "DividerModule": {
       const b = block as DividerBlock;
+      // Mobile draws Divider(height: 30, indent/endIndent: 8) inside an
+      // EditorArea(margin: vertical 5) — the line is centred in a 30px box.
       return (
-        <hr
-          // Mobile insets the line 8px each side (indent/endIndent: 8).
-          style={{
-            borderColor: argbToCss(b.color),
-            borderTopWidth: b.space || 1,
-            marginInlineStart: 8,
-            marginInlineEnd: 8,
-          }}
-        />
+        <div className="my-[5px] flex items-center" style={{ height: 30 }}>
+          <hr
+            className="w-full"
+            style={{
+              borderColor: argbToCss(b.color),
+              borderTopWidth: b.space || 1,
+              marginInlineStart: 8,
+              marginInlineEnd: 8,
+            }}
+          />
+        </div>
       );
     }
     case "SpacerModule": {
       const b = block as SpacerBlock;
-      // Mobile SpacerBlock default height is 50.
-      return <div style={{ height: b.space ?? 50 }} />;
+      // Mobile SpacerBlock default height is 50, inside EditorArea(margin v5).
+      return <div className="my-[5px]" style={{ height: b.space ?? 50 }} />;
     }
     case "ImageModule":
       return <ImagesBlockView block={block as ImagesBlock} />;

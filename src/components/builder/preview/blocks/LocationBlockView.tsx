@@ -1,4 +1,8 @@
-import { MapPin, Copy, Star } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { MapPin, Copy, Check, Star } from "lucide-react";
 import type { LocationBlock } from "@/lib/types/blocks";
 import { dirOf } from "@/lib/builder/text-direction";
 
@@ -23,6 +27,7 @@ import { dirOf } from "@/lib/builder/text-direction";
  * otherwise a placeholder. The `value` map is opaque and read verbatim.
  */
 export function LocationBlockView({ block }: { block: LocationBlock }) {
+  const t = useTranslations("builder.location");
   const value = (block.value ?? {}) as Record<string, unknown>;
   const place = readPlace(value);
 
@@ -31,11 +36,12 @@ export function LocationBlockView({ block }: { block: LocationBlock }) {
   const rating = place.rating;
   const reviewsTotal = place.userRatingsTotal;
   const showReviews = !block.hide_reviews && rating != null;
+  const url = mapsUrl(place);
 
   const dir = dirOf(name || address || block.title);
 
   return (
-    <div dir={dir} className="flex flex-col items-stretch">
+    <div dir={dir} className="flex flex-col items-stretch px-5 py-3">
       {block.title ? (
         <p
           dir={dirOf(block.title)}
@@ -52,10 +58,10 @@ export function LocationBlockView({ block }: { block: LocationBlock }) {
             <>
               <div className="flex items-center gap-1.5">
                 <span className="flex-1 truncate text-sm font-bold text-foreground">
-                  {name || address || "Location"}
+                  {name || address}
                 </span>
-                <ActionButton Icon={MapPin} label="Open in maps" />
-                <ActionButton Icon={Copy} label="Copy address" />
+                <OpenInMapsButton url={url} label={t("openInMaps")} />
+                <CopyAddressButton text={address || name} label={t("copyAddress")} />
               </div>
               {address ? (
                 <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
@@ -79,13 +85,13 @@ export function LocationBlockView({ block }: { block: LocationBlock }) {
                     ))}
                   </span>
                   <span className="text-xs text-muted-foreground underline">
-                    {`${reviewsTotal ?? 0} reviews`}
+                    {`${reviewsTotal ?? 0} ${t("reviews")}`}
                   </span>
                 </div>
               ) : null}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">No location selected</p>
+            <p className="text-sm text-muted-foreground">{t("infoUnavailable")}</p>
           )}
         </div>
       </div>
@@ -106,23 +112,46 @@ export function LocationBlockView({ block }: { block: LocationBlock }) {
   );
 }
 
-/** Square inline action button — mirrors the mobile `_ActionButton`
- * (Material 12%-alpha foreground tint, radius 8, padding 8, FaIcon size 16). */
-function ActionButton({
-  Icon,
-  label,
-}: {
-  Icon: typeof MapPin;
-  label: string;
-}) {
+const ACTION_CLASS =
+  "flex size-8 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.12] text-foreground transition-colors hover:bg-foreground/20";
+
+/** Open-in-maps — a real link (works in preview/published; inert in the editor,
+ * where the block is wrapped pointer-events-none). Mirrors mobile `_ActionButton`. */
+function OpenInMapsButton({ url, label }: { url: string | null; label: string }) {
+  if (!url) {
+    return (
+      <span aria-label={label} title={label} className={`${ACTION_CLASS} opacity-50`}>
+        <MapPin className="size-4" />
+      </span>
+    );
+  }
   return (
-    <span
+    <a href={url} target="_blank" rel="noreferrer noopener" aria-label={label} title={label} className={ACTION_CLASS}>
+      <MapPin className="size-4" />
+    </a>
+  );
+}
+
+/** Copy the address to the clipboard, briefly showing a check (mobile "copied"). */
+function CopyAddressButton({ text, label }: { text?: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
       aria-label={label}
       title={label}
-      className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.12] text-foreground"
+      disabled={!text}
+      onClick={() => {
+        if (!text) return;
+        navigator.clipboard?.writeText(text).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        });
+      }}
+      className={`${ACTION_CLASS} disabled:opacity-50`}
     >
-      <Icon className="size-4" />
-    </span>
+      {copied ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
+    </button>
   );
 }
 
@@ -165,8 +194,10 @@ function readPlace(value: Record<string, unknown>): {
   lng?: number;
   rating?: number;
   userRatingsTotal?: number;
+  placeId?: string;
 } {
   const name = str(value.name);
+  const placeId = str(value.place_id) ?? str(value.placeId);
   // The stored Place (place_picker_google) often only carries `vicinity`, not a
   // formatted address — fall back to it so the address line isn't blank on web.
   const address =
@@ -182,7 +213,23 @@ function readPlace(value: Record<string, unknown>): {
   const lat = num(location?.lat) ?? num(value.lat) ?? num(value.latitude);
   const lng = num(location?.lng) ?? num(value.lng) ?? num(value.longitude);
 
-  return { name, address, lat, lng, rating, userRatingsTotal };
+  return { name, address, lat, lng, rating, userRatingsTotal, placeId };
+}
+
+/** Google Maps "search" deep link for the place (place_id > name/address > coords). */
+function mapsUrl(p: {
+  name?: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  placeId?: string;
+}): string | null {
+  const q =
+    [p.name, p.address].filter(Boolean).join(", ") ||
+    (p.lat != null && p.lng != null ? `${p.lat},${p.lng}` : "");
+  if (!q) return null;
+  const base = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  return p.placeId ? `${base}&query_place_id=${encodeURIComponent(p.placeId)}` : base;
 }
 
 function str(v: unknown): string | undefined {

@@ -14,6 +14,9 @@ import {
   createProfile,
   uploadProfileImage,
 } from "@/lib/api/profiles";
+import { fillDefaults } from "@/lib/builder/hero-defaults";
+import { setAiDraft } from "@/lib/ai/draft-handoff";
+import type { HeroStyle } from "@/lib/types/profile";
 
 function slugify(v: string) {
   return v
@@ -97,7 +100,23 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
       });
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
       const id = created?._id ?? created?.id;
-      router.push(id ? `/builder/${id}` : "/builder/new");
+      if (id) {
+        // Hand the just-created site straight to the builder (id + chosen
+        // template + slug) so it loads instantly with the right URL/template and
+        // auto-saves under the real id — instead of racing a list refetch.
+        setAiDraft(id, {
+          name: domain,
+          settings: fillDefaults(style as HeroStyle, {
+            websiteName: name.trim(),
+            websiteLogo: logo,
+          }),
+          blocks: [],
+        });
+        router.push(`/builder/${id}`);
+      } else {
+        // No id returned — fall back to a fresh draft so the flow still works.
+        router.push("/builder/new");
+      }
     } catch {
       // Backend rejected (or offline) — still open the builder so the flow works.
       router.push("/builder/new");

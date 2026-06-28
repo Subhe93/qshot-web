@@ -82,8 +82,15 @@ function Avatar({ item, size }: { item: ReviewItem; size: number }) {
       style={{ width: size, height: size, backgroundColor: fg(0.1) }}
     >
       {url ? (
+        // referrerPolicy: Google profile photos (lh3.googleusercontent.com)
+        // 403/429 when hotlinked with a referrer — send none so they load.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="" className="size-full object-cover" />
+        <img
+          src={url}
+          alt=""
+          referrerPolicy="no-referrer"
+          className="size-full object-cover"
+        />
       ) : (
         <svg
           width={size * 0.55}
@@ -322,13 +329,14 @@ export function ReviewsBlockView({ block }: { block: ReviewsBlock }) {
           </a>
         </div>
       )}
-      </Foldable>
 
       <div className="h-[5px]" />
-      {/* Divider(indent 8, endIndent 8) at foreground@20%. */}
+      {/* Divider(indent 8, endIndent 8) at foreground@20% — inside the
+          expandable body so it hides when the block is collapsed (mobile). */}
       <div className="px-5">
         <div className="mx-2 h-px" style={{ backgroundColor: fg(0.2) }} />
       </div>
+      </Foldable>
     </div>
   );
 }

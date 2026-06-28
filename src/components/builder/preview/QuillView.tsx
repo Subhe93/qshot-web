@@ -102,6 +102,16 @@ function alignStyle(block: Attrs): CSSProperties | undefined {
     : undefined;
 }
 
+/** Explicit block-level text direction stored in the Delta (mobile sets it via
+ *  the Quill LTR/RTL toggle); null = none, so the caller auto-detects. */
+function explicitDir(lines: Line[]): "ltr" | "rtl" | null {
+  for (const l of lines) {
+    const d = l.block.direction;
+    if (d === "rtl" || d === "ltr") return d;
+  }
+  return null;
+}
+
 export function QuillView({ content }: { content: string }) {
   const lines = parseDelta(content);
 
@@ -176,7 +186,8 @@ export function QuillView({ content }: { content: string }) {
   flushList();
 
   return (
-    <div dir={dirOf(plain)} className="space-y-1.5 leading-relaxed">
+    // Honor an explicit stored direction; otherwise auto-detect from the text.
+    <div dir={explicitDir(lines) ?? dirOf(plain)} className="space-y-1.5 leading-relaxed">
       {out.map((node, i) => (
         <Fragment key={i}>{node}</Fragment>
       ))}

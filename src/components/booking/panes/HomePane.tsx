@@ -1,20 +1,24 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations, useLocale } from "next-intl";
-import { CalendarCheck, CheckCircle2, Star, XCircle, CreditCard } from "lucide-react";
+import { CalendarCheck, CheckCircle2, Star, DollarSign, CreditCard } from "lucide-react";
 import {
   getBookingAnalytics,
+  getBookingConfig,
   getStripeStatus,
+  toggleBookingConfig,
   listBookings,
 } from "@/lib/api/booking";
 import { useBookingUi } from "@/stores/booking-store";
 import { StatusBadge, PaneLoading } from "../shared";
+import { Switch } from "./ServicesPane";
 
 export function HomePane({ profileId }: { profileId: string }) {
   const t = useTranslations("booking");
   const tk = useTranslations("booking.kpi");
   const locale = useLocale();
+  const qc = useQueryClient();
   const selectSection = useBookingUi((s) => s.selectSection);
 
   const analytics = useQuery({
@@ -23,18 +27,41 @@ export function HomePane({ profileId }: { profileId: string }) {
   });
   const stripe = useQuery({
     queryKey: ["booking-stripe", profileId],
-    queryFn: () => getStripeStatus(profileId),
+    queryFn: () => getStripeStatus(),
   });
+  const config = useQuery({
+    queryKey: ["booking-config", profileId],
+    queryFn: () => getBookingConfig(profileId),
+  });
+  const toggle = useMutation({
+    mutationFn: () => toggleBookingConfig(profileId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["booking-config", profileId] }),
+  });
+  // Fetch a wider window, then show genuinely upcoming, non-cancelled bookings
+  // soonest-first (mobile home_wide_pane: startTime > now && status != cancelled).
   const upcoming = useQuery({
     queryKey: ["booking-upcoming", profileId],
-    queryFn: () => listBookings({ profileId, status: "confirmed", limit: 5 }),
+    queryFn: () => listBookings({ profileId, limit: 50 }),
   });
 
   if (analytics.isLoading) return <PaneLoading />;
 
   const a = analytics.data ?? {};
   const ov = a.overview ?? {};
+  const enabled = config.data?.isEnabled ?? false;
   const stripeConnected = stripe.data?.connected ?? !!stripe.data?.chargesEnabled;
+  const now = Date.now();
+  const upcomingItems = (upcoming.data?.items ?? [])
+    .filter((b) => {
+      const start = b.startTimeUTC || b.slotStart;
+      return b.status !== "cancelled" && start && Date.parse(start) > now;
+    })
+    .sort((x, y) => {
+      const xs = Date.parse(x.startTimeUTC || x.slotStart || "") || 0;
+      const ys = Date.parse(y.startTimeUTC || y.slotStart || "") || 0;
+      return xs - ys;
+    })
+    .slice(0, 5);
   const fmtMoney = (n?: number) =>
     new Intl.NumberFormat(locale, {
       style: "currency",
@@ -45,32 +72,41 @@ export function HomePane({ profileId }: { profileId: string }) {
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mx-auto max-w-4xl space-y-5">
-        {/* Stripe status */}
-        <div
-          className="flex items-center gap-3 rounded-2xl px-4 py-3"
-          style={{
-            backgroundColor: stripeConnected ? "#3b82f60f" : "#ffaf0514",
-            border: `1px solid ${stripeConnected ? "#3b82f633" : "#ffaf054d"}`,
-          }}
-        >
-          <CreditCard
-            className="size-5"
-            style={{ color: stripeConnected ? "#3b82f6" : "#ffaf05" }}
-          />
-          <div>
-            <p className="text-sm font-semibold">{t("stripe")}</p>
-            <p className="text-xs text-muted-foreground">
-              {stripeConnected ? stripe.data?.accountId ?? "Connected" : t("notConnected")}
-            </p>
+        {/* Enable + Stripe cards (mobile Home _EnableCard + Stripe card) */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-card p-4 shadow-soft">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">{t(enabled ? "enabled" : "disabled")}</p>
+              <p className="truncate text-xs text-muted-foreground">{t("title")}</p>
+            </div>
+            <Switch on={enabled} onToggle={() => toggle.mutate()} />
+          </div>
+          <div
+            className="flex items-center gap-3 rounded-2xl px-4 py-3"
+            style={{
+              backgroundColor: stripeConnected ? "#3b82f60f" : "#ffaf0514",
+              border: `1px solid ${stripeConnected ? "#3b82f633" : "#ffaf054d"}`,
+            }}
+          >
+            <CreditCard
+              className="size-5 shrink-0"
+              style={{ color: stripeConnected ? "#3b82f6" : "#ffaf05" }}
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">{t("stripe")}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {stripeConnected ? stripe.data?.accountId ?? "Connected" : t("notConnected")}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* KPI grid */}
+        {/* KPI grid — 4th card is last-30-days revenue (mobile parity). */}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Kpi icon={<CalendarCheck />} color="#3b82f6" label={tk("total")} value={ov.totalBookings ?? 0} />
           <Kpi icon={<CheckCircle2 />} color="#34c360" label={tk("confirmed")} value={ov.confirmedBookings ?? 0} />
           <Kpi icon={<Star />} color="#c389ff" label={tk("completed")} value={ov.completedBookings ?? 0} />
-          <Kpi icon={<XCircle />} color="#f35054" label={tk("cancelled")} value={ov.cancelledBookings ?? 0} />
+          <Kpi icon={<DollarSign />} color="#34c360" label={tk("revenue")} value={fmtMoney(a.last30Days?.revenue)} />
         </div>
 
         {/* Last 30 days */}
@@ -107,12 +143,12 @@ export function HomePane({ profileId }: { profileId: string }) {
             </button>
           </div>
           <div className="space-y-2">
-            {(upcoming.data?.items ?? []).length === 0 ? (
+            {upcomingItems.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
                 {t("bookings.empty")}
               </p>
             ) : (
-              upcoming.data!.items.map((b) => (
+              upcomingItems.map((b) => (
                 <button
                   key={b.bookingRef}
                   type="button"
@@ -156,7 +192,7 @@ function Kpi({
   icon: React.ReactNode;
   color: string;
   label: string;
-  value: number;
+  value: number | string;
 }) {
   return (
     <div

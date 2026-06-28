@@ -177,7 +177,13 @@ function GridCard({
   const title = item.title ?? "";
   const desc = item.description ?? "";
   return (
-    <div className="flex h-full w-[120px] flex-col text-foreground">
+    // largeGrid (fill) fills the square swiper card; grid (fixed) is a 120px tile.
+    <div
+      className={
+        "flex h-full flex-col text-foreground " +
+        (imageMode === "fill" ? "w-full" : "w-[120px]")
+      }
+    >
       <div
         className={
           "overflow-hidden rounded-[10px] " +
@@ -342,6 +348,15 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
         }
       >
         {body}
+        {/* Divider(indent 8, endIndent 8) at foreground@20% — mobile draws it at
+            the end of every External/Video/Products/Reviews block body. */}
+        <div className="h-[5px]" />
+        <div className="px-5">
+          <div
+            className="mx-2 h-px"
+            style={{ backgroundColor: "color-mix(in srgb, currentColor 20%, transparent)" }}
+          />
+        </div>
       </Foldable>
     </div>
   );

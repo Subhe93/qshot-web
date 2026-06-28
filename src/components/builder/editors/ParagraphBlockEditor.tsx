@@ -1,20 +1,28 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/stores/editor-store";
 import { hexToArgbA } from "@/lib/builder/color";
 import type { ParagraphBlock } from "@/lib/types/blocks";
 import { GroupedCard, ColorRow } from "./sheet-kit";
 
+// Quill touches `document`, so load the editor client-side only.
+const QuillEditor = dynamic(
+  () => import("./QuillEditor").then((m) => m.QuillEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-44 w-full animate-pulse rounded-2xl bg-surface" />
+    ),
+  },
+);
+
 /**
- * Paragraph block editor, mirroring the mobile ParagraphEditorSheet: a text
- * editing area plus a background-color option.
- *
- * `block.content` is a JSON-encoded Quill Delta string. The mobile sheet uses a
- * full rich Quill editor; the web builder doesn't ship a rich editor here, so we
- * surface the plain text (read from the Delta `insert` ops) in a textarea and
- * write it back as a minimal valid Delta string. This mirrors the existing
- * delta<->text helpers in SettingsPanel.tsx so the JSON contract is identical.
+ * Paragraph block editor, mirroring the mobile ParagraphEditorSheet: a rich
+ * Quill editor (lists, bold/italic/underline/strike, alignment, LTR/RTL
+ * direction, links) plus a background-color option. `block.content` is the
+ * Quill Delta JSON string shared with the renderer and the mobile app.
  */
 export function ParagraphBlockEditor({ block }: { block: ParagraphBlock }) {
   const t = useTranslations("builder");
@@ -23,12 +31,10 @@ export function ParagraphBlockEditor({ block }: { block: ParagraphBlock }) {
 
   return (
     <div className="space-y-4">
-      <textarea
-        value={deltaToText(block.content)}
-        onChange={(e) => setBlock({ content: textToDelta(e.target.value) })}
-        rows={5}
-        placeholder={t("fields.text")}
-        className="min-h-[120px] w-full resize-y rounded-2xl bg-surface p-4 text-sm leading-relaxed text-foreground outline-none ring-1 ring-foreground/[0.08] transition-shadow placeholder:text-foreground/40 focus:ring-2 focus:ring-primary"
+      <QuillEditor
+        key={block.id}
+        value={block.content ?? ""}
+        onChange={(content) => setBlock({ content })}
       />
 
       <GroupedCard>
@@ -42,27 +48,4 @@ export function ParagraphBlockEditor({ block }: { block: ParagraphBlock }) {
       </GroupedCard>
     </div>
   );
-}
-
-// ---- Quill Delta <-> plain text helpers (mirrors SettingsPanel.tsx) ----
-
-/** Read display text from a JSON-encoded Quill Delta string (fallback: raw). */
-function deltaToText(content: string): string {
-  try {
-    const ops = JSON.parse(content);
-    if (Array.isArray(ops)) {
-      return ops
-        .map((op) => (typeof op?.insert === "string" ? op.insert : ""))
-        .join("")
-        .replace(/\n$/, "");
-    }
-  } catch {
-    // not valid Delta JSON — treat as plain text
-  }
-  return content;
-}
-
-/** Encode plain text back into a minimal Quill Delta JSON string. */
-function textToDelta(text: string): string {
-  return JSON.stringify([{ insert: text + "\n" }]);
 }

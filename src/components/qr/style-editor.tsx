@@ -7,6 +7,7 @@ import { Download, Loader2, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ColorPickerField } from "@/components/ui/color-picker";
+import { SearchableSelect, type SelectOption } from "@/components/ui/searchable-select";
 import { argbToHex, hexToArgb } from "@/lib/builder/color";
 import {
   createQrCode,
@@ -416,6 +417,8 @@ function ShapePanel({
 
 // --- Frames ---------------------------------------------------------------
 
+const FONT_OPTIONS: SelectOption<string>[] = FONTS.map((f) => ({ value: f, label: f }));
+
 function FramesPanel({
   t,
   customizes,
@@ -425,6 +428,7 @@ function FramesPanel({
   customizes: Customizes;
   set: SetFn;
 }) {
+  const tc = useTranslations("common");
   const lineCount = frameTextLines(customizes.advancedShape);
   const lines = customizes.text.split("\n");
 
@@ -487,17 +491,13 @@ function FramesPanel({
             <label className="mb-1.5 block text-xs text-muted-foreground">
               {t("font")}
             </label>
-            <select
+            <SearchableSelect
               value={customizes.fontFamily}
-              onChange={(e) => set("fontFamily", e.target.value)}
-              className="h-11 w-full rounded-[10px] border border-input bg-white px-3 text-sm outline-none"
-            >
-              {FONTS.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
+              options={FONT_OPTIONS}
+              onChange={(v) => set("fontFamily", v)}
+              title={t("font")}
+              searchPlaceholder={tc("search")}
+            />
           </div>
         </>
       )}

@@ -22,6 +22,9 @@ export const BOOKING_STATUSES: BookingStatus[] = [
   "cancelled",
 ];
 
+// Per-booking payment mode (mobile PaymentMode enum: online / on_site / free).
+export type PaymentMode = "online" | "on_site" | "free";
+
 // status → { color, key } for badges
 export const STATUS_META: Record<
   BookingStatus,
@@ -38,6 +41,7 @@ export const STATUS_META: Record<
 export interface BookingConfig {
   _id?: string;
   profileId?: string;
+  userId?: string;
   isEnabled?: boolean;
   defaultCurrency?: string;
   generalGapBefore?: number;
@@ -81,6 +85,9 @@ export interface Provider {
   isDefault?: boolean;
   order?: number;
   workingHours?: WorkingHours[];
+  // Provider-portal secret code — only present on create + GET-one (not lists).
+  secretCode?: string | null;
+  codeVersion?: number;
 }
 
 export interface Service {
@@ -95,7 +102,50 @@ export interface Service {
   gapBefore?: number;
   gapAfter?: number;
   isActive?: boolean;
+  // Show/hide on the PUBLIC booking site (hide-service-contract). Independent of
+  // isActive (which is soft-delete only). Default true.
+  isVisible?: boolean;
+  // Pay online vs pay on-site (mobile paymentEnabled); sent on save.
+  paymentEnabled?: boolean;
+  // Service hierarchy (mobile parentId/hasChildren): a service with children is a
+  // category and cannot be booked or linked to a provider directly.
+  parentId?: string | null;
+  hasChildren?: boolean;
   order?: number;
+}
+
+/**
+ * Extra Service (add-on) — an optional item attached to a service NODE (leaf or
+ * category) and inherited down the tree (integration-guide-0.md). Adds its price
+ * to the total and its duration to the appointment.
+ *
+ * MONEY UNITS: WHOLE units (e.g. `price: 15` = $15.00), consistent with
+ * Service.defaultPrice / booking totals / the public flow's useCurrencyFormat.
+ * (The guide labels prices "cents", but the shared booking system uses whole
+ * units and a booking total = service + extras must share one unit.)
+ */
+export interface Extra {
+  _id?: string;
+  id?: string;
+  profileId?: string;
+  serviceId?: string;
+  name: string;
+  description?: string | null;
+  price?: number; // whole units
+  duration?: number; // minutes
+  currency?: string;
+  isActive?: boolean;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** Snapshot of a selected extra captured on a booking (immutable). */
+export interface BookingExtraSnapshot {
+  extraServiceId?: string;
+  name?: string;
+  price?: number; // whole units
+  duration?: number; // minutes
 }
 
 // Provider↔Service pivot (which services a provider offers, with optional
@@ -142,8 +192,13 @@ export interface Booking {
   refundable?: boolean;
   refundPercent?: number;
   paymentStatus?: string;
+  paymentMode?: PaymentMode;
+  providerTimezone?: string;
   currency?: string;
+  // Snapshot of extras booked with this appointment (integration-guide-0 §4.5).
+  extras?: BookingExtraSnapshot[];
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Customer {
@@ -169,9 +224,14 @@ export interface BookingAnalytics {
     completedBookings?: number;
     cancelledBookings?: number;
   };
-  last30Days?: { revenue?: number; bookingCount?: number };
-  byProvider?: Array<{ name?: string; bookingCount?: number; revenue?: number }>;
-  byService?: Array<{ name?: string; bookingCount?: number; revenue?: number }>;
+  last30Days?: {
+    revenue?: number;
+    collectedRevenue?: number;
+    onSiteDue?: number;
+    bookingCount?: number;
+  };
+  byProvider?: Array<{ name?: string; _id?: string; bookingCount?: number; count?: number; revenue?: number }>;
+  byService?: Array<{ name?: string; _id?: string; bookingCount?: number; count?: number; revenue?: number }>;
   totalRevenue?: number;
   totalCustomers?: number;
   currency?: string;
@@ -185,15 +245,101 @@ export interface StripeStatus {
   accountId?: string;
 }
 
+// ─── Google Calendar sync (integration-guide.md) ─────────────────────────────
+export interface GoogleCalendarStatus {
+  connected: boolean;
+  googleEmail?: string | null;
+  lastSyncedAt?: string | null;
+  status?: "connected" | "revoked" | "error" | null;
+}
+
+/** A platform booking in the merged dashboard calendar view. */
+export interface CalendarPlatformItem {
+  source: "platform";
+  id: string;
+  startTimeUTC: string;
+  endTimeUTC: string;
+  status?: BookingStatus;
+  booking?: {
+    bookingRef?: string;
+    status?: BookingStatus;
+    paymentMode?: PaymentMode;
+    totalAmount?: number;
+    currency?: string;
+    extras?: BookingExtraSnapshot[];
+    customerId?: { name?: string; email?: string; phone?: string };
+    serviceId?: { name?: string };
+    providerId?: { name?: string };
+  };
+}
+/** An external Google "busy" block in the merged calendar view. */
+export interface CalendarGoogleItem {
+  source: "google";
+  id: string;
+  startTimeUTC: string;
+  endTimeUTC: string;
+  isAllDay?: boolean;
+  summary?: string;
+}
+export type CalendarItem = CalendarPlatformItem | CalendarGoogleItem;
+
 // Helper: unwrap { data } | array | object.
 function arr<T>(res: unknown): T[] {
   if (Array.isArray(res)) return res as T[];
   const d = (res as { data?: unknown })?.data;
   return Array.isArray(d) ? (d as T[]) : [];
 }
-function meta(res: unknown): { total: number; totalPages: number; page: number } {
-  const m = (res as { meta?: { total?: number; totalPages?: number; page?: number } })?.meta;
-  return { total: m?.total ?? 0, totalPages: m?.totalPages ?? 1, page: m?.page ?? 1 };
+
+function asObj(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === "object" && !Array.isArray(v)
+    ? (v as Record<string, unknown>)
+    : null;
+}
+
+/**
+ * Booking dashboard list endpoints return a NESTED envelope
+ *   { data: { bookings|customers: [...], total, page, pages } }
+ * (mobile booking_dashboard_data_source.dart / booking_customers_data_source.dart),
+ * NOT a top-level array or a `{ meta }` block. Read items + paging from `data`.
+ */
+function listEnvelope<T>(
+  res: unknown,
+  key: string,
+): { items: T[]; total: number; totalPages: number; page: number } {
+  const d = asObj((res as { data?: unknown })?.data) ?? asObj(res) ?? {};
+  const raw = d[key];
+  const items = Array.isArray(raw)
+    ? (raw as T[])
+    : Array.isArray(d.data)
+      ? (d.data as T[])
+      : [];
+  return {
+    items,
+    total: Number(d.total ?? items.length ?? 0),
+    totalPages: Number(d.pages ?? d.totalPages ?? 1),
+    page: Number(d.page ?? 1),
+  };
+}
+
+/**
+ * The booking list nests the customer under `customerId` and (in the detail
+ * payload) the service/provider under `serviceId`/`providerId` objects. Surface
+ * them as the flat `customer`/`service`/`provider` convenience fields the panes read.
+ */
+function normalizeBooking(rawValue: unknown): Booking {
+  const b = asObj(rawValue);
+  if (!b) return rawValue as Booking;
+  const out: Record<string, unknown> = { ...b };
+  const cust = asObj(b.customerId);
+  if (cust) out.customer = cust;
+  const svc = asObj(b.serviceId);
+  if (svc) out.service = { name: svc.name, duration: svc.duration, id: svc._id ?? svc.id };
+  const prov = asObj(b.providerId);
+  if (prov) {
+    out.provider = { name: prov.name, id: prov._id ?? prov.id };
+    out.providerTimezone = out.providerTimezone ?? prov.timezone;
+  }
+  return out as unknown as Booking;
 }
 
 /**
@@ -229,10 +375,12 @@ export async function getBookingConfig(profileId: string): Promise<BookingConfig
   }
 }
 export async function createBookingConfig(profileId: string, body: Partial<BookingConfig>) {
-  return readOne<BookingConfig>(api.post("booking/config", { json: { profileId, ...body } }), {
-    profileId,
-    ...body,
-  });
+  // One-step activation: creating the config sends the active state directly, so
+  // there's no separate /toggle call to enable booking (backend contract).
+  return readOne<BookingConfig>(
+    api.post("booking/config", { json: { profileId, isEnabled: true, ...body } }),
+    { profileId, isEnabled: true, ...body },
+  );
 }
 export async function updateBookingConfig(profileId: string, body: Partial<BookingConfig>) {
   return readOne<BookingConfig>(api.patch(`booking/config/${profileId}`, { json: body }), {
@@ -240,20 +388,27 @@ export async function updateBookingConfig(profileId: string, body: Partial<Booki
     ...body,
   });
 }
-export async function toggleBookingConfig(profileId: string) {
-  return readOne<BookingConfig>(api.patch(`booking/config/${profileId}/toggle`), { profileId });
+export async function toggleBookingConfig(profileId: string): Promise<boolean> {
+  // Mobile reads response.data.isEnabled (a bool).
+  const res = await readOne<{ isEnabled?: boolean }>(
+    api.patch(`booking/config/${profileId}/toggle`),
+    {},
+  );
+  return !!res?.isEnabled;
 }
-export async function getStripeStatus(profileId: string): Promise<StripeStatus | null> {
+// Stripe is ACCOUNT-level (shared across all profiles), not profile-scoped — the
+// profile-level endpoints are deprecated (mobile links.dart: booking/account/stripe/*).
+export async function getStripeStatus(): Promise<StripeStatus | null> {
   try {
-    return await api.get(`booking/config/${profileId}/stripe/status`).json<StripeStatus>();
+    return one<StripeStatus>(await api.get("booking/account/stripe/status").json());
   } catch {
     return null;
   }
 }
-export async function getStripeOnboardUrl(profileId: string) {
-  return api
-    .post(`booking/config/${profileId}/stripe/onboard`)
-    .json<{ onboardingUrl?: string }>();
+export async function getStripeOnboardUrl() {
+  return one<{ onboardingUrl?: string }>(
+    await api.post("booking/account/stripe/onboard").json(),
+  );
 }
 
 // ─── Providers ──────────────────────────────────────────────────────────────
@@ -276,6 +431,21 @@ export async function updateProvider(id: string, body: Partial<Provider>) {
 }
 export async function deleteProvider(id: string) {
   return api.delete(`booking/providers/${id}`).json();
+}
+/** GET one provider — includes the portal `secretCode` (lists don't). */
+export async function getProvider(id: string): Promise<Provider | null> {
+  try {
+    return one<Provider>(await api.get(`booking/providers/${id}`).json());
+  } catch {
+    return null;
+  }
+}
+/** Regenerate a provider's portal code (invalidates the old code + sessions). */
+export async function regenerateProviderCode(id: string) {
+  return readOne<{ secretCode?: string }>(
+    api.post(`booking/providers/${id}/regenerate-code`),
+    {},
+  );
 }
 
 // ─── Services ───────────────────────────────────────────────────────────────
@@ -300,6 +470,49 @@ export async function deleteService(id: string) {
   return api.delete(`booking/services/${id}`).json();
 }
 
+// ─── Extras (add-ons) ────────────────────────────────────────────────────────
+// integration-guide-0.md §3 (admin) + §4.1 (public resolver).
+export async function listExtras(params: {
+  profileId: string;
+  serviceId?: string;
+}): Promise<Extra[]> {
+  const search: Record<string, string> = { profileId: params.profileId };
+  if (params.serviceId) search.serviceId = params.serviceId;
+  const items = arr<Extra>(
+    await api.get("booking/extras", { searchParams: search }).json(),
+  );
+  return [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+export async function createExtra(
+  profileId: string,
+  serviceId: string,
+  body: Partial<Extra>,
+) {
+  return readOne<Extra>(
+    api.post("booking/extras", { json: { profileId, serviceId, ...body } }),
+    { profileId, serviceId, ...body } as Extra,
+  );
+}
+export async function updateExtra(id: string, body: Partial<Extra>) {
+  return readOne<Extra>(api.patch(`booking/extras/${id}`, { json: body }), {
+    _id: id,
+    ...body,
+  } as Extra);
+}
+export async function deleteExtra(id: string) {
+  // Soft delete (sets isActive:false) — returns the now-inactive extra.
+  return readOne<Extra>(api.delete(`booking/extras/${id}`), { _id: id } as Extra);
+}
+/** Public resolver — merged (own + inherited) extras for a bookable leaf. */
+export async function listExtrasForService(
+  profileId: string,
+  serviceId: string,
+): Promise<Extra[]> {
+  return arr<Extra>(
+    await api.get(`booking/extras/public/${profileId}/for-service/${serviceId}`).json(),
+  );
+}
+
 // ─── Provider-Services pivot ─────────────────────────────────────────────────
 export async function listProviderServices(params: {
   profileId?: string;
@@ -316,6 +529,7 @@ export async function listProviderServices(params: {
 }
 
 export async function linkProviderService(body: {
+  profileId: string;
   providerId: string;
   serviceId: string;
   price?: number | null;
@@ -345,6 +559,10 @@ export async function unlinkProviderService(id: string) {
 export async function listBookings(params: {
   profileId: string;
   status?: BookingStatus | null;
+  providerId?: string | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  search?: string | null;
   page?: number;
   limit?: number;
 }) {
@@ -354,12 +572,17 @@ export async function listBookings(params: {
     limit: String(params.limit ?? 20),
   };
   if (params.status) search.status = params.status;
+  if (params.providerId) search.providerId = params.providerId;
+  if (params.dateFrom) search.dateFrom = params.dateFrom;
+  if (params.dateTo) search.dateTo = params.dateTo;
+  if (params.search) search.search = params.search;
   const res = await api.get("booking/dashboard/bookings", { searchParams: search }).json();
-  return { items: arr<Booking>(res), ...meta(res) };
+  const env = listEnvelope<Booking>(res, "bookings");
+  return { ...env, items: env.items.map(normalizeBooking) };
 }
 export async function getBooking(ref: string): Promise<Booking | null> {
   try {
-    return one<Booking>(await api.get(`booking/dashboard/bookings/${ref}`).json());
+    return normalizeBooking(one(await api.get(`booking/dashboard/bookings/${ref}`).json()));
   } catch {
     return null;
   }
@@ -386,7 +609,7 @@ export async function listCustomers(params: {
   };
   if (params.search) sp.search = params.search;
   const res = await api.get("booking/dashboard/customers", { searchParams: sp }).json();
-  return { items: arr<Customer>(res), ...meta(res) };
+  return listEnvelope<Customer>(res, "customers");
 }
 export async function getCustomer(id: string): Promise<Customer | null> {
   try {
@@ -405,12 +628,75 @@ export async function updateCustomer(id: string, body: Partial<Customer>) {
 // ─── Analytics ──────────────────────────────────────────────────────────────
 export async function getBookingAnalytics(profileId: string): Promise<BookingAnalytics> {
   try {
-    return await api
-      .get("booking/dashboard/analytics", { searchParams: { profileId } })
-      .json<BookingAnalytics>();
+    // Mobile reads response.data — unwrap the envelope (raw body is { status, data }).
+    return one<BookingAnalytics>(
+      await api.get("booking/dashboard/analytics", { searchParams: { profileId } }).json(),
+    );
   } catch {
     return {};
   }
+}
+
+// ─── Google Calendar sync endpoints ─────────────────────────────────────────
+/**
+ * Start linking — returns the Google consent `authUrl` to open in a popup.
+ * Returns `{ error }` instead of throwing so the UI can detect "not configured"
+ * (400 "Google Calendar is not configured") and hide the feature gracefully.
+ */
+export async function getGoogleCalendarConnectUrl(
+  providerId: string,
+): Promise<{ authUrl?: string; error?: string }> {
+  try {
+    const res = one<{ authUrl?: string }>(
+      await api.get(`booking/providers/${providerId}/google-calendar/connect`).json(),
+    );
+    return { authUrl: res?.authUrl };
+  } catch (e) {
+    let message = "";
+    try {
+      const r = (e as { response?: Response })?.response;
+      const body = r ? ((await r.json()) as { message?: string }) : null;
+      message = body?.message ?? "";
+    } catch {
+      /* ignore — fall through to a generic error */
+    }
+    return { error: message || "error" };
+  }
+}
+
+export async function getGoogleCalendarStatus(
+  providerId: string,
+): Promise<GoogleCalendarStatus> {
+  try {
+    return one<GoogleCalendarStatus>(
+      await api.get(`booking/providers/${providerId}/google-calendar/status`).json(),
+    );
+  } catch {
+    return { connected: false, googleEmail: null, lastSyncedAt: null, status: null };
+  }
+}
+
+export async function disconnectGoogleCalendar(providerId: string) {
+  return readOne<{ disconnected?: boolean }>(
+    api.delete(`booking/providers/${providerId}/google-calendar`),
+    { disconnected: true },
+  );
+}
+
+/** Merged platform bookings + Google busy blocks (sorted by startTimeUTC). */
+export async function getDashboardCalendar(params: {
+  profileId: string;
+  providerId?: string;
+  from?: string;
+  to?: string;
+}): Promise<CalendarItem[]> {
+  const search: Record<string, string> = { profileId: params.profileId };
+  if (params.providerId) search.providerId = params.providerId;
+  if (params.from) search.from = params.from;
+  if (params.to) search.to = params.to;
+  return arr<CalendarItem>(
+    await api.get("booking/dashboard/calendar", { searchParams: search }).json(),
+  );
 }
 
 export const idOf = (x: { _id?: string; id?: string }) => x._id ?? x.id ?? "";

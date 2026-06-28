@@ -41,7 +41,8 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex h-14 items-center gap-2 px-5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/logo.svg" alt="QShot" width={26} height={26} />
-        <span className="brand-gradient-text text-lg font-bold">QShot</span>
+        {/* App treats the wordmark in black (AppColors.black), not the gradient. */}
+        <span className="text-lg font-bold text-foreground">QShot</span>
       </div>
 
       {/* Profile card */}

@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePanelHost } from "@/components/builder/panel-host";
 
 /**
  * Modal bottom sheet mirroring the mobile editors: dimmed backdrop, white panel
@@ -28,18 +29,65 @@ export function BottomSheet({
   className?: string;
   bodyClassName?: string;
 }) {
+  const panelHost = usePanelHost();
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Only the full-screen modal locks page scroll; the in-panel sub-view doesn't.
+  useEffect(() => {
+    if (panelHost) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [onClose]);
+  }, [panelHost]);
+
+  // ── Desktop: mount as a sub-view that fills the sidebar panel ──
+  if (panelHost) {
+    return createPortal(
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={cn(
+          "animate-fade-in pointer-events-auto absolute inset-0 z-30 flex flex-col bg-card",
+          className,
+        )}
+      >
+        <div className="flex shrink-0 items-center gap-2 border-b border-border px-2 py-2">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Back"
+            className="flex size-8 shrink-0 items-center justify-center rounded-full text-foreground hover:bg-muted"
+          >
+            <ChevronLeft className="size-5 rtl:rotate-180" />
+          </button>
+          <div className="min-w-0 flex-1">
+            {title && (
+              <h2 className="truncate text-sm font-bold text-foreground">{title}</h2>
+            )}
+            {subtitle && (
+              <p className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className={cn("min-h-0 flex-1 overflow-y-auto", bodyClassName ?? "p-4")}>
+          {children}
+        </div>
+        {footer && <div className="shrink-0">{footer}</div>}
+      </div>,
+      panelHost,
+    );
+  }
 
   return createPortal(
     <div

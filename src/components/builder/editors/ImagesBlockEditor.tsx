@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { nanoid } from "nanoid";
 import {
   ArrowUpDown,
@@ -10,10 +11,7 @@ import {
   EyeOff,
   Trash2,
   GripVertical,
-  Check,
   Copy,
-  ChevronLeft,
-  ChevronRight,
   ImagePlus,
 } from "lucide-react";
 import {
@@ -49,6 +47,7 @@ import {
   ColorRow,
   type SheetTab,
 } from "./sheet-kit";
+import { LayoutPicker } from "./LayoutPicker";
 
 type Tab = "sort" | "layout" | "settings";
 
@@ -81,6 +80,7 @@ const LAYOUTS: ReadonlyArray<{
  * five layout types) / Settings (duplicate + background color).
  */
 export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
+  const t = useTranslations("builder");
   const updateBlock = useEditorStore((s) => s.updateBlock);
   const addBlock = useEditorStore((s) => s.addBlock);
   const [tab, setTab] = useState<Tab>("sort");
@@ -90,9 +90,9 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
   const setItems = (next: ImageItem[]) => setBlock({ items: next });
 
   const tabs: SheetTab<Tab>[] = [
-    { value: "sort", label: "Sort", Icon: ArrowUpDown },
-    { value: "layout", label: "Layout", Icon: LayoutGrid },
-    { value: "settings", label: "Settings", Icon: SettingsIcon },
+    { value: "sort", label: t("tabs.sort"), Icon: ArrowUpDown },
+    { value: "layout", label: t("tabs.layout"), Icon: LayoutGrid },
+    { value: "settings", label: t("tabs.settings"), Icon: SettingsIcon },
   ];
 
   return (
@@ -117,7 +117,12 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
       )}
 
       {tab === "layout" && (
-        <LayoutCarousel
+        <LayoutPicker
+          options={LAYOUTS.map((l) => ({
+            type: l.type,
+            label: t(`imageLayouts.${l.type}`),
+            svg: l.svg,
+          }))}
           value={block.layout_type ?? "cards"}
           onChange={(v) => setBlock({ layout_type: v })}
         />
@@ -126,7 +131,7 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
       {tab === "settings" && (
         <GroupedCard>
           <ColorRow
-            label="Background color"
+            label={t("fields.background")}
             color={block.background_color ?? hexToArgbA("#000000")!}
             enabled={!!block.use_background_color}
             onColor={(c) => setBlock({ background_color: c })}
@@ -135,7 +140,7 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
           <GroupedRow
             Icon={Copy}
             color="#7c3aed"
-            title="Duplicate"
+            title={t("fields.duplicate")}
             onClick={() => addBlock({ ...block, id: nanoid() })}
           />
         </GroupedCard>
@@ -215,6 +220,8 @@ function SortRow({
   onToggleHide: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("builder");
+  const tc = useTranslations("common");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id! });
   const [busy, setBusy] = useState(false);
@@ -246,7 +253,7 @@ function SortRow({
         {...attributes}
         {...listeners}
         className="flex h-full cursor-grab items-center px-2.5 text-primary active:cursor-grabbing"
-        aria-label="Drag"
+        aria-label={t("fields.drag")}
       >
         <GripVertical className="size-5" />
       </span>
@@ -271,14 +278,14 @@ function SortRow({
 
       <label className="flex flex-1 cursor-pointer items-center text-sm font-medium text-muted-foreground">
         <ImagePlus className="me-1.5 size-4" />
-        Replace
+        {t("fields.replace")}
         <input type="file" accept="image/*" className="hidden" onChange={onPickReplace} />
       </label>
 
       <button
         type="button"
         onClick={onToggleHide}
-        aria-label="Toggle visibility"
+        aria-label={t("fields.toggleVisibility")}
         className="flex size-8 items-center justify-center text-muted-foreground hover:text-foreground"
       >
         {item.hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -286,7 +293,7 @@ function SortRow({
       <button
         type="button"
         onClick={onDelete}
-        aria-label="Delete"
+        aria-label={tc("delete")}
         className="me-1.5 flex size-8 items-center justify-center text-error"
       >
         <Trash2 className="size-4" />
@@ -295,99 +302,3 @@ function SortRow({
   );
 }
 
-// ---- Layout carousel (mirrors the mobile swipeable PageView picker) ----
-
-function LayoutCarousel({
-  value,
-  onChange,
-}: {
-  value: ImagesLayoutType;
-  onChange: (v: ImagesLayoutType) => void;
-}) {
-  const index = Math.max(0, LAYOUTS.findIndex((l) => l.type === value));
-
-  const go = (i: number) => {
-    const clamped = Math.min(LAYOUTS.length - 1, Math.max(0, i));
-    onChange(LAYOUTS[clamped]!.type);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5">
-        <ArrowButton dir="prev" disabled={index === 0} onClick={() => go(index - 1)} />
-        <div className="relative flex flex-1 flex-col items-center gap-3 rounded-2xl border border-primary bg-primary/[0.04] p-3">
-          <div className="relative flex h-32 w-full items-center justify-center rounded-xl bg-muted px-4">
-            <LayoutThumb type={value} />
-            <span className="absolute end-2.5 top-2.5 flex size-5 items-center justify-center rounded-full bg-primary text-white shadow z-10">
-              <Check className="size-3" />
-            </span>
-          </div>
-          <span className="text-sm font-semibold text-foreground">
-            {LAYOUTS[index]!.label}
-          </span>
-        </div>
-        <ArrowButton
-          dir="next"
-          disabled={index === LAYOUTS.length - 1}
-          onClick={() => go(index + 1)}
-        />
-      </div>
-
-      <p className="text-center text-xs text-muted-foreground">Swipe layouts</p>
-
-      <div className="flex justify-center gap-1.5">
-        {LAYOUTS.map((l, i) => (
-          <button
-            key={l.type}
-            type="button"
-            aria-label={l.label}
-            onClick={() => onChange(l.type)}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === index ? "w-3.5 bg-primary" : "w-1.5 bg-primary/20",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/** Real mobile layout illustration SVG for each layout type. */
-function LayoutThumb({ type }: { type: ImagesLayoutType }) {
-  const layout = LAYOUTS.find((l) => l.type === type) ?? LAYOUTS[0]!;
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`/layouts/${layout.svg}`}
-      alt=""
-      className="h-full w-full object-contain"
-    />
-  );
-}
-
-function ArrowButton({
-  dir,
-  disabled,
-  onClick,
-}: {
-  dir: "prev" | "next";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={dir}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-opacity hover:bg-muted disabled:opacity-30"
-    >
-      {dir === "prev" ? (
-        <ChevronLeft className="size-5 rtl:rotate-180" />
-      ) : (
-        <ChevronRight className="size-5 rtl:rotate-180" />
-      )}
-    </button>
-  );
-}

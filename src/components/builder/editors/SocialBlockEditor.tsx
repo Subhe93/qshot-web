@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { nanoid } from "nanoid";
 import {
@@ -13,9 +13,6 @@ import {
   EyeOff,
   Trash2,
   GripVertical,
-  Check,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import {
   DndContext,
@@ -49,6 +46,7 @@ import {
 import { ColorPickerField } from "@/components/ui/color-picker";
 import { PlatformSelectorSheet } from "./PlatformSelectorSheet";
 import { SocialItemEditor } from "./SocialItemEditor";
+import { LayoutPicker } from "./LayoutPicker";
 
 type Tab = "sort" | "layout" | "settings";
 
@@ -112,10 +110,14 @@ export function SocialBlockEditor({ block }: { block: SocialLinksBlock }) {
       )}
 
       {tab === "layout" && (
-        <LayoutCarousel
+        <LayoutPicker
+          options={SOCIAL_LAYOUTS.map((l) => ({
+            type: l.type,
+            label: l.label,
+            svg: l.preview.replace("/layouts/", ""),
+          }))}
           value={block.layout_type ?? "list"}
           onChange={(v) => setBlock({ layout_type: v })}
-          hint={t("swipeLayouts")}
         />
       )}
 
@@ -324,133 +326,6 @@ function SortRow({
         <Trash2 className="size-4" />
       </button>
     </div>
-  );
-}
-
-// ---- Layout carousel (mirrors the mobile swipeable PageView) ----
-
-function LayoutCarousel({
-  value,
-  onChange,
-  hint,
-}: {
-  value: SocialLinksBlock["layout_type"];
-  onChange: (v: (typeof SOCIAL_LAYOUTS)[number]["type"]) => void;
-  hint: string;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const selectedIndex = Math.max(
-    0,
-    SOCIAL_LAYOUTS.findIndex((l) => l.type === value),
-  );
-
-  // Keep the selected slide centered (covers arrow nav + external changes).
-  useEffect(() => {
-    const slide = scrollRef.current?.children[selectedIndex] as
-      | HTMLElement
-      | undefined;
-    slide?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [selectedIndex]);
-
-  const go = (index: number) => {
-    const i = Math.min(SOCIAL_LAYOUTS.length - 1, Math.max(0, index));
-    onChange(SOCIAL_LAYOUTS[i].type);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5">
-        <ArrowButton
-          dir="prev"
-          disabled={selectedIndex === 0}
-          onClick={() => go(selectedIndex - 1)}
-        />
-        <div
-          ref={scrollRef}
-          className="flex flex-1 snap-x snap-mandatory gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {SOCIAL_LAYOUTS.map((layout) => {
-            const selected = layout.type === value;
-            return (
-              <button
-                key={layout.type}
-                type="button"
-                onClick={() => onChange(layout.type)}
-                className={cn(
-                  "relative flex w-full shrink-0 snap-center flex-col items-center gap-3 rounded-2xl border p-3 transition-colors",
-                  selected ? "border-primary bg-primary/[0.04]" : "border-transparent",
-                )}
-              >
-                {selected && (
-                  <span className="absolute end-2.5 top-2.5 z-10 flex size-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    <Check className="size-3" />
-                  </span>
-                )}
-                <div className="flex h-32 w-full items-center justify-center rounded-xl bg-muted px-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={layout.preview}
-                    alt=""
-                    className="max-h-24 w-full object-contain drop-shadow-[0_4px_18px_rgba(0,0,0,0.15)]"
-                  />
-                </div>
-                <span className="text-sm font-semibold text-foreground">
-                  {layout.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <ArrowButton
-          dir="next"
-          disabled={selectedIndex === SOCIAL_LAYOUTS.length - 1}
-          onClick={() => go(selectedIndex + 1)}
-        />
-      </div>
-
-      <p className="text-center text-xs text-muted-foreground">{hint}</p>
-
-      <div className="flex justify-center gap-1.5">
-        {SOCIAL_LAYOUTS.map((layout, i) => (
-          <button
-            key={layout.type}
-            type="button"
-            aria-label={layout.label}
-            onClick={() => onChange(layout.type)}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === selectedIndex ? "w-3.5 bg-primary" : "w-1.5 bg-primary/20",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ArrowButton({
-  dir,
-  disabled,
-  onClick,
-}: {
-  dir: "prev" | "next";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={dir}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-opacity hover:bg-muted disabled:opacity-30"
-    >
-      {dir === "prev" ? (
-        <ChevronLeft className="size-5 rtl:rotate-180" />
-      ) : (
-        <ChevronRight className="size-5 rtl:rotate-180" />
-      )}
-    </button>
   );
 }
 

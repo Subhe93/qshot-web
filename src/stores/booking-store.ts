@@ -3,6 +3,7 @@ import type { Customer, Provider, Service } from "@/lib/api/booking";
 
 export type BookingSection =
   | "home"
+  | "calendar"
   | "bookings"
   | "customers"
   | "providers"

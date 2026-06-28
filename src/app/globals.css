@@ -236,3 +236,20 @@ summary {
 .qr-scanline {
   animation: qr-scan 2.4s ease-in-out infinite;
 }
+
+/* Paragraph rich editor (Quill snow) — fit the builder sheet. */
+.builder-quill .ql-toolbar {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+  border-color: var(--border);
+}
+.builder-quill .ql-container {
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  border-color: var(--border);
+  font-family: inherit;
+}
+.builder-quill .ql-editor {
+  min-height: 140px;
+  font-size: 0.875rem;
+}

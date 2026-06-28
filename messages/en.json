@@ -17,11 +17,14 @@
     "back": "Back",
     "next": "Next",
     "search": "Search",
+    "noResults": "No results",
     "language": "Language",
     "logout": "Log out",
     "comingSoon": "Coming soon",
     "share": "Share",
-    "genericError": "Something went wrong. Please try again."
+    "genericError": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "invalidPhone": "Invalid phone number"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -109,6 +112,9 @@
   },
   "builder": {
     "deleteBlockConfirm": "Delete this block? This can't be undone.",
+    "careful": "Careful",
+    "coverSizeWarning": "The selected cover size may hide some text and buttons.",
+    "confirm": "Confirm",
     "addBlock": "Add block",
     "save": "Save",
     "saved": "Saved",
@@ -166,7 +172,20 @@
       "duplicate": "Duplicate",
       "icon": "Icon",
       "iconHint": "Upload a square image",
-      "displayName": "Display name"
+      "displayName": "Display name",
+      "address": "Address",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "coordsHint": "Enter the place coordinates to position the map.",
+      "hideReviews": "Hide reviews",
+      "drag": "Drag",
+      "toggleVisibility": "Toggle visibility",
+      "replace": "Replace",
+      "uploadImage": "Upload image",
+      "changeImage": "Change image",
+      "deleteImage": "Delete image",
+      "searchLocation": "Search for a location",
+      "locationNoResults": "No places found"
     },
     "tabPreview": "Preview",
     "tabEdit": "Edit",
@@ -185,7 +204,8 @@
       "add": "Add Block",
       "style": "Style",
       "settings": "Settings",
-      "comingSoon": "Coming soon"
+      "comingSoon": "Coming soon",
+      "booking": "Booking"
     },
     "addBlockSubtitle": "Choose a section",
     "basics": "Basics",
@@ -210,7 +230,8 @@
       "sort": "Sort",
       "layout": "Layout",
       "theme": "Theme",
-      "settings": "Settings"
+      "settings": "Settings",
+      "edit": "Edit"
     },
     "websiteSettings": {
       "title": "Website Settings",
@@ -297,7 +318,126 @@
         "emailInvalid": "Enter a valid email",
         "urlInvalid": "Enter a valid URL"
       }
-    }
+    },
+    "location": {
+      "reviews": "reviews",
+      "infoUnavailable": "Location info unavailable",
+      "openInMaps": "Open in maps",
+      "copyAddress": "Copy address"
+    },
+    "imageLayouts": {
+      "cards": "Square Large 1:1",
+      "carousel": "Square Small 1:1",
+      "shorts": "Vertical 9:16",
+      "swiper": "Horizontal 16:9",
+      "singleSizable": "Single resizable image"
+    },
+    "products": {
+      "defaultTitle": "Product",
+      "addProduct": "Add product",
+      "dropdown": "Dropdown",
+      "circleImage": "Circle image",
+      "backgroundColor": "Background color",
+      "currency": "Currency",
+      "descriptionOptional": "Description (optional)",
+      "priceOptional": "Price (optional)",
+      "addDiscount": "Add discount",
+      "priceAfterDiscount": "Price after discount",
+      "removeDiscount": "Remove discount",
+      "layoutSwiper": "Swiper",
+      "layoutSwiper2": "Swiper 2",
+      "layoutLargeGrid": "Large grid",
+      "layoutPromo": "Promo",
+      "layoutShop": "Shop",
+      "layoutGrid2": "Grid 2",
+      "layoutBanner": "Banner"
+    },
+    "reviews": {
+      "layoutCards": "Cards",
+      "layoutList": "List",
+      "layoutTestimonial": "Testimonial",
+      "fetchFromGoogle": "Fetch from Google",
+      "availableAgainIn": "Available again in {time}",
+      "addReviewManually": "Add review manually",
+      "defaultName": "Review",
+      "titlePlaceholder": "Reviews",
+      "clickUrl": "Click URL",
+      "dropdown": "Dropdown",
+      "addReviewButton": "Add review button",
+      "addReviewUrl": "Add review URL",
+      "sheetTitle": "Reviews",
+      "sheetSubtitle": "Rating",
+      "rating": "Rating",
+      "timeAgo": "Time ago",
+      "timeAgoPlaceholder": "2 weeks ago",
+      "done": "Done",
+      "starsCount": "{count} stars"
+    },
+    "socialFeed": {
+      "numberOfPosts": "Number of feed posts",
+      "showProfileOverview": "Show profile overview",
+      "decrease": "Decrease",
+      "increase": "Increase"
+    },
+    "form": {
+      "defaultOption": "Default",
+      "newQuestion": "New question",
+      "close": "Close",
+      "typeText": "Text",
+      "typeParagraph": "Paragraph",
+      "typeChoices": "Choices",
+      "typeRating": "Rating",
+      "question": "Question",
+      "questionPlaceholder": "Add your question",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your question (optional)",
+      "required": "Required",
+      "optional": "Optional",
+      "hint": "Hint",
+      "hintPlaceholder": "Hint text (optional)",
+      "choices": "Choices",
+      "optionPlaceholder": "Your option",
+      "removeOption": "Remove option",
+      "addOption": "Add choice",
+      "choicesType": "Type",
+      "multipleChoices": "Multiple choices",
+      "singleChoice": "Single choice",
+      "starsNumber": "Number of stars"
+    },
+    "embed": {
+      "embed": "Embed",
+      "source": "Source",
+      "aspectRatio": "Aspect ratio",
+      "auto": "Auto",
+      "codePlaceholder": "<iframe …>"
+    },
+    "introVideo": {
+      "video": "Video",
+      "videoUrl": "Video URL",
+      "videoHint": "https://example.com/video.mp4",
+      "thumbnail": "Thumbnail",
+      "thumbnailImage": "Thumbnail image"
+    },
+    "bookingBlock": {
+      "bookNow": "Book Now",
+      "dropdown": "Dropdown"
+    },
+    "pages": {
+      "home": "Home",
+      "editing": "Editing",
+      "addWebpage": "Add webpage",
+      "open": "Open",
+      "reorder": "Reorder",
+      "toggleListed": "Toggle visibility",
+      "newTitle": "New page",
+      "editTitle": "Edit page",
+      "nameLabel": "Name",
+      "namePlaceholder": "Page name",
+      "urlLabel": "URL",
+      "urlPlaceholder": "page-url",
+      "urlTaken": "This URL is taken"
+    },
+    "dropdown": "Dropdown"
   },
   "nav": {
     "profiles": "Website",
@@ -570,7 +710,8 @@
       "providers": "Providers",
       "services": "Services",
       "analytics": "Analytics",
-      "settings": "Settings"
+      "settings": "Settings",
+      "calendar": "Calendar"
     },
     "status": {
       "all": "All",
@@ -634,6 +775,8 @@
       "workingHours": "Working hours",
       "dayOff": "Day off",
       "servicesOffered": "Services offered",
+      "tabInfo": "Info",
+      "tabIntegrations": "Integrations",
       "noServices": "No services yet — add services first.",
       "servicesAfterSave": "Save the provider first to assign services.",
       "priceOverride": "Price",
@@ -645,7 +788,21 @@
       "forcedBreakAfterCount": "Break after N bookings",
       "forcedBreakDuration": "Break duration (min)",
       "isDefault": "Default provider",
-      "blackoutDates": "Blackout dates"
+      "blackoutDates": "Blackout dates",
+      "accessCode": "Access code",
+      "accessCodeHint": "The provider enters this code at the portal to manage their own Google Calendar and bookings.",
+      "copyCode": "Copy code",
+      "copied": "Copied",
+      "regenerateCode": "Regenerate",
+      "regenerateConfirm": "Regenerate the code? The old code and any active provider session stop working.",
+      "portalHint": "Provider portal",
+      "showCode": "Show",
+      "hideCode": "Hide",
+      "generateCode": "Generate code",
+      "noCodeYet": "No code yet — generate one to share with the provider.",
+      "inactive": "Inactive",
+      "searchTimezone": "Search timezones…",
+      "noTimezones": "No timezones found"
     },
     "services": {
       "title": "Services",
@@ -660,7 +817,21 @@
       "currency": "Currency",
       "gapBefore": "Gap before",
       "gapAfter": "Gap after",
-      "active": "Active"
+      "active": "Active",
+      "subService": "Sub-service",
+      "addSub": "Add sub-service",
+      "category": "Category",
+      "extras": "Extras",
+      "addExtra": "Add extra",
+      "editExtra": "Edit extra",
+      "noExtras": "No extras yet",
+      "extrasAfterSave": "Save the service first to add extras.",
+      "extraName": "Extra name",
+      "extraHint": "Adding it to a category offers it for every service under it.",
+      "visible": "Visible on booking site",
+      "hidden": "Hidden",
+      "visibleHint": "Off = hidden from your public booking page (not deleted).",
+      "minutesUnit": "{count, plural, one {minute} other {minutes}}"
     },
     "customers": {
       "title": "Customers",
@@ -685,6 +856,8 @@
       "general": "General",
       "currency": "Currency",
       "minNotice": "Min notice (min)",
+      "setupTitle": "Set up booking",
+      "setupDesc": "Save these settings to activate booking — you can fine-tune everything later, then add your services and providers.",
       "maxAdvanced": "Max advance (days)",
       "softHold": "Soft hold (min)",
       "gaps": "Gaps",
@@ -714,7 +887,44 @@
       "minutes": "minutes",
       "hours": "hours"
     },
-    "deleteConfirm": "Delete this item? This can't be undone."
+    "deleteConfirm": "Delete this item? This can't be undone.",
+    "free": "Free",
+    "payOnline": "Pay online",
+    "payOnSite": "Pay on site",
+    "collected": "Collected",
+    "onSiteDue": "On-site due",
+    "dueOnSite": "Due on site",
+    "gcal": {
+      "title": "Google Calendar",
+      "subtitle": "Sync this provider’s bookings with their Google Calendar.",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "connected": "Connected",
+      "notConnected": "Not connected",
+      "reconnect": "Reconnect",
+      "revoked": "Access revoked",
+      "syncError": "Sync error",
+      "lastSynced": "Last synced",
+      "unavailable": "Google Calendar isn’t available right now.",
+      "connecting": "Connecting…",
+      "disconnectConfirm": "Disconnect this Google Calendar? Synced events stop and imported busy blocks are removed."
+    },
+    "calendar": {
+      "title": "Calendar",
+      "busy": "Busy",
+      "allDay": "All day",
+      "allProviders": "All providers",
+      "empty": "Nothing scheduled in this range.",
+      "booking": "Booking",
+      "range7": "7 days",
+      "range30": "30 days",
+      "week": "Week",
+      "month": "Month",
+      "today": "Today",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "openBuilder": "Builder"
   },
   "bookingsList": {
     "title": "Bookings",

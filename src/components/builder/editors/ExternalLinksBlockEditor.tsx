@@ -13,14 +13,11 @@ import {
   EyeOff,
   Trash2,
   GripVertical,
-  Check,
   Copy,
   ArrowRight,
   Circle,
   ChevronsDownUp,
   Link as LinkIcon,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import {
   DndContext,
@@ -49,6 +46,7 @@ import type {
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Input } from "@/components/ui/input";
 import { ImageUploader } from "@/components/builder/hero/CoverTab";
+import { LayoutPicker } from "./LayoutPicker";
 import {
   SheetTabBar,
   GroupedCard,
@@ -134,10 +132,10 @@ export function ExternalLinksBlockEditor({ block }: { block: ExternalLinksBlock 
       )}
 
       {tab === "layout" && (
-        <LayoutTab
+        <LayoutPicker
+          options={LAYOUTS}
           value={layout}
           onChange={(v) => setBlock({ layout_type: v })}
-          hint={t("swipeLayouts")}
         />
       )}
 
@@ -157,7 +155,7 @@ export function ExternalLinksBlockEditor({ block }: { block: ExternalLinksBlock 
             <GroupedRow
               Icon={ChevronsDownUp}
               color="var(--primary)"
-              title="Dropdown"
+              title={t("dropdown")}
               trailing={
                 <ToggleSwitch
                   checked={!!block.foldable}
@@ -357,113 +355,6 @@ function SortRow({
         <Trash2 className="size-4" />
       </button>
     </div>
-  );
-}
-
-// ---- Layout tab (mirrors the mobile swipeable PageView of layout cards) ----
-
-function LayoutTab({
-  value,
-  onChange,
-  hint,
-}: {
-  value: ExternalLinksLayoutType;
-  onChange: (v: ExternalLinksLayoutType) => void;
-  hint: string;
-}) {
-  const selectedIndex = Math.max(0, LAYOUTS.findIndex((l) => l.type === value));
-  const go = (i: number) => {
-    const clamped = Math.min(LAYOUTS.length - 1, Math.max(0, i));
-    onChange(LAYOUTS[clamped].type);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5">
-        <ArrowButton dir="prev" disabled={selectedIndex === 0} onClick={() => go(selectedIndex - 1)} />
-        <div className="flex flex-1 snap-x snap-mandatory gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {LAYOUTS.map((l) => {
-            const selected = l.type === value;
-            return (
-              <button
-                key={l.type}
-                type="button"
-                onClick={() => onChange(l.type)}
-                className={cn(
-                  "relative flex w-full shrink-0 snap-center flex-col items-center gap-3 rounded-2xl border p-3 transition-colors",
-                  selected ? "border-primary bg-primary/[0.04]" : "border-transparent",
-                )}
-              >
-                {selected && (
-                  <span className="absolute end-2.5 top-2.5 z-10 flex size-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    <Check className="size-3" />
-                  </span>
-                )}
-                <div className="flex h-32 w-full items-center justify-center rounded-xl bg-muted">
-                  <div className="flex h-24 w-full items-center justify-center px-4 drop-shadow-[0_4px_18px_rgba(0,0,0,0.15)]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/layouts/${l.svg}`}
-                      alt=""
-                      className="h-full w-full object-contain"
-                    />
-                  </div>
-                </div>
-                <span className="text-sm font-semibold text-foreground">{l.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <ArrowButton
-          dir="next"
-          disabled={selectedIndex === LAYOUTS.length - 1}
-          onClick={() => go(selectedIndex + 1)}
-        />
-      </div>
-
-      <p className="text-center text-xs text-muted-foreground">{hint}</p>
-
-      <div className="flex justify-center gap-1.5">
-        {LAYOUTS.map((l, i) => (
-          <button
-            key={l.type}
-            type="button"
-            aria-label={l.label}
-            onClick={() => onChange(l.type)}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === selectedIndex ? "w-3.5 bg-primary" : "w-1.5 bg-primary/20",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ArrowButton({
-  dir,
-  disabled,
-  onClick,
-}: {
-  dir: "prev" | "next";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={dir}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-opacity hover:bg-muted disabled:opacity-30"
-    >
-      {dir === "prev" ? (
-        <ChevronLeft className="size-5 rtl:rotate-180" />
-      ) : (
-        <ChevronRight className="size-5 rtl:rotate-180" />
-      )}
-    </button>
   );
 }
 

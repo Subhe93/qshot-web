@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   LayoutGrid,
   Settings as SettingsIcon,
-  Check,
   ChevronLeft,
   ChevronRight,
   Hash,
@@ -28,6 +28,7 @@ import {
   ToggleSwitch,
   type SheetTab,
 } from "./sheet-kit";
+import { LayoutPicker } from "./LayoutPicker";
 
 type Tab = "layout" | "general";
 
@@ -68,6 +69,7 @@ const LAYOUTS: { type: SocialFeedLayoutType; label: string; svg: string }[] = [
  * the dedicated feed-input screens.
  */
 export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
+  const t = useTranslations("builder");
   const updateBlock = useEditorStore((s) => s.updateBlock);
   const addBlock = useEditorStore((s) => s.addBlock);
 
@@ -116,8 +118,10 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
   }
 
   const tabs: SheetTab<Tab>[] = [
-    ...(hasLayout ? [{ value: "layout" as const, label: "Layout", Icon: LayoutGrid }] : []),
-    { value: "general", label: "Settings", Icon: SettingsIcon },
+    ...(hasLayout
+      ? [{ value: "layout" as const, label: t("tabs.layout"), Icon: LayoutGrid }]
+      : []),
+    { value: "general", label: t("tabs.settings"), Icon: SettingsIcon },
   ];
 
   return (
@@ -142,7 +146,11 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
       {tabs.length > 1 && <SheetTabBar tabs={tabs} current={tab} onChange={setTab} />}
 
       {tab === "layout" && hasLayout && (
-        <LayoutCarousel value={block.layout_type ?? "swiper"} onChange={(v) => setBlock({ layout_type: v })} />
+        <LayoutPicker
+          options={LAYOUTS}
+          value={block.layout_type ?? "swiper"}
+          onChange={(v) => setBlock({ layout_type: v })}
+        />
       )}
 
       {tab === "general" && (
@@ -150,7 +158,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
           {/* Accent title field */}
           <div>
             <label className="mb-1.5 block px-1 text-[13px] font-semibold text-foreground">
-              Title
+              {t("fields.title")}
             </label>
             <input
               type="text"
@@ -186,7 +194,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
             <GroupedRow
               Icon={Hash}
               color="#a855f7"
-              title="Number of feed posts"
+              title={t("socialFeed.numberOfPosts")}
               trailing={
                 <Stepper value={postsCount} min={2} max={20} onChange={setPostsCount} />
               }
@@ -197,7 +205,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
               <GroupedRow
                 Icon={UserCircle}
                 color="#DD2A7B"
-                title="Show profile overview"
+                title={t("socialFeed.showProfileOverview")}
                 trailing={
                   <ToggleSwitch
                     checked={showProfile}
@@ -213,13 +221,13 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
             <GroupedRow
               Icon={Copy}
               color="#7c3aed"
-              title="Duplicate"
+              title={t("fields.duplicate")}
               onClick={() => addBlock({ ...block, id: crypto.randomUUID() })}
             />
 
             {/* Background color */}
             <ColorRow
-              label="Background color"
+              label={t("fields.background")}
               color={block.background_color ?? hexToArgbA("#000000")!}
               enabled={!!block.use_background_color}
               onColor={(c) => setBlock({ background_color: c })}
@@ -245,11 +253,12 @@ function Stepper({
   max: number;
   onChange: (v: number) => void;
 }) {
+  const t = useTranslations("builder");
   return (
     <div className="flex items-center gap-1.5">
       <button
         type="button"
-        aria-label="Decrease"
+        aria-label={t("socialFeed.decrease")}
         disabled={value <= min}
         onClick={() => onChange(value - 1)}
         className="flex size-7 items-center justify-center rounded-lg bg-foreground/[0.06] text-foreground disabled:opacity-30"
@@ -261,7 +270,7 @@ function Stepper({
       </span>
       <button
         type="button"
-        aria-label="Increase"
+        aria-label={t("socialFeed.increase")}
         disabled={value >= max}
         onClick={() => onChange(value + 1)}
         className="flex size-7 items-center justify-center rounded-lg bg-foreground/[0.06] text-foreground disabled:opacity-30"
@@ -272,105 +281,3 @@ function Stepper({
   );
 }
 
-// ─── Layout carousel (mirrors the mobile swipeable PageView: swiper/list/grid) ─
-
-function LayoutCarousel({
-  value,
-  onChange,
-}: {
-  value: SocialFeedLayoutType;
-  onChange: (v: SocialFeedLayoutType) => void;
-}) {
-  const selectedIndex = Math.max(0, LAYOUTS.findIndex((l) => l.type === value));
-
-  const go = (index: number) => {
-    const i = Math.min(LAYOUTS.length - 1, Math.max(0, index));
-    onChange(LAYOUTS[i].type);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5">
-        <ArrowButton dir="prev" disabled={selectedIndex === 0} onClick={() => go(selectedIndex - 1)} />
-        <div className="grid flex-1 grid-cols-3 gap-2">
-          {LAYOUTS.map((layout) => {
-            const selected = layout.type === value;
-            return (
-              <button
-                key={layout.type}
-                type="button"
-                onClick={() => onChange(layout.type)}
-                className={cn(
-                  "relative flex flex-col items-center gap-2 rounded-2xl border p-3 transition-colors",
-                  selected ? "border-primary bg-primary/[0.04]" : "border-transparent hover:border-border",
-                )}
-              >
-                {selected && (
-                  <span className="absolute end-2 top-2 z-10 flex size-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    <Check className="size-3" />
-                  </span>
-                )}
-                <span className="flex h-16 w-full items-center justify-center rounded-xl bg-muted px-3">
-                  <img
-                    src={`/layouts/${layout.svg}`}
-                    alt=""
-                    className="h-full w-full object-contain"
-                  />
-                </span>
-                <span className="text-xs font-semibold text-foreground">{layout.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <ArrowButton
-          dir="next"
-          disabled={selectedIndex === LAYOUTS.length - 1}
-          onClick={() => go(selectedIndex + 1)}
-        />
-      </div>
-
-      <p className="text-center text-xs text-muted-foreground">Swipe to change the layout</p>
-
-      <div className="flex justify-center gap-1.5">
-        {LAYOUTS.map((layout, i) => (
-          <button
-            key={layout.type}
-            type="button"
-            aria-label={layout.label}
-            onClick={() => onChange(layout.type)}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === selectedIndex ? "w-3.5 bg-primary" : "w-1.5 bg-primary/20",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ArrowButton({
-  dir,
-  disabled,
-  onClick,
-}: {
-  dir: "prev" | "next";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={dir}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-opacity hover:bg-muted disabled:opacity-30"
-    >
-      {dir === "prev" ? (
-        <ChevronLeft className="size-5 rtl:rotate-180" />
-      ) : (
-        <ChevronRight className="size-5 rtl:rotate-180" />
-      )}
-    </button>
-  );
-}

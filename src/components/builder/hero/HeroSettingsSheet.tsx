@@ -41,13 +41,8 @@ const TAB_META: Record<
 
 type HandledTab = keyof typeof TAB_META;
 
-export function HeroSettingsSheet({
-  initialTab,
-  onClose,
-}: {
-  initialTab: HeroTab;
-  onClose: () => void;
-}) {
+/** Inner content — shared by the mobile sheet and the desktop left panel. */
+export function HeroSettingsContent({ initialTab }: { initialTab: HeroTab }) {
   const settings = useEditorStore((s) => s.settings);
   const update = useEditorStore((s) => s.updateSettings);
 
@@ -72,37 +67,49 @@ export function HeroSettingsSheet({
   );
 
   return (
-    <BottomSheet title="Website" subtitle="Settings" onClose={onClose}>
-      <div className="space-y-4">
-        {/* Wrapping tab bar — every tab stays visible (no horizontal scrolling). */}
-        <div className="flex flex-wrap gap-1.5">
-          {available.map((value) => {
-            const { label, Icon } = TAB_META[value];
-            const active = value === activeTab;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setActiveTab(value)}
-                className={cn(
-                  "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-semibold transition-colors",
-                  active
-                    ? "bg-primary/10 text-foreground ring-1 ring-primary/40"
-                    : "bg-foreground/[0.05] text-foreground/55",
-                )}
-              >
-                <Icon
-                  className="size-[15px]"
-                  style={active ? { color: "var(--primary)" } : undefined}
-                />
-                {label}
-              </button>
-            );
-          })}
-        </div>
-
-        <ActiveTab tab={activeTab} settings={settings} update={update} />
+    <div className="space-y-4">
+      {/* Wrapping tab bar — every tab stays visible (no horizontal scrolling). */}
+      <div className="flex flex-wrap gap-1.5">
+        {available.map((value) => {
+          const { label, Icon } = TAB_META[value];
+          const active = value === activeTab;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setActiveTab(value)}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-semibold transition-colors",
+                active
+                  ? "bg-primary/10 text-foreground ring-1 ring-primary/40"
+                  : "bg-foreground/[0.05] text-foreground/55",
+              )}
+            >
+              <Icon
+                className="size-[15px]"
+                style={active ? { color: "var(--primary)" } : undefined}
+              />
+              {label}
+            </button>
+          );
+        })}
       </div>
+
+      <ActiveTab tab={activeTab} settings={settings} update={update} />
+    </div>
+  );
+}
+
+export function HeroSettingsSheet({
+  initialTab,
+  onClose,
+}: {
+  initialTab: HeroTab;
+  onClose: () => void;
+}) {
+  return (
+    <BottomSheet title="Website" subtitle="Settings" onClose={onClose}>
+      <HeroSettingsContent initialTab={initialTab} />
     </BottomSheet>
   );
 }

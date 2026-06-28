@@ -37,7 +37,8 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
     (block.title ?? "").trim() || DEFAULT_FEED_TITLE[configuration] || "";
   const dir = dirOf(title);
   const count = Math.min(20, Math.max(0, block.posts_count ?? 4));
-  const layout = block.layout_type ?? "swiper";
+  // Mobile SocialFeedBlock.init default layout is "list".
+  const layout = block.layout_type ?? "list";
 
   const showProfileDetails =
     (block.settings?.["show_profile_details"] as boolean | undefined) ?? true;

@@ -80,7 +80,8 @@ export async function saveProfile(
 export const MAIN_TEMPLATE = "6627d338fbcf288835ef634b";
 
 // Upload a logo/image — mirrors mobile websiteImageUpload (q-profile/image/create);
-// returns the stored file name (CDN path).
+// returns the stored file name (CDN path). Throws on HTTP error so callers can
+// surface failures (e.g. 401) instead of silently getting null.
 export async function uploadProfileImage(file: File): Promise<string | null> {
   // Field name is `images` (Postman collection "upload new profile image" +
   // mobile UploadImageRequest). Response: { data: [ { file_name } ] }.
@@ -88,10 +89,21 @@ export async function uploadProfileImage(file: File): Promise<string | null> {
   body.append("images", file);
   const res = await api
     .post("q-profile/image/create", { body })
-    .json<ApiResponse<Array<{ file_name?: string }>>>();
-  const data = res.data;
-  if (Array.isArray(data)) return data[0]?.file_name ?? null;
-  return null;
+    .json<unknown>();
+  return extractFileName(res);
+}
+
+/** Tolerate the few shapes the upload endpoint may return for a stored file. */
+function extractFileName(res: unknown): string | null {
+  const pick = (o: unknown): string | null => {
+    const r = o as { file_name?: string; fileName?: string } | null;
+    return r?.file_name ?? r?.fileName ?? null;
+  };
+  const data = (res as { data?: unknown })?.data ?? res;
+  if (Array.isArray(data)) return pick(data[0]);
+  const imgs = (data as { images?: unknown })?.images;
+  if (Array.isArray(imgs)) return pick(imgs[0]);
+  return pick(data);
 }
 
 export interface CreateProfileInput {
@@ -123,8 +135,12 @@ export async function createProfile(
         settings,
       },
     })
-    .json<ApiResponse<ProfileSummary>>();
-  return res.data ?? null;
+    // The backend nests the created profile under `data.user_profile` (mobile
+    // UserWebsiteDataSource.create: response.data["data"]["user_profile"]). Read
+    // it from there; tolerate a flat response too.
+    .json<ApiResponse<{ user_profile?: ProfileSummary } & ProfileSummary>>();
+  const data = res.data;
+  return data?.user_profile ?? data ?? null;
 }
 
 // Delete a website — mirrors mobile DeleteWebsiteRequest (POST q-profile/user/delete, body { id }).

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { nanoid } from "nanoid";
 import {
@@ -12,10 +12,8 @@ import {
   EyeOff,
   Trash2,
   GripVertical,
-  Check,
-  ChevronLeft,
-  ChevronRight,
   ChevronRight as ChevronForward,
+  ChevronsDownUp,
   Play,
   Copy,
   ImageOff,
@@ -52,6 +50,8 @@ import {
   ToggleSwitch,
   type SheetTab,
 } from "./sheet-kit";
+import { LayoutPicker } from "./LayoutPicker";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 
 type Tab = "sort" | "layout" | "settings";
 
@@ -126,10 +126,14 @@ export function VideoLinksBlockEditor({ block }: { block: VideoLinksBlock }) {
       )}
 
       {tab === "layout" && (
-        <LayoutCarousel
+        <LayoutPicker
+          options={LAYOUTS.map((l) => ({
+            type: l.type,
+            label: l.label,
+            svg: l.svg.replace("/layouts/", ""),
+          }))}
           value={block.layout_type ?? "list"}
           onChange={(v) => setBlock({ layout_type: v })}
-          hint={t("swipeLayouts")}
         />
       )}
 
@@ -150,10 +154,11 @@ export function VideoLinksBlockEditor({ block }: { block: VideoLinksBlock }) {
           </div>
 
           <GroupedCard>
+            {/* mobile order: dropdown (foldable), duplicate, background color */}
             <GroupedRow
-              Icon={LayoutGrid}
-              color="#5b5bd6"
-              title={t("fields.layout")}
+              Icon={ChevronsDownUp}
+              color="var(--primary)"
+              title={t("dropdown")}
               trailing={
                 <ToggleSwitch
                   checked={!!block.foldable}
@@ -161,18 +166,18 @@ export function VideoLinksBlockEditor({ block }: { block: VideoLinksBlock }) {
                 />
               }
             />
+            <GroupedRow
+              Icon={Copy}
+              color="#7c3aed"
+              title={t("fields.duplicate")}
+              onClick={() => addBlock({ ...block, id: nanoid() })}
+            />
             <ColorRow
               label={t("fields.background")}
               color={block.background_color ?? hexToArgbA("#000000")!}
               enabled={!!block.use_background_color}
               onColor={(c) => setBlock({ background_color: c })}
               onToggle={(v) => setBlock({ use_background_color: v })}
-            />
-            <GroupedRow
-              Icon={Copy}
-              color="#7c3aed"
-              title={t("fields.duplicate")}
-              onClick={() => addBlock({ ...block, id: nanoid() })}
             />
           </GroupedCard>
         </div>
@@ -318,128 +323,6 @@ function SortRow({
   );
 }
 
-// ---- Layout carousel (mirrors the mobile swipeable PageView) ----
-
-function LayoutCarousel({
-  value,
-  onChange,
-  hint,
-}: {
-  value: VideoLinksLayoutType;
-  onChange: (v: VideoLinksLayoutType) => void;
-  hint: string;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const selectedIndex = Math.max(
-    0,
-    LAYOUTS.findIndex((l) => l.type === value),
-  );
-
-  useEffect(() => {
-    const slide = scrollRef.current?.children[selectedIndex] as
-      | HTMLElement
-      | undefined;
-    slide?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [selectedIndex]);
-
-  const go = (index: number) => {
-    const i = Math.min(LAYOUTS.length - 1, Math.max(0, index));
-    onChange(LAYOUTS[i].type);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5">
-        <ArrowButton dir="prev" disabled={selectedIndex === 0} onClick={() => go(selectedIndex - 1)} />
-        <div
-          ref={scrollRef}
-          className="flex flex-1 snap-x snap-mandatory gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {LAYOUTS.map((layout) => {
-            const selected = layout.type === value;
-            return (
-              <button
-                key={layout.type}
-                type="button"
-                onClick={() => onChange(layout.type)}
-                className={cn(
-                  "relative flex w-full shrink-0 snap-center flex-col items-center gap-3 rounded-2xl border p-3 transition-colors",
-                  selected ? "border-primary bg-primary/[0.04]" : "border-transparent",
-                )}
-              >
-                {selected && (
-                  <span className="absolute end-2.5 top-2.5 z-10 flex size-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    <Check className="size-3" />
-                  </span>
-                )}
-                <div className="flex h-32 w-full items-center justify-center rounded-xl bg-muted px-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={layout.svg}
-                    alt=""
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-                <span className="text-sm font-semibold text-foreground">
-                  {layout.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <ArrowButton
-          dir="next"
-          disabled={selectedIndex === LAYOUTS.length - 1}
-          onClick={() => go(selectedIndex + 1)}
-        />
-      </div>
-
-      <p className="text-center text-xs text-muted-foreground">{hint}</p>
-
-      <div className="flex justify-center gap-1.5">
-        {LAYOUTS.map((layout, i) => (
-          <button
-            key={layout.type}
-            type="button"
-            aria-label={layout.type}
-            onClick={() => onChange(layout.type)}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === selectedIndex ? "w-3.5 bg-primary" : "w-1.5 bg-primary/20",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ArrowButton({
-  dir,
-  disabled,
-  onClick,
-}: {
-  dir: "prev" | "next";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={dir}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-opacity hover:bg-muted disabled:opacity-30"
-    >
-      {dir === "prev" ? (
-        <ChevronLeft className="size-5 rtl:rotate-180" />
-      ) : (
-        <ChevronRight className="size-5 rtl:rotate-180" />
-      )}
-    </button>
-  );
-}
-
 // ---- Per-item URL editor (mirrors VideoLinkEditorSheet) ----
 
 function VideoItemEditor({
@@ -458,37 +341,11 @@ function VideoItemEditor({
   const invalid = url.trim().length > 0 && !YT_REGEX.test(url.trim());
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={onClose}>
-      <div
-        className="w-full max-w-md rounded-t-3xl bg-card p-5 pb-7 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center gap-3">
-          <span
-            className="flex size-11 items-center justify-center rounded-full border-[1.5px]"
-            style={{
-              backgroundColor: "color-mix(in srgb, var(--primary) 15%, transparent)",
-              borderColor: "color-mix(in srgb, var(--primary) 35%, transparent)",
-            }}
-          >
-            <Play className="size-5 fill-current text-primary" />
-          </span>
-          <div className="flex-1">
-            <p className="text-base font-bold text-foreground">{title}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-            aria-label="Close"
-          >
-            <Check className="size-5" />
-          </button>
-        </div>
-
+    <BottomSheet title={title} onClose={onClose}>
+      <div className="space-y-4">
         {/* Preview of the resolved thumbnail. */}
         <div
-          className="relative mb-4 aspect-video w-full overflow-hidden rounded-lg"
+          className="relative aspect-video w-full overflow-hidden rounded-lg"
           style={{ border: "1px solid rgba(0,0,0,0.22)", backgroundColor: "rgba(255,255,255,0.1)" }}
         >
           {thumb ? (
@@ -518,9 +375,9 @@ function VideoItemEditor({
           )}
         />
         {invalid && (
-          <p className="mt-1.5 px-1 text-xs text-error">Invalid YouTube link</p>
+          <p className="px-1 text-xs text-error">Invalid YouTube link</p>
         )}
       </div>
-    </div>
+    </BottomSheet>
   );
 }

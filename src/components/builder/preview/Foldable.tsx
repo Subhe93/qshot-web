@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
+import { useEditorStore } from "@/stores/editor-store";
 
 /**
  * Mirrors the mobile `ExpandableWidget`
@@ -11,9 +12,9 @@ import { ChevronDown } from "lucide-react";
  * (the mobile `Column([header, body])` path).
  *
  * When `foldable` is true, the header gets a trailing chevron that toggles the
- * content. Mobile uses `ExpansionTile(initiallyExpanded: !previewEnabled)`, so
- * in the builder preview (preview disabled) it starts OPEN — we match that with
- * a default-open state.
+ * content. Mobile uses `ExpansionTile(initiallyExpanded: !previewEnabled)`:
+ * open while editing, collapsed in preview mode — matched here via the editor
+ * store's `previewEnabled`.
  */
 export function Foldable({
   foldable,
@@ -24,7 +25,14 @@ export function Foldable({
   header: ReactNode;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(true);
+  // Mobile uses `initiallyExpanded: !previewEnabled` — open while editing,
+  // collapsed in preview so the dropdown's real (folded) state is visible.
+  const previewEnabled = useEditorStore((s) => s.previewEnabled);
+  const [open, setOpen] = useState(!previewEnabled);
+  // Re-apply the mode default when toggling between edit and preview.
+  useEffect(() => {
+    setOpen(!previewEnabled);
+  }, [previewEnabled]);
 
   if (!foldable) {
     return (

@@ -59,7 +59,8 @@ function Price({ item, centered = false }: { item: ProductItem; centered?: boole
                   textDecoration: "line-through",
                   textDecorationColor: fg(0.75),
                   textDecorationThickness: 2,
-                  fontSize: 13,
+                  // Mobile struck price = FontSizes.labelLarge (10px).
+                  fontSize: 10,
                 }
               : { color: fg(0.95), fontSize: 14, fontWeight: 700 }
           }
@@ -104,7 +105,7 @@ function SwipeItem({
     <div className="px-1 py-1" style={{ height: "100%" }}>
       <div
         className="flex h-full items-stretch overflow-hidden rounded-xl"
-        style={{ backgroundColor: fg(0.05) }}
+        style={{ backgroundColor: fg(0.1) }}
       >
         {circleImage ? (
           <div className="aspect-square h-full shrink-0 p-2.5">
@@ -153,7 +154,8 @@ function PromoItem({
   circleImage: boolean;
 }) {
   return (
-    <div className="rounded-2xl p-4" style={{ backgroundColor: fg(0.05) }}>
+    // BlurredBox = page foreground @ 10% (website_components.dart), radius 16, pad 16.
+    <div className="rounded-2xl p-4" style={{ backgroundColor: fg(0.1) }}>
       <div className="flex items-center gap-3.5">
         <div className="flex min-w-0 flex-1 flex-col items-start">
           <p
@@ -172,9 +174,7 @@ function PromoItem({
               {item.description}
             </p>
           ) : null}
-          <div className="mt-0.5">
-            <Price item={item} />
-          </div>
+          <Price item={item} />
           <div
             className="mt-3 flex items-center gap-1.5 rounded-full px-3.5 py-2"
             style={{ backgroundColor: fg(0.12) }}
@@ -187,7 +187,7 @@ function PromoItem({
         </div>
         <ProductImage
           url={item.thumbnail_url}
-          className={`size-[110px] shrink-0 ${circleImage ? "rounded-full" : "rounded-2xl"}`}
+          className={`size-[110px] shrink-0 ${circleImage ? "rounded-full" : "rounded-[14px]"}`}
         />
       </div>
     </div>
@@ -201,7 +201,7 @@ function ShopItem({ item, circleImage }: { item: ProductItem; circleImage: boole
       {/* BlurredBox starts 70px down behind the image */}
       <div
         className="absolute inset-x-0 bottom-0 rounded-lg"
-        style={{ top: 70, backgroundColor: fg(0.05) }}
+        style={{ top: 70, backgroundColor: fg(0.1) }}
       />
       <div className="relative flex h-full flex-col p-2.5">
         <div className="px-4">
@@ -455,9 +455,10 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
         foldable={block.foldable}
         header={
           block.title ? (
+            // Mobile headlineMedium = 20px (text-xl).
             <h2
               dir={dirOf(block.title)}
-              className="px-6 text-2xl font-bold text-foreground"
+              className="px-6 text-xl font-bold text-foreground"
             >
               {block.title}
             </h2>
@@ -465,6 +466,14 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
         }
       >
         <div className="pt-1.5">{content}</div>
+        {/* Divider(indent 8, endIndent 8) at foreground@20% (mobile parity). */}
+        <div className="h-[5px]" />
+        <div className="px-5">
+          <div
+            className="mx-2 h-px"
+            style={{ backgroundColor: "color-mix(in srgb, currentColor 20%, transparent)" }}
+          />
+        </div>
       </Foldable>
     </div>
   );

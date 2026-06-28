@@ -540,7 +540,7 @@ function NameBio({ settings, onEdit }: { settings: WebsiteSettings; onEdit?: Edi
   return (
     <div className="flex flex-col">
       {showName ? (
-        <Editable onEdit={onEdit} tab="name" className="px-6 pt-3">
+        <Editable onEdit={onEdit} tab="name" className="px-6">
           {/* Mobile WebsiteNameWidget: when verified, name sits in a Row with a
               22px verified badge (6px gap), justified per the name alignment. */}
           <div
@@ -584,9 +584,12 @@ function NameBio({ settings, onEdit }: { settings: WebsiteSettings; onEdit?: Edi
 export function Hero({
   settings,
   onEdit,
+  transparentBg = false,
 }: {
   settings: WebsiteSettings;
   onEdit?: (tab: HeroTab) => void;
+  /** Skip painting the page background (the desktop "computer" frame paints it). */
+  transparentBg?: boolean;
 }) {
   const style = (settings.style ?? "style1") as HeroStyle;
   const tpl = HERO_TEMPLATES[style] ?? HERO_TEMPLATES.style1;
@@ -604,8 +607,9 @@ export function Hero({
   const fontFamily = fontStack(settings.font_family);
   // Mobile checks color_value FIRST — image only shows when there's no color.
   const hasColorValue = !!settings.background?.color_value;
-  const pageStyle: React.CSSProperties =
-    !hasColorValue && bgImage
+  const pageStyle: React.CSSProperties = transparentBg
+    ? { fontFamily }
+    : !hasColorValue && bgImage
       ? { backgroundImage: `url(${bgImage})`, backgroundSize: "cover", backgroundPosition: "center", fontFamily }
       : { background: pageBackgroundCss(settings), fontFamily };
 
@@ -663,8 +667,10 @@ export function Hero({
             {(!headerHidden || onEdit) && <Header settings={settings} tpl={tpl} overlay={onCover} onEdit={onEdit} />}
           </div>
 
-          {/* title/text/buttons overlaid (skipped for limited covers: 16:9, 1:1) */}
-          {(!limited || onEdit) && (
+          {/* title/text/buttons overlaid — hidden for limited covers (16:9, 1:1),
+              unconditionally, matching the mobile editor (limitedContent gate at
+              website_editor_layout.dart:1068 is not gated on preview/edit). */}
+          {!limited && (
             <div className={`absolute inset-0 ${onEdit ? "pointer-events-none" : ""}`}>
               <Content settings={settings} tpl={tpl} onEdit={onEdit} />
             </div>

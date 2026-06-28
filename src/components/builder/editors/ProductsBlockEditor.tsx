@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { nanoid } from "nanoid";
 import {
   ArrowUpDown,
@@ -12,9 +13,6 @@ import {
   EyeOff,
   Trash2,
   GripVertical,
-  Check,
-  ChevronLeft,
-  ChevronRight,
   ArrowRight,
   Circle,
   Copy,
@@ -53,21 +51,22 @@ import {
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Input } from "@/components/ui/input";
 import { ImageUploader } from "@/components/builder/hero/CoverTab";
+import { LayoutPicker } from "./LayoutPicker";
 
 type Tab = "sort" | "layout" | "settings";
 
 // Order matches the mobile ProductsSettingsSheet._buildLayout map / PageView.
 // `svg` mirrors the mobile asset per layout_type (copied into public/layouts/).
-const LAYOUTS: { type: ProductsLayoutType; label: string; svg: string }[] = [
-  { type: "grid", label: "Grid", svg: "layout_grid.svg" },
-  { type: "swiper", label: "Swiper", svg: "layout_swiper.svg" },
-  { type: "swiper2", label: "Swiper 2", svg: "layout_swiper_r2.svg" },
-  { type: "swiper3", label: "Large grid", svg: "layout_swiper_card.svg" },
-  { type: "list", label: "List", svg: "layout_list.svg" },
-  { type: "promo", label: "Promo", svg: "layout_swiper_card_large.svg" },
-  { type: "shop", label: "Shop", svg: "layout_swiper_card.svg" },
-  { type: "grid2", label: "Grid 2", svg: "layout_grid_align_center.svg" },
-  { type: "banner", label: "Banner", svg: "layout_list.svg" },
+const LAYOUTS: { type: ProductsLayoutType; labelKey: string; svg: string }[] = [
+  { type: "grid", labelKey: "layoutGrid", svg: "layout_grid.svg" },
+  { type: "swiper", labelKey: "products.layoutSwiper", svg: "layout_swiper.svg" },
+  { type: "swiper2", labelKey: "products.layoutSwiper2", svg: "layout_swiper_r2.svg" },
+  { type: "swiper3", labelKey: "products.layoutLargeGrid", svg: "layout_swiper_card.svg" },
+  { type: "list", labelKey: "layoutList", svg: "layout_list.svg" },
+  { type: "promo", labelKey: "products.layoutPromo", svg: "layout_swiper_card_large.svg" },
+  { type: "shop", labelKey: "products.layoutShop", svg: "layout_swiper_card.svg" },
+  { type: "grid2", labelKey: "products.layoutGrid2", svg: "layout_grid_align_center.svg" },
+  { type: "banner", labelKey: "products.layoutBanner", svg: "layout_list.svg" },
 ];
 
 /** Card layouts that expose show_arrow + circle_image (mirrors mobile cardLayout). */
@@ -81,6 +80,7 @@ const CARD_LAYOUTS: ProductsLayoutType[] = ["list", "swiper", "swiper2", "promo"
  * title, description, currency and price (+ discount).
  */
 export function ProductsBlockEditor({ block }: { block: ProductsBlock }) {
+  const t = useTranslations("builder");
   const updateBlock = useEditorStore((s) => s.updateBlock);
   const addBlock = useEditorStore((s) => s.addBlock);
   const [tab, setTab] = useState<Tab>("sort");
@@ -97,13 +97,18 @@ export function ProductsBlockEditor({ block }: { block: ProductsBlock }) {
   const isCard = CARD_LAYOUTS.includes(layout);
 
   const tabs: SheetTab<Tab>[] = [
-    { value: "sort", label: "Sort", Icon: ArrowUpDown },
-    { value: "layout", label: "Layout", Icon: LayoutGrid },
-    { value: "settings", label: "Settings", Icon: SettingsIcon },
+    { value: "sort", label: t("tabs.sort"), Icon: ArrowUpDown },
+    { value: "layout", label: t("tabs.layout"), Icon: LayoutGrid },
+    { value: "settings", label: t("tabs.settings"), Icon: SettingsIcon },
   ];
 
   function addItem() {
-    const item: ProductItem = { id: nanoid(), title: "Product", url: "", currency: "USD" };
+    const item: ProductItem = {
+      id: nanoid(),
+      title: t("products.defaultTitle"),
+      url: "",
+      currency: "USD",
+    };
     setItems([...items, item]);
     setEditingId(item.id!);
   }
@@ -124,7 +129,8 @@ export function ProductsBlockEditor({ block }: { block: ProductsBlock }) {
       )}
 
       {tab === "layout" && (
-        <LayoutCarousel
+        <LayoutPicker
+          options={LAYOUTS.map((l) => ({ ...l, label: t(l.labelKey) }))}
           value={layout}
           onChange={(v) => setBlock({ layout_type: v })}
         />
@@ -133,7 +139,9 @@ export function ProductsBlockEditor({ block }: { block: ProductsBlock }) {
       {tab === "settings" && (
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">Title</label>
+            <label className="mb-1 block text-xs text-muted-foreground">
+              {t("fields.title")}
+            </label>
             <Input
               dir={dirOf(block.title)}
               value={block.title ?? ""}
@@ -145,7 +153,7 @@ export function ProductsBlockEditor({ block }: { block: ProductsBlock }) {
             <GroupedRow
               Icon={ChevronsDownUp}
               color="var(--primary)"
-              title="Dropdown"
+              title={t("products.dropdown")}
               trailing={
                 <ToggleSwitch
                   checked={!!block.foldable}
@@ -157,7 +165,7 @@ export function ProductsBlockEditor({ block }: { block: ProductsBlock }) {
               <GroupedRow
                 Icon={ArrowRight}
                 color="#3f51b5"
-                title="Show arrow"
+                title={t("fields.showArrow")}
                 trailing={
                   <ToggleSwitch
                     checked={!!block.show_arrow}
@@ -170,7 +178,7 @@ export function ProductsBlockEditor({ block }: { block: ProductsBlock }) {
               <GroupedRow
                 Icon={Circle}
                 color="#ec407a"
-                title="Circle image"
+                title={t("products.circleImage")}
                 trailing={
                   <ToggleSwitch
                     checked={!!block.circle_image}
@@ -182,11 +190,11 @@ export function ProductsBlockEditor({ block }: { block: ProductsBlock }) {
             <GroupedRow
               Icon={Copy}
               color="#673ab7"
-              title="Duplicate"
+              title={t("fields.duplicate")}
               onClick={() => addBlock({ ...block, id: nanoid() })}
             />
             <ColorRow
-              label="Background color"
+              label={t("products.backgroundColor")}
               color={block.background_color ?? hexToArgbA("#000000")!}
               enabled={!!block.use_background_color}
               onColor={(c) => setBlock({ background_color: c })}
@@ -224,6 +232,7 @@ function SortTab({
   onToggleHide: (id: string, hidden: boolean) => void;
   onDelete: (id: string) => void;
 }) {
+  const t = useTranslations("builder");
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -244,7 +253,7 @@ function SortTab({
         className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
       >
         <Plus className="size-4" />
-        Add product
+        {t("products.addProduct")}
       </button>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -277,6 +286,8 @@ function SortRow({
   onToggleHide: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("builder");
+  const tc = useTranslations("common");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id! });
 
@@ -294,7 +305,7 @@ function SortRow({
         {...attributes}
         {...listeners}
         className="flex h-full cursor-grab items-center px-2.5 text-primary active:cursor-grabbing"
-        aria-label="Drag"
+        aria-label={t("fields.drag")}
       >
         <GripVertical className="size-5" />
       </span>
@@ -309,12 +320,12 @@ function SortRow({
         onClick={onEdit}
         className="me-1 flex h-full flex-1 items-center truncate text-start text-sm font-semibold text-foreground"
       >
-        {item.title || "Product"}
+        {item.title || t("products.defaultTitle")}
       </button>
       <button
         type="button"
         onClick={onEdit}
-        aria-label="Edit"
+        aria-label={tc("edit")}
         className="flex size-8 items-center justify-center text-muted-foreground hover:text-foreground"
       >
         <Pencil className="size-4" />
@@ -322,7 +333,7 @@ function SortRow({
       <button
         type="button"
         onClick={onToggleHide}
-        aria-label="Toggle visibility"
+        aria-label={t("fields.toggleVisibility")}
         className="flex size-8 items-center justify-center text-muted-foreground hover:text-foreground"
       >
         {item.hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -330,125 +341,12 @@ function SortRow({
       <button
         type="button"
         onClick={onDelete}
-        aria-label="Delete"
+        aria-label={tc("delete")}
         className="me-1.5 flex size-8 items-center justify-center text-error"
       >
         <Trash2 className="size-4" />
       </button>
     </div>
-  );
-}
-
-// ─── Layout carousel (mirrors mobile swipeable PageView) ─────────────────────
-
-function LayoutCarousel({
-  value,
-  onChange,
-}: {
-  value: ProductsLayoutType;
-  onChange: (v: ProductsLayoutType) => void;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const selectedIndex = Math.max(0, LAYOUTS.findIndex((l) => l.type === value));
-
-  useEffect(() => {
-    const slide = scrollRef.current?.children[selectedIndex] as HTMLElement | undefined;
-    slide?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [selectedIndex]);
-
-  const go = (index: number) => {
-    const i = Math.min(LAYOUTS.length - 1, Math.max(0, index));
-    onChange(LAYOUTS[i].type);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5">
-        <ArrowButton dir="prev" disabled={selectedIndex === 0} onClick={() => go(selectedIndex - 1)} />
-        <div
-          ref={scrollRef}
-          className="flex flex-1 snap-x snap-mandatory gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {LAYOUTS.map((l) => {
-            const selected = l.type === value;
-            return (
-              <button
-                key={l.type}
-                type="button"
-                onClick={() => onChange(l.type)}
-                className={cn(
-                  "relative flex w-full shrink-0 snap-center flex-col items-center gap-3 rounded-2xl border p-3 transition-colors",
-                  selected ? "border-primary bg-primary/[0.04]" : "border-transparent",
-                )}
-              >
-                {selected && (
-                  <span className="absolute end-2.5 top-2.5 z-10 flex size-5 items-center justify-center rounded-full bg-primary text-white shadow">
-                    <Check className="size-3" />
-                  </span>
-                )}
-                <div className="flex h-32 w-full items-center justify-center rounded-xl bg-muted px-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/layouts/${l.svg}`}
-                    alt=""
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-                <span className="text-sm font-semibold text-foreground">{l.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <ArrowButton
-          dir="next"
-          disabled={selectedIndex === LAYOUTS.length - 1}
-          onClick={() => go(selectedIndex + 1)}
-        />
-      </div>
-
-      <p className="text-center text-xs text-muted-foreground">Swipe through layouts</p>
-
-      <div className="flex justify-center gap-1.5">
-        {LAYOUTS.map((l, i) => (
-          <button
-            key={l.type}
-            type="button"
-            aria-label={l.label}
-            onClick={() => onChange(l.type)}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === selectedIndex ? "w-3.5 bg-primary" : "w-1.5 bg-primary/20",
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ArrowButton({
-  dir,
-  disabled,
-  onClick,
-}: {
-  dir: "prev" | "next";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={dir}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-opacity hover:bg-muted disabled:opacity-30"
-    >
-      {dir === "prev" ? (
-        <ChevronLeft className="size-5 rtl:rotate-180" />
-      ) : (
-        <ChevronRight className="size-5 rtl:rotate-180" />
-      )}
-    </button>
   );
 }
 
@@ -463,10 +361,12 @@ function ProductItemEditor({
   onChange: (patch: Partial<ProductItem>) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("builder");
+  const tc = useTranslations("common");
   const hasDiscount = item.price_after_discount != null;
 
   return (
-    <BottomSheet title="Product" subtitle="Edit" onClose={onClose}>
+    <BottomSheet title={t("products.defaultTitle")} subtitle={tc("edit")} onClose={onClose}>
       <div className="space-y-4">
         {/* Image */}
         <ImageUploader
@@ -480,7 +380,7 @@ function ProductItemEditor({
 
         {/* URL */}
         <div>
-          <label className="mb-1 block text-xs text-muted-foreground">URL</label>
+          <label className="mb-1 block text-xs text-muted-foreground">{t("fields.url")}</label>
           <Input
             dir="ltr"
             value={item.url ?? ""}
@@ -491,7 +391,7 @@ function ProductItemEditor({
 
         {/* Title (required) */}
         <div>
-          <label className="mb-1 block text-xs text-muted-foreground">Title</label>
+          <label className="mb-1 block text-xs text-muted-foreground">{t("fields.title")}</label>
           <Input
             dir={dirOf(item.title)}
             value={item.title ?? ""}
@@ -502,7 +402,7 @@ function ProductItemEditor({
         {/* Description (optional) */}
         <div>
           <label className="mb-1 block text-xs text-muted-foreground">
-            Description (optional)
+            {t("products.descriptionOptional")}
           </label>
           <textarea
             dir={dirOf(item.description)}
@@ -515,7 +415,9 @@ function ProductItemEditor({
 
         {/* Currency */}
         <div>
-          <label className="mb-1 block text-xs text-muted-foreground">Currency</label>
+          <label className="mb-1 block text-xs text-muted-foreground">
+            {t("products.currency")}
+          </label>
           <Input
             value={item.currency ?? ""}
             placeholder="USD"
@@ -526,7 +428,7 @@ function ProductItemEditor({
         {/* Price (optional) + add discount */}
         <div>
           <label className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-            <span>Price (optional)</span>
+            <span>{t("products.priceOptional")}</span>
             {!hasDiscount && (
               <button
                 type="button"
@@ -534,7 +436,7 @@ function ProductItemEditor({
                 className="inline-flex items-center gap-1 rounded-lg bg-foreground/[0.06] px-2 py-1 text-[11px] font-semibold text-foreground"
               >
                 <Plus className="size-3" />
-                Add discount
+                {t("products.addDiscount")}
               </button>
             )}
           </label>
@@ -550,14 +452,14 @@ function ProductItemEditor({
         {hasDiscount && (
           <div>
             <label className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-              <span>Price after discount</span>
+              <span>{t("products.priceAfterDiscount")}</span>
               <button
                 type="button"
                 onClick={() => onChange({ price_after_discount: null })}
                 className="inline-flex items-center gap-1 rounded-lg bg-error/10 px-2 py-1 text-[11px] font-semibold text-error"
               >
                 <Minus className="size-3" />
-                Remove discount
+                {t("products.removeDiscount")}
               </button>
             </label>
             <Input

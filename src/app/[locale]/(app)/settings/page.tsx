@@ -222,6 +222,17 @@ export default function SettingsPage() {
           icon={<Star className="size-5" />}
           color="#ff9500"
           title={t("rateApp")}
+          onClick={() => {
+            // openStoreListing — App Store on Apple devices, else Play Store.
+            const apple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+            window.open(
+              apple
+                ? "https://apps.apple.com/app/id6587578534"
+                : "https://play.google.com/store/apps/details?id=linkinbio.qshot.com",
+              "_blank",
+              "noopener,noreferrer",
+            );
+          }}
         />
         <Row
           icon={<Mail className="size-5" />}
@@ -235,6 +246,10 @@ export default function SettingsPage() {
           icon={<MessageCircle className="size-5" />}
           color="#25d366"
           title={t("contactWhatsapp")}
+          onClick={() => {
+            // SUPPORT_WHATSAPP (+46764050186) → wa.me without the leading +.
+            window.open("https://wa.me/46764050186", "_blank", "noopener,noreferrer");
+          }}
         />
       </Group>
       </div>

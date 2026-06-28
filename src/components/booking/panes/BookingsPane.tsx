@@ -9,10 +9,11 @@ import {
   CircleCheck,
   UserX,
   Banknote,
-  Ban,
   Loader2,
   MousePointer2,
+  RotateCw,
 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   listBookings,
   getBooking,
@@ -36,12 +37,13 @@ import {
 export function BookingsPane({ profileId }: { profileId: string }) {
   const t = useTranslations("booking");
   const ts = useTranslations("booking.status");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const [filter, setFilter] = useState<BookingStatus | null>(null);
   const detail = useBookingUi((s) => s.detail);
   const selectBooking = useBookingUi((s) => s.selectBooking);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["bookings", profileId, filter],
     queryFn: () => listBookings({ profileId, status: filter, limit: 50 }),
   });
@@ -67,6 +69,18 @@ export function BookingsPane({ profileId }: { profileId: string }) {
 
       {isLoading ? (
         <PaneLoading />
+      ) : isError ? (
+        <div className="flex flex-col items-center gap-3 p-8 text-center">
+          <p className="text-sm text-muted-foreground">{tc("genericError")}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="flex items-center gap-2 rounded-xl border-[1.5px] border-border px-4 py-2 text-sm font-semibold"
+          >
+            <RotateCw className="size-4" />
+            {tc("retry")}
+          </button>
+        </div>
       ) : items.length === 0 ? (
         <EmptyState icon={<CalendarCheck className="size-10 opacity-40" />} text={t("bookings.empty")} />
       ) : (
@@ -78,6 +92,20 @@ export function BookingsPane({ profileId }: { profileId: string }) {
                     new Date(b.startTimeUTC || b.slotStart!),
                   )
                 : "";
+            const name = b.customer?.name ?? b.customerId?.name ?? "—";
+            const initials = name
+              .split(/\s+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((w) => w[0]!.toUpperCase())
+              .join("");
+            const amount =
+              b.totalAmount == null
+                ? undefined
+                : new Intl.NumberFormat(locale, {
+                    style: "currency",
+                    currency: b.currency || "USD",
+                  }).format(b.totalAmount);
             return (
               <button
                 key={b.bookingRef}
@@ -87,15 +115,19 @@ export function BookingsPane({ profileId }: { profileId: string }) {
                   selectedRef === b.bookingRef ? "border-primary" : "border-transparent hover:bg-muted/50"
                 }`}
               >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                  {initials || "—"}
+                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">
-                    {b.customer?.name ?? b.customerId?.name ?? "—"}
-                  </p>
+                  <p className="truncate text-sm font-semibold">{name}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {b.service?.name} · {date}
                   </p>
                 </div>
-                <StatusBadge status={b.status} />
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  {amount && <p className="text-sm font-bold">{amount}</p>}
+                  <StatusBadge status={b.status} />
+                </div>
               </button>
             );
           })}
@@ -147,9 +179,11 @@ function Chip({
 function BookingDetail({ profileId, bookingRef }: { profileId: string; bookingRef: string }) {
   const t = useTranslations("booking");
   const td = useTranslations("booking.detail");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const qc = useQueryClient();
   const clearDetail = useBookingUi((s) => s.clearDetail);
+  const [confirmRefund, setConfirmRefund] = useState(false);
 
   const { data: b, isLoading } = useQuery({
     queryKey: ["booking", bookingRef],
@@ -178,10 +212,22 @@ function BookingDetail({ profileId, bookingRef }: { profileId: string; bookingRe
       ? undefined
       : new Intl.NumberFormat(locale, { style: "currency", currency: b.currency || "USD" }).format(n);
   const start = b.startTimeUTC || b.slotStart;
+  const end = b.endTimeUTC || b.slotEnd;
   const cust = b.customer ?? b.customerId;
+  const hhmm = (s?: string) =>
+    s ? new Intl.DateTimeFormat(locale, { timeStyle: "short" }).format(new Date(s)) : "";
   const canComplete = b.status === "confirmed";
-  const canRefund = (b.refundable ?? ["confirmed", "completed"].includes(b.status)) && (b.totalAmount ?? 0) > 0;
-  const canCancel = ["pending_payment", "confirmed"].includes(b.status);
+  const canNoShow = b.status === "confirmed";
+  // Mobile refundable = confirmed && refundedAmount == 0 (never on completed).
+  // NOTE: the owner has no "set cancelled" action — the dashboard status endpoint
+  // only accepts completed/no_show (docs 02-dashboard-api + booking-statuses).
+  // A confirmed booking is cancelled via Refund (owner-initiated refund → cancelled).
+  const canRefund = b.refundable ?? (b.status === "confirmed" && (b.refundedAmount ?? 0) === 0);
+  const PAYMODE_KEY: Record<string, string> = {
+    online: "payOnline",
+    on_site: "payOnSite",
+    free: "free",
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -220,15 +266,35 @@ function BookingDetail({ profileId, bookingRef }: { profileId: string; bookingRe
           />
           <InfoRow
             label={td("time")}
-            value={start ? new Intl.DateTimeFormat(locale, { timeStyle: "short" }).format(new Date(start)) : undefined}
+            value={start ? (end ? `${hhmm(start)} - ${hhmm(end)}` : hhmm(start)) : undefined}
           />
         </SectionCard>
 
+        {(b.extras?.length ?? 0) > 0 && (
+          <SectionCard title={t("services.extras")}>
+            {b.extras!.map((ex, i) => (
+              <InfoRow
+                key={ex.extraServiceId ?? i}
+                label={ex.name ?? "—"}
+                value={`+${ex.duration ?? 0} ${t("units.min")} · ${money(ex.price)}`}
+              />
+            ))}
+          </SectionCard>
+        )}
+
         <SectionCard title={td("payment")}>
           <InfoRow label={td("total")} value={money(b.totalAmount)} bold />
+          {b.paymentMode && (
+            <InfoRow label={td("payment")} value={t(PAYMODE_KEY[b.paymentMode] ?? "payOnline")} />
+          )}
+          {b.paymentMode === "on_site" && (b.remainingAmount ?? 0) > 0 && (
+            <InfoRow label={t("dueOnSite")} value={money(b.remainingAmount)} color="#ffaf05" />
+          )}
           <InfoRow label={td("deposit")} value={money(b.depositAmount)} />
           <InfoRow label={td("paymentStatus")} value={b.paymentStatus} />
-          <InfoRow label={td("refunded")} value={money(b.refundedAmount)} color="#ffaf05" />
+          {(b.refundedAmount ?? 0) > 0 && (
+            <InfoRow label={td("refunded")} value={money(b.refundedAmount)} color="#ffaf05" />
+          )}
         </SectionCard>
 
         {(b.notes || b.cancellationReason) && (
@@ -242,7 +308,7 @@ function BookingDetail({ profileId, bookingRef }: { profileId: string; bookingRe
       </div>
 
       {/* Actions */}
-      {(canComplete || canRefund || canCancel) && (
+      {(canComplete || canRefund) && (
         <div className="flex flex-wrap gap-2 border-t border-border bg-card p-3">
           {canComplete && (
             <button
@@ -255,7 +321,7 @@ function BookingDetail({ profileId, bookingRef }: { profileId: string; bookingRe
               {t("bookings.markCompleted")}
             </button>
           )}
-          {canComplete && (
+          {canNoShow && (
             <button
               type="button"
               onClick={() => status.mutate("no_show")}
@@ -270,7 +336,7 @@ function BookingDetail({ profileId, bookingRef }: { profileId: string; bookingRe
           {canRefund && (
             <button
               type="button"
-              onClick={() => refund.mutate()}
+              onClick={() => setConfirmRefund(true)}
               disabled={refund.isPending}
               className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border-[1.5px] text-sm font-semibold"
               style={{ borderColor: "#ffaf057d", color: "#ffaf05" }}
@@ -279,20 +345,22 @@ function BookingDetail({ profileId, bookingRef }: { profileId: string; bookingRe
               {t("bookings.refund")} {money(b.totalAmount)}
             </button>
           )}
-          {canCancel && (
-            <button
-              type="button"
-              onClick={() => status.mutate("cancelled")}
-              disabled={status.isPending}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border-[1.5px] text-sm font-semibold"
-              style={{ borderColor: "#81849080", color: "#818490" }}
-            >
-              {status.isPending ? <Loader2 className="size-4 animate-spin" /> : <Ban className="size-4" />}
-              {t("bookings.cancel")}
-            </button>
-          )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmRefund}
+        type="warning"
+        title={t("bookings.refund")}
+        message=""
+        confirmText={t("bookings.refund")}
+        cancelText={tc("cancel")}
+        onConfirm={() => {
+          setConfirmRefund(false);
+          refund.mutate();
+        }}
+        onCancel={() => setConfirmRefund(false)}
+      />
     </div>
   );
 }
