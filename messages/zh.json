@@ -416,7 +416,14 @@
       "videoUrl": "视频链接",
       "videoHint": "https://example.com/video.mp4",
       "thumbnail": "缩略图",
-      "thumbnailImage": "缩略图图片"
+      "thumbnailImage": "缩略图图片",
+      "uploadVideo": "上传视频",
+      "uploading": "上传中…",
+      "replaceVideo": "替换视频",
+      "removeVideo": "移除",
+      "videoUploaded": "视频已上传",
+      "uploadFailed": "无法上传视频，请重试。",
+      "orPasteUrl": "或粘贴视频链接"
     },
     "bookingBlock": {
       "bookNow": "立即预订",

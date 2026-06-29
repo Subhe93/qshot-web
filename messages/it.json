@@ -416,7 +416,14 @@
       "videoUrl": "URL del video",
       "videoHint": "https://example.com/video.mp4",
       "thumbnail": "Miniatura",
-      "thumbnailImage": "Immagine miniatura"
+      "thumbnailImage": "Immagine miniatura",
+      "uploadVideo": "Carica video",
+      "uploading": "Caricamento…",
+      "replaceVideo": "Sostituisci video",
+      "removeVideo": "Rimuovi",
+      "videoUploaded": "Video caricato",
+      "uploadFailed": "Caricamento del video non riuscito. Riprova.",
+      "orPasteUrl": "Oppure incolla un link video"
     },
     "bookingBlock": {
       "bookNow": "Prenota ora",

@@ -416,7 +416,14 @@
       "videoUrl": "Video-URL",
       "videoHint": "https://example.com/video.mp4",
       "thumbnail": "Miniatyrbilde",
-      "thumbnailImage": "Miniatyrbilde"
+      "thumbnailImage": "Miniatyrbilde",
+      "uploadVideo": "Last opp video",
+      "uploading": "Laster opp…",
+      "replaceVideo": "Bytt video",
+      "removeVideo": "Fjern",
+      "videoUploaded": "Video lastet opp",
+      "uploadFailed": "Kunne ikke laste opp videoen. Prøv igjen.",
+      "orPasteUrl": "Eller lim inn en videolenke"
     },
     "bookingBlock": {
       "bookNow": "Bestill nå",

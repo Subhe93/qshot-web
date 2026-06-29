@@ -416,7 +416,14 @@
       "videoUrl": "Video URL",
       "videoHint": "https://example.com/video.mp4",
       "thumbnail": "Thumbnail",
-      "thumbnailImage": "Thumbnail image"
+      "thumbnailImage": "Thumbnail image",
+      "uploadVideo": "Upload video",
+      "uploading": "Uploading…",
+      "replaceVideo": "Replace video",
+      "removeVideo": "Remove",
+      "videoUploaded": "Video uploaded",
+      "uploadFailed": "Couldn't upload the video. Please try again.",
+      "orPasteUrl": "Or paste a video link"
     },
     "bookingBlock": {
       "bookNow": "Book Now",

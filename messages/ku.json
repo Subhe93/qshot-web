@@ -416,7 +416,14 @@
       "videoUrl": "Girêdana vîdyoyê",
       "videoHint": "https://example.com/video.mp4",
       "thumbnail": "Wêneya biçûk",
-      "thumbnailImage": "Wêneya biçûk"
+      "thumbnailImage": "Wêneya biçûk",
+      "uploadVideo": "بارکردنی ڤیدیۆ",
+      "uploading": "بارکردن…",
+      "replaceVideo": "گۆڕینی ڤیدیۆ",
+      "removeVideo": "لابردن",
+      "videoUploaded": "ڤیدیۆ بارکرا",
+      "uploadFailed": "بارکردنی ڤیدیۆ سەرکەوتوو نەبوو. دووبارە هەوڵبدەرەوە.",
+      "orPasteUrl": "یان بەستەری ڤیدیۆ بلکێنە"
     },
     "bookingBlock": {
       "bookNow": "Niha Cî Veqetîne",

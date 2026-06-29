@@ -416,7 +416,14 @@
       "videoUrl": "رابط الفيديو",
       "videoHint": "https://example.com/video.mp4",
       "thumbnail": "الصورة المصغرة",
-      "thumbnailImage": "صورة مصغرة"
+      "thumbnailImage": "صورة مصغرة",
+      "uploadVideo": "رفع فيديو",
+      "uploading": "جارٍ الرفع…",
+      "replaceVideo": "استبدال الفيديو",
+      "removeVideo": "إزالة",
+      "videoUploaded": "تم رفع الفيديو",
+      "uploadFailed": "تعذّر رفع الفيديو. حاول مجدداً.",
+      "orPasteUrl": "أو ألصق رابط فيديو"
     },
     "bookingBlock": {
       "bookNow": "احجز الآن",

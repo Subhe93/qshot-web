@@ -19,3 +19,18 @@ export async function uploadImage(file: File): Promise<string | undefined> {
   const [first] = await uploadImages([file]);
   return first;
 }
+
+/**
+ * POST q-profile/video/upload — multipart { video }. Mirrors the mobile
+ * UploadVideoUseCase (links.websiteVideoUpload); the backend returns the stored
+ * `file_name` (CDN key, resolve with `cdnUrl`). Timeout is disabled since video
+ * uploads can take a while.
+ */
+export async function uploadVideo(file: File): Promise<string | undefined> {
+  const body = new FormData();
+  body.append("video", file);
+  const res = await api
+    .post("q-profile/video/upload", { body, timeout: false })
+    .json<{ file_name?: string; data?: { file_name?: string } }>();
+  return res?.file_name ?? res?.data?.file_name;
+}
