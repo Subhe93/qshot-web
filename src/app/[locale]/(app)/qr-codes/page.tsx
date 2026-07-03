@@ -12,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { PageHeader } from "@/components/page-header";
 import { listQrCodes, type UserQr } from "@/lib/api/qrcodes";
 import { SavedQrCard, type QrView } from "@/components/qr/saved-qr-card";
 import { cn } from "@/lib/utils";
@@ -49,29 +50,30 @@ export default function QrCodesPage() {
 
   return (
     <div className="mx-auto max-w-5xl p-4 sm:p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-          {/* Scan QR moved here from the sidebar. */}
-          <Link
-            href="/scan"
-            className="flex h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-medium text-foreground hover:bg-muted"
-          >
-            <ScanLine className="size-4 shrink-0" />
-            {tn("scanQr")}
-          </Link>
-          <Link
-            href="/qr-codes/new"
-            className="brand-gradient flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium text-white hover:opacity-90 sm:px-5"
-          >
-            <Plus className="size-4 shrink-0" />
-            {t("generate")}
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        iconSvg="/nav/qr_code.svg"
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            {/* Scan QR moved here from the sidebar. */}
+            <Link
+              href="/scan"
+              className="flex h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              <ScanLine className="size-4 shrink-0" />
+              {tn("scanQr")}
+            </Link>
+            <Link
+              href="/qr-codes/new"
+              className="brand-gradient flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium text-white hover:opacity-90 sm:px-5"
+            >
+              <Plus className="size-4 shrink-0" />
+              {t("generate")}
+            </Link>
+          </>
+        }
+      />
 
       {/* Sort + view toolbar (only when there are saved codes). */}
       {items.length > 0 && (

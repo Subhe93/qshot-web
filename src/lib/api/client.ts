@@ -1,4 +1,4 @@
-import ky from "ky";
+import ky, { HTTPError } from "ky";
 import { useAuthStore } from "@/stores/auth-store";
 
 export const API_BASE =
@@ -31,3 +31,32 @@ export const api = ky.create({
     ],
   },
 });
+
+/**
+ * Human-readable message from a failed `api` call. The qshot backend returns
+ * `{ error: { description: { message } } }` (e.g. "User already has an active
+ * subscription."); fall back through a few shapes, then to `fallback`.
+ */
+export async function apiErrorMessage(
+  e: unknown,
+  fallback: string,
+): Promise<string> {
+  if (e instanceof HTTPError) {
+    try {
+      const body = (await e.response.clone().json()) as {
+        error?: { description?: { message?: string }; message?: string };
+        message?: string;
+      };
+      const msg =
+        body?.error?.description?.message ??
+        body?.error?.message ??
+        body?.message;
+      if (typeof msg === "string" && msg.trim()) {
+        return msg.replace(/^Error:\s*/i, "").trim();
+      }
+    } catch {
+      /* response wasn't JSON — use the fallback */
+    }
+  }
+  return fallback;
+}

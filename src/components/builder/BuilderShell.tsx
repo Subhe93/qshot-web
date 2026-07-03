@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import {
   ArrowLeft,
   Copy,
+  ExternalLink,
   Eye,
   EyeOff,
   Plus,
@@ -18,11 +19,21 @@ import {
   Check,
   Save,
 } from "lucide-react";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useEditorStore } from "@/stores/editor-store";
 import { getProfile, saveProfile } from "@/lib/api/profiles";
+import {
+  getProfile as getAdminProfile,
+  updateProfile as updateAdminProfile,
+} from "@/lib/api/admin";
 import { savePageBlocks } from "@/lib/api/pages";
 import { fillDefaults } from "@/lib/builder/hero-defaults";
+import {
+  parseBlocks,
+  parseSettings,
+  serializeBlocks,
+  serializeSettings,
+} from "@/lib/builder/serialization";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { takeAiDraft, type AiDraft } from "@/lib/ai/draft-handoff";
 import { BuilderDesktop } from "./BuilderDesktop";
@@ -63,7 +74,18 @@ function demoBlocks(): Block[] {
   ];
 }
 
-export function BuilderShell({ id }: { id: string }) {
+export function BuilderShell({
+  id,
+  adminName,
+  adminProfileId,
+}: {
+  id: string;
+  /** When set, load/save this profile via the ADMIN endpoints (admin edits any
+   *  profile visually — mirrors mobile WebsiteEditor(Role.admin)). */
+  adminName?: string;
+  /** The real profile id (from the control panel) — the admin-update save target. */
+  adminProfileId?: string;
+}) {
   const t = useTranslations("builder");
   const tc = useTranslations("common");
   const name = useEditorStore((s) => s.name);
@@ -94,6 +116,11 @@ export function BuilderShell({ id }: { id: string }) {
   if (aiDraftRef.current === undefined) {
     aiDraftRef.current = takeAiDraft(id);
   }
+
+  // In admin mode, the real target profile id — used as the save target for the
+  // admin `update` endpoint. Seeded from the `pid` route param (reliable), then
+  // confirmed from the admin `show` payload once it loads.
+  const adminIdRef = useRef<string | null>(adminProfileId ?? null);
 
   // Allow deep-linking a panel via the URL hash (e.g. /builder/x#settings).
   useEffect(() => {
@@ -138,6 +165,37 @@ export function BuilderShell({ id }: { id: string }) {
       return;
     }
 
+    // Admin mode: load ANY profile via the admin `show` endpoint (raw payload →
+    // parse to the editor's normalized shapes, same as the user loader).
+    if (adminName) {
+      setLoading(true);
+      (async () => {
+        let p = null;
+        try {
+          p = await getAdminProfile(adminName);
+        } catch {
+          // ignore — fall back to a fresh seed
+        }
+        if (!active) return;
+        adminIdRef.current = p?.id ?? adminProfileId ?? null;
+        const rawBlocks = (p?.info?.modules ??
+          (p?.settings?.modules as unknown[] | undefined) ??
+          []) as unknown[];
+        load({
+          profileId: p?.id ?? id,
+          name: p?.name ?? adminName,
+          settings: p
+            ? parseSettings(p.settings as Parameters<typeof parseSettings>[0])
+            : fillDefaults("style2", { websiteName: adminName }),
+          blocks: rawBlocks.length ? parseBlocks(rawBlocks) : demoBlocks(),
+        });
+        setLoading(false);
+      })();
+      return () => {
+        active = false;
+      };
+    }
+
     if (id === "new") {
       // Mirror the mobile create flow: full style defaults + empty blocks.
       load({
@@ -174,14 +232,26 @@ export function BuilderShell({ id }: { id: string }) {
     return () => {
       active = false;
     };
-  }, [id, load]);
+  }, [id, load, adminName, adminProfileId]);
 
   // The actual save — shared by the debounced auto-save and the manual button.
   const doSave = useCallback(async () => {
     setSaving(true);
     try {
+      // Admin mode: persist the whole profile via the admin `update` endpoint —
+      // NEVER the user `edit` endpoint (which 400s on a profile you don't own).
+      if (adminName) {
+        const saveId = adminIdRef.current ?? adminProfileId ?? null;
+        if (!saveId) throw new Error("admin_no_profile_id");
+        await updateAdminProfile({
+          id: saveId,
+          name,
+          info: { modules: serializeBlocks(blocks) },
+          settings: serializeSettings(settings) as Record<string, unknown>,
+        });
+      }
       // Sub-page edits save only blocks (update-info); home saves the profile.
-      if (pageId) await savePageBlocks(pageId, blocks);
+      else if (pageId) await savePageBlocks(pageId, blocks);
       else await saveProfile(id, name, blocks, settings);
       markSaved();
       setSaved(true);
@@ -192,7 +262,7 @@ export function BuilderShell({ id }: { id: string }) {
     } finally {
       setSaving(false);
     }
-  }, [pageId, blocks, id, name, settings, markSaved, t, tc]);
+  }, [pageId, blocks, id, name, settings, markSaved, t, tc, adminName, adminProfileId]);
 
   // Manual save — runs immediately (markSaved clears `dirty`, which cancels any
   // pending debounced save via the effect cleanup below).
@@ -242,27 +312,39 @@ export function BuilderShell({ id }: { id: string }) {
     <div className="flex h-dvh flex-col bg-muted">
       {/* Top bar: back + url pill + preview */}
       <header className="flex items-center gap-2 border-b border-border bg-card px-3 py-2">
-        <Link
-          href="/dashboard"
+        <button
+          type="button"
+          onClick={() => router.back()}
           aria-label={tc("back")}
           className="flex size-9 items-center justify-center rounded-full text-foreground hover:bg-muted"
         >
           <ArrowLeft className="size-5 rtl:rotate-180" />
-        </Link>
+        </button>
         <div className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-muted px-3 text-sm text-muted-foreground">
           {loading ? (
             <span className="h-3 w-32 animate-pulse rounded-full bg-border" />
           ) : (
             <>
               <span className="truncate">{profileUrl}</span>
-              <button
-                type="button"
-                aria-label="Copy"
-                onClick={() => navigator.clipboard?.writeText(profileUrl)}
-                className="ms-auto shrink-0 hover:text-foreground"
-              >
-                <Copy className="size-4" />
-              </button>
+              <div className="ms-auto flex shrink-0 items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label={tc("copy")}
+                  onClick={() => navigator.clipboard?.writeText(profileUrl)}
+                  className="hover:text-foreground"
+                >
+                  <Copy className="size-4" />
+                </button>
+                <a
+                  href={profileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={tc("openInNewTab")}
+                  className="hover:text-foreground"
+                >
+                  <ExternalLink className="size-4" />
+                </a>
+              </div>
             </>
           )}
         </div>

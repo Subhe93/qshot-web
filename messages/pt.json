@@ -24,7 +24,9 @@
     "share": "Partilhar",
     "genericError": "Algo deu errado.",
     "retry": "Tentar novamente",
-    "invalidPhone": "Número de telefone inválido"
+    "invalidPhone": "Número de telefone inválido",
+    "copy": "Copiar",
+    "openInNewTab": "Abrir num novo separador"
   },
   "auth": {
     "loginTitle": "Entrar",
@@ -263,7 +265,8 @@
       "cardNumberPlaceholder": "Card / QR number",
       "transferDesc": "Temporarily transfer this website to another user by their username.",
       "transferUserPlaceholder": "Username or email",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "websiteLogo": "Logótipo do site"
     },
     "cropTitle": "Crop image",
     "cropConfirm": "Crop",
@@ -330,6 +333,8 @@
       "carousel": "Quadrado pequeno 1:1",
       "shorts": "Vertical 9:16",
       "swiper": "Horizontal 16:9",
+      "list": "Lista 16:9",
+      "grid": "Grade 1:1",
       "singleSizable": "Imagem única redimensionável"
     },
     "products": {
@@ -451,7 +456,8 @@
     "qrCodes": "Gerar QR",
     "settings": "Configurações",
     "scanQr": "Scan QR",
-    "bookings": "Reservas"
+    "bookings": "Reservas",
+    "admin": "Admin"
   },
   "settings": {
     "title": "Configurações",
@@ -937,5 +943,130 @@
     "title": "Bookings",
     "subtitle": "Choose a website to manage its bookings",
     "empty": "Create a website first to enable booking."
+  },
+  "admin": {
+    "title": "Controlo de perfis",
+    "subtitle": "Ferramentas de admin — pesquise um perfil ou faça a gestão de domínios, planos e pedidos.",
+    "open": "Abrir",
+    "saved": "Guardado",
+    "search": {
+      "placeholder": "Pesquisar por nome ou @identificador",
+      "empty": "Nenhum perfil encontrado",
+      "error": "A pesquisa falhou. Tente novamente."
+    },
+    "profile": {
+      "notFound": "Perfil não encontrado",
+      "infoTitle": "Informações do perfil",
+      "handle": "Identificador",
+      "editTitle": "Editar perfil",
+      "nameLabel": "Nome",
+      "infoLabel": "Informações (JSON)",
+      "invalidJson": "JSON inválido"
+    },
+    "verify": "Verificar",
+    "unverify": "Remover verificação",
+    "verified": "Verificado",
+    "verifyConfirmTitle": "Alterar verificação?",
+    "verifyConfirmMsg": "Alterar o estado de verificação de @{name}?",
+    "extDomains": {
+      "title": "Domínios externos",
+      "add": "Adicionar domínio",
+      "empty": "Ainda não há domínios externos",
+      "deleteConfirm": "Remover o domínio {domain}?",
+      "invalidDomain": "Introduza um domínio válido (example.com)"
+    },
+    "duplicate": {
+      "title": "Duplicar perfil",
+      "newHandle": "Novo identificador",
+      "confirmTitle": "Duplicar perfil?",
+      "confirmMsg": "Criar uma cópia de @{name} como @{newName}?",
+      "done": "Perfil duplicado"
+    },
+    "move": {
+      "title": "Mover perfil",
+      "emailLabel": "E-mail de destino",
+      "confirmTitle": "Mover perfil?",
+      "confirmMsg": "Mover @{name} para {email}? Isto transfere a propriedade.",
+      "done": "Perfil movido"
+    },
+    "plans": {
+      "title": "Subscrições",
+      "assign": "Atribuir",
+      "emailLabel": "E-mail da conta",
+      "confirmTitle": "Atribuir plano?",
+      "confirmMsg": "Atribuir {plan} a {email}?",
+      "done": "Subscrição atribuída"
+    },
+    "company": {
+      "title": "Converter em empresa",
+      "desc": "Atualize uma conta pessoal para uma conta de empresa.",
+      "emailLabel": "E-mail da conta",
+      "confirmTitle": "Converter em empresa?",
+      "confirmMsg": "Converter {email} numa conta de empresa?",
+      "done": "Conta convertida"
+    },
+    "requests": {
+      "title": "Pedidos de domínio",
+      "pending": "Pendente",
+      "active": "Ativo",
+      "approve": "Aprovar",
+      "hostnameLabel": "Nome de anfitrião",
+      "confirmTitle": "Aprovar pedido?",
+      "confirmMsg": "Aprovisionar o nome de anfitrião Cloudflare {name} para este pedido?",
+      "accepted": "Pedido aprovado",
+      "copy": "Copiar",
+      "empty": "Nenhum pedido de domínio"
+    },
+    "cloudflare": {
+      "title": "Domínios Cloudflare",
+      "create": "Criar nome de anfitrião",
+      "hostnameLabel": "Nome de anfitrião",
+      "pickProfile": "Selecionar um perfil",
+      "deleteConfirm": "Eliminar o nome de anfitrião Cloudflare {hostname}?",
+      "empty": "Nenhum domínio Cloudflare"
+    },
+    "manage": "Gerir",
+    "tools": {
+      "profiles": {
+        "title": "Perfis",
+        "desc": "Pesquise qualquer perfil por nome ou @identificador para verificar, editar, duplicar ou mover."
+      },
+      "requests": {
+        "title": "Pedidos de domínio",
+        "desc": "Reveja e aprove pedidos de domínio personalizado dos utilizadores."
+      },
+      "cloudflare": {
+        "title": "Domínios Cloudflare",
+        "desc": "Aprovisione e remova nomes de anfitrião personalizados da Cloudflare."
+      },
+      "plans": {
+        "title": "Subscrições e planos",
+        "desc": "Atribua planos e converta contas em contas de empresa."
+      }
+    },
+    "actions": {
+      "info": {
+        "desc": "Veja e edite o nome e o JSON de informações em bruto deste perfil."
+      },
+      "verify": {
+        "desc": "Ative ou desative o selo de verificado neste perfil."
+      },
+      "domains": {
+        "desc": "Faça a gestão dos domínios externos associados a este perfil."
+      },
+      "duplicate": {
+        "desc": "Crie uma cópia deste perfil com um novo identificador."
+      },
+      "move": {
+        "desc": "Transfira a propriedade deste perfil para outra conta."
+      },
+      "subscription": {
+        "desc": "Atribua ou altere o plano de subscrição desta conta."
+      },
+      "company": {
+        "desc": "Atualize esta conta pessoal para uma conta de empresa."
+      }
+    },
+    "websiteSection": "Administrador"
   }
 }

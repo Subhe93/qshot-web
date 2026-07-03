@@ -12,11 +12,14 @@ import {
   MessageCircle,
   LogOut,
   ChevronRight,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { getAccount } from "@/lib/api/account";
+import { cdnUrl } from "@/lib/api/qrcodes";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { PageHeader } from "@/components/page-header";
 
 function Row({
   icon,
@@ -117,10 +120,11 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
+      <PageHeader
+        Icon={SettingsIcon}
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       <div className="grid gap-6 md:grid-cols-2 md:items-start">
         {/* Profile hero card */}
@@ -131,8 +135,9 @@ export default function SettingsPage() {
               {user?.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={user.image}
+                  src={cdnUrl(user.image)}
                   alt={name}
+                  referrerPolicy="no-referrer"
                   className="size-full object-cover"
                 />
               ) : (

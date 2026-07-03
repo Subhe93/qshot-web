@@ -56,6 +56,7 @@ export default function AnalyticsPage({
   const accent = type === "views" ? "#7dd8d5" : "#ff815a";
 
   const { data, isLoading } = useQuery({
+    // Matches the mobile exactly: send StatisticsDateRange.value (month=1, etc.).
     queryKey: ["statistics", id, type, range.value],
     queryFn: () => getWebsiteStatistics({ id, type, date: range.value }),
   });

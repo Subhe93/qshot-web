@@ -24,7 +24,9 @@
     "share": "Del",
     "genericError": "Noe gikk galt.",
     "retry": "Prøv igjen",
-    "invalidPhone": "Ugyldig telefonnummer"
+    "invalidPhone": "Ugyldig telefonnummer",
+    "copy": "Kopier",
+    "openInNewTab": "Åpne i ny fane"
   },
   "auth": {
     "loginTitle": "Logg inn",
@@ -263,7 +265,8 @@
       "cardNumberPlaceholder": "Card / QR number",
       "transferDesc": "Temporarily transfer this website to another user by their username.",
       "transferUserPlaceholder": "Username or email",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "websiteLogo": "Nettstedslogo"
     },
     "cropTitle": "Crop image",
     "cropConfirm": "Crop",
@@ -330,6 +333,8 @@
       "carousel": "Kvadrat liten 1:1",
       "shorts": "Vertikal 9:16",
       "swiper": "Horisontal 16:9",
+      "list": "Liste 16:9",
+      "grid": "Rutenett 1:1",
       "singleSizable": "Enkelt skalerbart bilde"
     },
     "products": {
@@ -451,7 +456,8 @@
     "qrCodes": "Generer QR",
     "settings": "Innstillinger",
     "scanQr": "Scan QR",
-    "bookings": "Bestillinger"
+    "bookings": "Bestillinger",
+    "admin": "Admin"
   },
   "settings": {
     "title": "Innstillinger",
@@ -937,5 +943,130 @@
     "title": "Bookings",
     "subtitle": "Choose a website to manage its bookings",
     "empty": "Create a website first to enable booking."
+  },
+  "admin": {
+    "title": "Profilkontroll",
+    "subtitle": "Adminverktøy — søk etter en profil eller administrer domener, planer og forespørsler.",
+    "open": "Åpne",
+    "saved": "Lagret",
+    "search": {
+      "placeholder": "Søk etter navn eller @brukernavn",
+      "empty": "Ingen profiler funnet",
+      "error": "Søket mislyktes. Prøv igjen."
+    },
+    "profile": {
+      "notFound": "Profil ikke funnet",
+      "infoTitle": "Profilinfo",
+      "handle": "Brukernavn",
+      "editTitle": "Rediger profil",
+      "nameLabel": "Navn",
+      "infoLabel": "Info (JSON)",
+      "invalidJson": "Ugyldig JSON"
+    },
+    "verify": "Verifiser",
+    "unverify": "Fjern verifisering",
+    "verified": "Verifisert",
+    "verifyConfirmTitle": "Endre verifisering?",
+    "verifyConfirmMsg": "Endre verifiseringsstatusen til @{name}?",
+    "extDomains": {
+      "title": "Eksterne domener",
+      "add": "Legg til domene",
+      "empty": "Ingen eksterne domener ennå",
+      "deleteConfirm": "Fjerne domenet {domain}?",
+      "invalidDomain": "Angi et gyldig domene (example.com)"
+    },
+    "duplicate": {
+      "title": "Dupliser profil",
+      "newHandle": "Nytt brukernavn",
+      "confirmTitle": "Duplisere profil?",
+      "confirmMsg": "Opprette en kopi av @{name} som @{newName}?",
+      "done": "Profil duplisert"
+    },
+    "move": {
+      "title": "Flytt profil",
+      "emailLabel": "Mål-e-post",
+      "confirmTitle": "Flytte profil?",
+      "confirmMsg": "Flytte @{name} til {email}? Dette overfører eierskapet.",
+      "done": "Profil flyttet"
+    },
+    "plans": {
+      "title": "Abonnementer",
+      "assign": "Tildel",
+      "emailLabel": "Konto-e-post",
+      "confirmTitle": "Tildele plan?",
+      "confirmMsg": "Tildele {plan} til {email}?",
+      "done": "Abonnement tildelt"
+    },
+    "company": {
+      "title": "Konverter til bedrift",
+      "desc": "Oppgrader en personlig konto til en bedriftskonto.",
+      "emailLabel": "Konto-e-post",
+      "confirmTitle": "Konvertere til bedrift?",
+      "confirmMsg": "Konvertere {email} til en bedriftskonto?",
+      "done": "Konto konvertert"
+    },
+    "requests": {
+      "title": "Domeneforespørsler",
+      "pending": "Venter",
+      "active": "Aktiv",
+      "approve": "Godkjenn",
+      "hostnameLabel": "Vertsnavn",
+      "confirmTitle": "Godkjenne forespørsel?",
+      "confirmMsg": "Klargjøre Cloudflare-vertsnavnet {name} for denne forespørselen?",
+      "accepted": "Forespørsel godkjent",
+      "copy": "Kopier",
+      "empty": "Ingen domeneforespørsler"
+    },
+    "cloudflare": {
+      "title": "Cloudflare-domener",
+      "create": "Opprett vertsnavn",
+      "hostnameLabel": "Vertsnavn",
+      "pickProfile": "Velg en profil",
+      "deleteConfirm": "Slette Cloudflare-vertsnavnet {hostname}?",
+      "empty": "Ingen Cloudflare-domener"
+    },
+    "manage": "Administrer",
+    "tools": {
+      "profiles": {
+        "title": "Profiler",
+        "desc": "Søk etter en hvilken som helst profil med navn eller @brukernavn for å verifisere, redigere, duplisere eller flytte den."
+      },
+      "requests": {
+        "title": "Domeneforespørsler",
+        "desc": "Gjennomgå og godkjenn forespørsler om egendefinert domene fra brukere."
+      },
+      "cloudflare": {
+        "title": "Cloudflare-domener",
+        "desc": "Klargjør og fjern egendefinerte Cloudflare-vertsnavn."
+      },
+      "plans": {
+        "title": "Abonnementer og planer",
+        "desc": "Tildel planer og konverter kontoer til bedriftskontoer."
+      }
+    },
+    "actions": {
+      "info": {
+        "desc": "Vis og rediger denne profilens navn og rå info-JSON."
+      },
+      "verify": {
+        "desc": "Slå det verifiserte merket på denne profilen av eller på."
+      },
+      "domains": {
+        "desc": "Administrer de eksterne domenene som er knyttet til denne profilen."
+      },
+      "duplicate": {
+        "desc": "Lag en kopi av denne profilen under et nytt brukernavn."
+      },
+      "move": {
+        "desc": "Overfør eierskapet til denne profilen til en annen konto."
+      },
+      "subscription": {
+        "desc": "Tildel eller endre abonnementsplanen for denne kontoen."
+      },
+      "company": {
+        "desc": "Oppgrader denne personlige kontoen til en bedriftskonto."
+      }
+    },
+    "websiteSection": "Administrator"
   }
 }

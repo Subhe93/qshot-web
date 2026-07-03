@@ -1,6 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Circle, Square, RectangleHorizontal } from "lucide-react";
+import { cdnUrl } from "@/lib/api/qrcodes";
+import { uploadImage } from "@/lib/api/media";
+import { ImageCropper } from "@/components/ui/image-cropper";
 import { ColorPickerField } from "@/components/ui/color-picker";
 import { cn } from "@/lib/utils";
 import type { ImageShape, WebsiteSettings } from "@/lib/types/profile";
@@ -26,12 +31,26 @@ export function PictureTab({
   settings: WebsiteSettings;
   update: (patch: Partial<WebsiteSettings>) => void;
 }) {
+  const tc = useTranslations("common");
   const pic = settings.profile_picture ?? {};
   const setPic = (patch: Partial<typeof pic>) =>
     update({ profile_picture: { ...pic, ...patch } });
 
   const shape = pic.shape ?? "circle";
   const picAspect = shape === "rectangle" ? 16 / 9 : 1;
+
+  // Changing the shape re-crops the existing image to the new aspect ratio
+  // (mobile cropImageRect) before saving the shape — open the cropper for the
+  // same reason. Cancelling the crop leaves the shape unchanged.
+  const [cropShape, setCropShape] = useState<ImageShape | null>(null);
+
+  function applyShape(value: ImageShape) {
+    if (pic.image_url) {
+      setCropShape(value); // open the cropper at the new aspect ratio
+      return;
+    }
+    setPic({ shape: value });
+  }
 
   return (
     <div className="space-y-5">
@@ -69,7 +88,7 @@ export function PictureTab({
               <button
                 key={value}
                 type="button"
-                onClick={() => setPic({ shape: value })}
+                onClick={() => applyShape(value)}
                 aria-label={value}
                 className={cn(
                   "flex flex-1 items-center justify-center rounded-[10px] py-2 transition-colors",
@@ -121,6 +140,29 @@ export function PictureTab({
           />
         </GroupedCard>
       </div>
+
+      {/* Re-crop the picture to the newly chosen shape's aspect ratio (mobile
+          cropImageRect). Cancelling keeps the current shape. */}
+      {cropShape !== null && pic.image_url && (
+        <ImageCropper
+          // Load through our same-origin proxy — the CDN has no CORS headers, so
+          // a direct CDN <img> would taint the canvas and break toBlob() export.
+          src={`/api/image-proxy?url=${encodeURIComponent(cdnUrl(pic.image_url))}`}
+          title="Crop image"
+          cancelLabel={tc("cancel")}
+          confirmLabel="Done"
+          aspect={cropShape === "rectangle" ? 16 / 9 : 1}
+          cropShape={cropShape === "circle" ? "round" : "rect"}
+          onCancel={() => setCropShape(null)}
+          onCropped={async (blob) => {
+            const file = new File([blob], "picture.jpg", { type: "image/jpeg" });
+            const uploaded = await uploadImage(file);
+            if (uploaded) setPic({ image_url: uploaded, shape: cropShape });
+            else setPic({ shape: cropShape });
+            setCropShape(null);
+          }}
+        />
+      )}
     </div>
   );
 }

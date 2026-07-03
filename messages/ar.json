@@ -24,7 +24,9 @@
     "share": "مشاركة",
     "genericError": "حدث خطأ ما. حاول مرة أخرى.",
     "retry": "إعادة المحاولة",
-    "invalidPhone": "رقم هاتف غير صالح"
+    "invalidPhone": "رقم هاتف غير صالح",
+    "copy": "نسخ",
+    "openInNewTab": "فتح في تبويب جديد"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -263,7 +265,8 @@
       "cardNumberPlaceholder": "رقم البطاقة / QR",
       "transferDesc": "انقل هذا الموقع مؤقتًا إلى مستخدم آخر باسم المستخدم.",
       "transferUserPlaceholder": "اسم المستخدم أو البريد",
-      "userNotFound": "المستخدم غير موجود"
+      "userNotFound": "المستخدم غير موجود",
+      "websiteLogo": "شعار الموقع"
     },
     "cropTitle": "قصّ الصورة",
     "cropConfirm": "قصّ",
@@ -330,6 +333,8 @@
       "carousel": "مربع صغير 1:1",
       "shorts": "عمودي 9:16",
       "swiper": "أفقي 16:9",
+      "list": "قائمة 16:9",
+      "grid": "شبكة 1:1",
       "singleSizable": "صورة واحدة قابلة للتحجيم"
     },
     "products": {
@@ -451,7 +456,8 @@
     "qrCodes": "إنشاء رمز QR",
     "settings": "الإعدادات",
     "scanQr": "مسح QR",
-    "bookings": "الحجوزات"
+    "bookings": "الحجوزات",
+    "admin": "المشرف"
   },
   "settings": {
     "title": "الإعدادات",
@@ -937,5 +943,130 @@
     "title": "الحجوزات",
     "subtitle": "اختر موقعًا لإدارة حجوزاته",
     "empty": "أنشئ موقعًا أولًا لتفعيل الحجز."
+  },
+  "admin": {
+    "title": "التحكم بالملفات",
+    "subtitle": "أدوات المشرف — ابحث عن ملف أو أدر النطاقات والباقات والطلبات.",
+    "manage": "إدارة",
+    "open": "فتح",
+    "saved": "تم الحفظ",
+    "tools": {
+      "profiles": {
+        "title": "الملفات",
+        "desc": "ابحث عن أي ملف بالاسم أو @المعرّف لتوثيقه أو تعديله أو نسخه أو نقله."
+      },
+      "requests": {
+        "title": "طلبات النطاقات",
+        "desc": "راجع ووافق على طلبات النطاقات المخصّصة من المستخدمين."
+      },
+      "cloudflare": {
+        "title": "نطاقات Cloudflare",
+        "desc": "تجهيز وإزالة أسماء المضيفين المخصّصة على Cloudflare."
+      },
+      "plans": {
+        "title": "الاشتراكات والباقات",
+        "desc": "عيّن الباقات وحوّل الحسابات إلى حسابات شركات."
+      }
+    },
+    "actions": {
+      "info": {
+        "desc": "عرض وتعديل اسم هذا الملف وبيانات JSON الخام."
+      },
+      "verify": {
+        "desc": "تبديل شارة التوثيق على هذا الملف."
+      },
+      "domains": {
+        "desc": "إدارة النطاقات الخارجية المرتبطة بهذا الملف."
+      },
+      "duplicate": {
+        "desc": "إنشاء نسخة من هذا الملف بمعرّف جديد."
+      },
+      "move": {
+        "desc": "نقل ملكية هذا الملف إلى حساب آخر."
+      },
+      "subscription": {
+        "desc": "تعيين أو تغيير باقة الاشتراك لهذا الحساب."
+      },
+      "company": {
+        "desc": "ترقية هذا الحساب الشخصي إلى حساب شركة."
+      }
+    },
+    "search": {
+      "placeholder": "ابحث بالاسم أو @المعرّف",
+      "empty": "لا توجد ملفات",
+      "error": "فشل البحث. حاول مرة أخرى."
+    },
+    "profile": {
+      "notFound": "الملف غير موجود",
+      "infoTitle": "معلومات الملف",
+      "handle": "المعرّف",
+      "editTitle": "تعديل الملف",
+      "nameLabel": "الاسم",
+      "infoLabel": "المعلومات (JSON)",
+      "invalidJson": "صيغة JSON غير صالحة"
+    },
+    "verify": "توثيق",
+    "unverify": "إلغاء التوثيق",
+    "verified": "موثّق",
+    "verifyConfirmTitle": "تغيير حالة التوثيق؟",
+    "verifyConfirmMsg": "تغيير حالة توثيق @{name}؟",
+    "extDomains": {
+      "title": "النطاقات الخارجية",
+      "add": "إضافة نطاق",
+      "empty": "لا توجد نطاقات خارجية بعد",
+      "deleteConfirm": "إزالة النطاق {domain}؟",
+      "invalidDomain": "أدخل نطاقًا صالحًا (example.com)"
+    },
+    "duplicate": {
+      "title": "نسخ الملف",
+      "newHandle": "المعرّف الجديد",
+      "confirmTitle": "نسخ الملف؟",
+      "confirmMsg": "إنشاء نسخة من @{name} باسم @{newName}؟",
+      "done": "تم نسخ الملف"
+    },
+    "move": {
+      "title": "نقل الملف",
+      "emailLabel": "البريد الإلكتروني للوجهة",
+      "confirmTitle": "نقل الملف؟",
+      "confirmMsg": "نقل @{name} إلى {email}؟ سيتم نقل الملكية.",
+      "done": "تم نقل الملف"
+    },
+    "plans": {
+      "title": "الاشتراكات",
+      "assign": "تعيين",
+      "emailLabel": "بريد الحساب",
+      "confirmTitle": "تعيين الباقة؟",
+      "confirmMsg": "تعيين {plan} إلى {email}؟",
+      "done": "تم تعيين الاشتراك"
+    },
+    "company": {
+      "title": "التحويل إلى شركة",
+      "desc": "ترقية حساب شخصي إلى حساب شركة.",
+      "emailLabel": "بريد الحساب",
+      "confirmTitle": "التحويل إلى شركة؟",
+      "confirmMsg": "تحويل {email} إلى حساب شركة؟",
+      "done": "تم تحويل الحساب"
+    },
+    "requests": {
+      "title": "طلبات النطاقات",
+      "pending": "قيد الانتظار",
+      "active": "نشط",
+      "approve": "موافقة",
+      "hostnameLabel": "اسم المضيف",
+      "confirmTitle": "الموافقة على الطلب؟",
+      "confirmMsg": "تجهيز اسم المضيف {name} على Cloudflare لهذا الطلب؟",
+      "accepted": "تمت الموافقة على الطلب",
+      "copy": "نسخ",
+      "empty": "لا توجد طلبات نطاقات"
+    },
+    "cloudflare": {
+      "title": "نطاقات Cloudflare",
+      "create": "إنشاء اسم مضيف",
+      "hostnameLabel": "اسم المضيف",
+      "pickProfile": "اختر ملفًا",
+      "deleteConfirm": "حذف اسم مضيف Cloudflare {hostname}؟",
+      "empty": "لا توجد نطاقات Cloudflare"
+    },
+    "websiteSection": "المسؤول"
   }
 }

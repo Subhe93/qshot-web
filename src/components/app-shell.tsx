@@ -10,8 +10,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [drawer, setDrawer] = useState(false);
 
-  // Full-screen workspaces with their own chrome (builder, booking dashboard).
-  if (pathname.startsWith("/builder") || pathname.endsWith("/booking")) {
+  // Full-screen workspaces with their own chrome (builder, booking dashboard,
+  // admin visual editor).
+  const isAdminEditor =
+    pathname.startsWith("/admin/profiles/") && pathname.endsWith("/edit");
+  if (
+    pathname.startsWith("/builder") ||
+    pathname.endsWith("/booking") ||
+    isAdminEditor
+  ) {
     return <main className="h-dvh bg-background">{children}</main>;
   }
 

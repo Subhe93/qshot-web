@@ -35,7 +35,7 @@ export interface WebsiteStatistics {
 export async function getWebsiteStatistics(params: {
   id: string;
   type: StatType;
-  date: number; // mobile StatisticsDateRange.value: 1 | 3 | 6 | 365 (NOT days)
+  date: number; // mobile StatisticsDateRange.value: 1 | 3 | 6 | 365
 }): Promise<WebsiteStatistics> {
   const res = await api
     .get("q-profile/total-statistics/details/custom-profile", {

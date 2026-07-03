@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { listProfiles } from "@/lib/api/profiles";
 import { Plus, Sparkles } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { ProfileSlider, CreateCard } from "@/components/dashboard/profile-slider";
 import { ProfileCard } from "@/components/profile-card";
 import { CreateWebsiteWizard } from "@/components/builder/CreateWebsiteWizard";
@@ -28,32 +29,35 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto flex h-full max-w-5xl flex-col p-4 sm:p-6">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setAiCreating(true)}
-            className="relative flex h-11 items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
-          >
-            <Sparkles className="size-4" />
-            {ta("aiCreate")}
-            <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase">
-              {ta("beta")}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setCreating(true)}
-            className="brand-gradient flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-medium text-white hover:opacity-90"
-          >
-            <Plus className="size-4" />
-            {t("newProfile")}
-          </button>
-        </div>
+      <div className="shrink-0">
+        <PageHeader
+          iconSvg="/nav/portfolio.svg"
+          title={t("title")}
+          subtitle={t("subtitle")}
+          actions={
+            <>
+              <button
+                type="button"
+                onClick={() => setAiCreating(true)}
+                className="relative flex h-11 items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+              >
+                <Sparkles className="size-4" />
+                {ta("aiCreate")}
+                <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase">
+                  {ta("beta")}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreating(true)}
+                className="brand-gradient flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-medium text-white hover:opacity-90"
+              >
+                <Plus className="size-4" />
+                {t("newProfile")}
+              </button>
+            </>
+          }
+        />
       </div>
 
       <div className="mt-6 min-h-0 flex-1 lg:overflow-y-auto">

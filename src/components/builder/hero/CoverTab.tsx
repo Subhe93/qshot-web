@@ -147,7 +147,18 @@ export function CoverTab({
             customIcon={
               <ColorPickerField
                 value={cover.color ?? 0xff000000}
-                onChange={(c) => setCover({ color: c })}
+                onChange={(c) => {
+                  // Mirror the mobile overlay-color flow: derive transparency
+                  // from the picked color's alpha. `c` is an ARGB int.
+                  const alpha = ((c >>> 24) & 0xff) / 255;
+                  if (!cover.image_url) {
+                    setCover({ color: c, transparency: 1 });
+                  } else if ((cover.transparency ?? 0) === 0) {
+                    setCover({ color: c, transparency: 0.1 });
+                  } else {
+                    setCover({ color: c, transparency: alpha });
+                  }
+                }}
                 compact
               />
             }

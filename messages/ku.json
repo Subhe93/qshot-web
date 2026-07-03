@@ -24,7 +24,9 @@
     "share": "Parve bike",
     "genericError": "Tiştek çewt çû.",
     "retry": "Dîsa biceribîne",
-    "invalidPhone": "ژمارەی تەلەفۆن نادروستە"
+    "invalidPhone": "ژمارەی تەلەفۆن نادروستە",
+    "copy": "کۆپی",
+    "openInNewTab": "کردنەوە لە تابێکی نوێ"
   },
   "auth": {
     "loginTitle": "Têkeve",
@@ -263,7 +265,8 @@
       "cardNumberPlaceholder": "Card / QR number",
       "transferDesc": "Temporarily transfer this website to another user by their username.",
       "transferUserPlaceholder": "Username or email",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "websiteLogo": "لۆگۆی ماڵپەڕ"
     },
     "cropTitle": "Crop image",
     "cropConfirm": "Crop",
@@ -330,6 +333,8 @@
       "carousel": "Çargoşe Biçûk 1:1",
       "shorts": "Stûnî 9:16",
       "swiper": "Berwar 16:9",
+      "list": "Lîste 16:9",
+      "grid": "Tor 1:1",
       "singleSizable": "Wêneyek tenê ya mezinkirinî"
     },
     "products": {
@@ -451,7 +456,8 @@
     "qrCodes": "QR çêke",
     "settings": "Mîheng",
     "scanQr": "Scan QR",
-    "bookings": "Rezervasyon"
+    "bookings": "Rezervasyon",
+    "admin": "Rêvebir"
   },
   "settings": {
     "title": "Mîheng",
@@ -937,5 +943,130 @@
     "title": "Bookings",
     "subtitle": "Choose a website to manage its bookings",
     "empty": "Create a website first to enable booking."
+  },
+  "admin": {
+    "title": "Kontrola profîlan",
+    "subtitle": "Amûrên rêvebir — li profîlekê bigere an domain, plan û daxwazan birêve bibe.",
+    "open": "Veke",
+    "saved": "Hate tomarkirin",
+    "search": {
+      "placeholder": "Li gorî nav an @nasnameyê bigere",
+      "empty": "Tu profîl nehat dîtin",
+      "error": "Lêgerîn bi ser neket. Dîsa biceribîne."
+    },
+    "profile": {
+      "notFound": "Profîl nehat dîtin",
+      "infoTitle": "Agahiyên profîlê",
+      "handle": "Nasname",
+      "editTitle": "Profîlê biguherîne",
+      "nameLabel": "Nav",
+      "infoLabel": "Agahî (JSON)",
+      "invalidJson": "JSON nederbasdar"
+    },
+    "verify": "Piştrastkirin",
+    "unverify": "Piştrastkirinê rake",
+    "verified": "Piştrastkirî",
+    "verifyConfirmTitle": "Piştrastkirinê biguherînî?",
+    "verifyConfirmMsg": "Rewşa piştrastkirina @{name} biguherînî?",
+    "extDomains": {
+      "title": "Domainên derveyî",
+      "add": "Domain lê zêde bike",
+      "empty": "Hîna domainên derveyî tune ne",
+      "deleteConfirm": "Domaina {domain} rake?",
+      "invalidDomain": "Domaineke derbasdar binivîse (example.com)"
+    },
+    "duplicate": {
+      "title": "Profîlê ducar bike",
+      "newHandle": "Nasnameya nû",
+      "confirmTitle": "Profîlê ducar bike?",
+      "confirmMsg": "Kopyayek ji @{name} wek @{newName} çêbike?",
+      "done": "Profîl hate ducarkirin"
+    },
+    "move": {
+      "title": "Profîlê veguhezîne",
+      "emailLabel": "E-maila mebestê",
+      "confirmTitle": "Profîlê veguhezînî?",
+      "confirmMsg": "@{name} veguhezîne {email}? Ev xwedaniyê veguhezîne.",
+      "done": "Profîl hate veguhastin"
+    },
+    "plans": {
+      "title": "Abonetî",
+      "assign": "Tayîn bike",
+      "emailLabel": "E-maila hesabê",
+      "confirmTitle": "Planê tayîn bike?",
+      "confirmMsg": "{plan} li {email} tayîn bike?",
+      "done": "Abonetî hate tayînkirin"
+    },
+    "company": {
+      "title": "Veguhezîne şîrketê",
+      "desc": "Hesabekî kesane bilind bike bo hesabê şîrketê.",
+      "emailLabel": "E-maila hesabê",
+      "confirmTitle": "Veguhezîne şîrketê?",
+      "confirmMsg": "{email} veguhezîne hesabê şîrketê?",
+      "done": "Hesab hate veguhastin"
+    },
+    "requests": {
+      "title": "Daxwazên domainê",
+      "pending": "Li benda",
+      "active": "Çalak",
+      "approve": "Pejirandin",
+      "hostnameLabel": "Navê hostê",
+      "confirmTitle": "Daxwazê bipejirînî?",
+      "confirmMsg": "Navê hostê ya Cloudflare {name} ji bo vê daxwazê amade bike?",
+      "accepted": "Daxwaz hate pejirandin",
+      "copy": "Kopî bike",
+      "empty": "Tu daxwaza domainê tune"
+    },
+    "cloudflare": {
+      "title": "Domainên Cloudflare",
+      "create": "Navê hostê çêke",
+      "hostnameLabel": "Navê hostê",
+      "pickProfile": "Profîlekê hilbijêre",
+      "deleteConfirm": "Navê hostê ya Cloudflare {hostname} jê bibe?",
+      "empty": "Tu domaina Cloudflare tune"
+    },
+    "manage": "Bicivîne",
+    "tools": {
+      "profiles": {
+        "title": "Profîl",
+        "desc": "Li her profîlê bi nav an @handle bigere da ku wê piştrast bikî, biguherînî, dubare bikî an bibî."
+      },
+      "requests": {
+        "title": "Daxwazên navdermanê",
+        "desc": "Daxwazên navdermanê yên taybet ên bikarhêneran binirxîne û pejirîne."
+      },
+      "cloudflare": {
+        "title": "Navdermanên Cloudflare",
+        "desc": "Navên host ên taybet ên Cloudflare peyda bike û rake."
+      },
+      "plans": {
+        "title": "Abonetî û plan",
+        "desc": "Planan diyar bike û hesaban veguherîne hesabên pargîdaniyê."
+      }
+    },
+    "actions": {
+      "info": {
+        "desc": "Nav û agahiyên JSON ên xav ên vê profîlê bibîne û biguherîne."
+      },
+      "verify": {
+        "desc": "Nîşana piştrastkirî ya vê profîlê veke an bigire."
+      },
+      "domains": {
+        "desc": "Navdermanên derveyî yên bi vê profîlê ve girêdayî bicivîne."
+      },
+      "duplicate": {
+        "desc": "Kopiyek ji vê profîlê di bin handleyeke nû de çêbike."
+      },
+      "move": {
+        "desc": "Xwedaniya vê profîlê veguhezîne hesabeke din."
+      },
+      "subscription": {
+        "desc": "Plana abonetiyê ya vî hesabî diyar bike an biguherîne."
+      },
+      "company": {
+        "desc": "Vî hesabê kesane bilind bike bo hesabeke pargîdaniyê."
+      }
+    },
+    "websiteSection": "Rêvebir"
   }
 }

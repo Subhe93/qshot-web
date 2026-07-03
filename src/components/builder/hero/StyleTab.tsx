@@ -39,7 +39,16 @@ export function StyleTab({
           <button
             key={id}
             type="button"
-            onClick={() => update(heroDefaults(id))}
+            onClick={() => {
+              // Apply the style's template defaults, but PRESERVE the user's
+              // name / bio / floating button (mobile `set style` resets the hero
+              // but leaves these untouched — heroDefaults ships empty ones).
+              const patch: Partial<WebsiteSettings> = { ...heroDefaults(id) };
+              delete patch.name;
+              delete patch.bio;
+              delete patch.floating_button;
+              update(patch);
+            }}
             className={cn(
               "relative flex flex-col items-center gap-1.5 rounded-2xl bg-surface p-1.5 transition-all",
               selected ? "ring-2 ring-primary" : "ring-1 ring-border",

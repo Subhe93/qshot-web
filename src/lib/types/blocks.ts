@@ -56,6 +56,8 @@ export type ImagesLayoutType =
   | "carousel"
   | "shorts"
   | "swiper"
+  | "list"
+  | "grid"
   | "singleSizable";
 
 export type ButtonsLayoutType = "list" | "grid";

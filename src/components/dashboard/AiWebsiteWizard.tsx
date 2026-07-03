@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,6 +10,7 @@ import {
   Pencil,
   Sparkles,
   AlertCircle,
+  Check,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -48,17 +49,6 @@ function slugify(v: string) {
   );
 }
 
-async function uniqueDomain(base: string): Promise<string> {
-  let candidate = base.length >= 3 ? base : `${base}-site`;
-  try {
-    await checkUserName(candidate);
-    return candidate; // available
-  } catch {
-    candidate = `${base}-${Math.floor(1000 + Math.random() * 9000)}`.slice(0, 30);
-    return candidate;
-  }
-}
-
 export function AiWebsiteWizard({
   onClose,
   onUseManual,
@@ -67,6 +57,8 @@ export function AiWebsiteWizard({
   onUseManual?: () => void;
 }) {
   const t = useTranslations("aiWizard");
+  // Reuse the manual flow's URL/availability strings.
+  const tb = useTranslations("builder.websiteSettings");
   const locale = useLocale();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -76,6 +68,13 @@ export function AiWebsiteWizard({
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState("");
+  // Site URL slug — derived from the business name until the user edits it, with
+  // a live availability check (mirrors the manual create flow's UrlSheet).
+  const [slug, setSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [slugStatus, setSlugStatus] = useState<
+    "idle" | "checking" | "ok" | "taken"
+  >("idle");
   const [primary, setPrimary] = useState(DEFAULT_PRIMARY);
   const [secondary, setSecondary] = useState(DEFAULT_SECONDARY);
   const [description, setDescription] = useState("");
@@ -88,6 +87,30 @@ export function AiWebsiteWizard({
 
   const [busy, setBusy] = useState<Busy>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Live slug availability check (debounced), like the manual UrlSheet. All
+  // state writes happen inside the deferred callback (never synchronously in the
+  // effect body).
+  useEffect(() => {
+    const clean = slug.trim().toLowerCase();
+    const handle = setTimeout(
+      async () => {
+        if (clean.length < 3) {
+          setSlugStatus("idle");
+          return;
+        }
+        setSlugStatus("checking");
+        try {
+          await checkUserName(clean);
+          setSlugStatus("ok");
+        } catch {
+          setSlugStatus("taken");
+        }
+      },
+      clean.length < 3 ? 0 : 600,
+    );
+    return () => clearTimeout(handle);
+  }, [slug]);
 
   const logoRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
@@ -105,6 +128,7 @@ export function AiWebsiteWizard({
   const canGenerate =
     businessName.trim().length >= 2 &&
     description.trim().length >= 10 &&
+    slugStatus === "ok" &&
     busy === null;
 
   async function run() {
@@ -140,8 +164,8 @@ export function AiWebsiteWizard({
       //    builder via an in-memory draft, then open it. The builder loads the
       //    draft directly (no refetch race) and auto-saves it via the proven path.
       setBusy("creating");
-      // Slug comes from the user-entered business name.
-      const domain = await uniqueDomain(slugify(businessName));
+      // Use the user-confirmed, availability-checked slug as the site URL.
+      const domain = slug.trim().toLowerCase();
       const style = (result.style ?? result.settings.style ?? "style2") as HeroStyle;
       const created = await createProfile({
         domain,
@@ -263,10 +287,54 @@ export function AiWebsiteWizard({
           <input
             value={businessName}
             maxLength={60}
-            onChange={(e) => setBusinessName(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              setBusinessName(v);
+              // Auto-fill the slug from the name until the user edits it.
+              if (!slugTouched) setSlug(v.trim() ? slugify(v) : "");
+            }}
             placeholder={t("businessNamePlaceholder")}
             className="h-11 w-full rounded-xl border border-input bg-card px-3.5 text-sm outline-none focus:border-primary"
           />
+        </div>
+
+        {/* Site URL (username) with live availability — lets the user pick the
+            handle before the site is created, like the manual flow. */}
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-foreground/70">
+            {tb("websiteUrl")}
+          </label>
+          <div className="flex items-center overflow-hidden rounded-xl border border-input bg-card focus-within:border-primary">
+            <span className="ps-3 text-sm text-muted-foreground">qshot.com/</span>
+            <input
+              value={slug}
+              dir="ltr"
+              maxLength={30}
+              onChange={(e) => {
+                setSlugTouched(true);
+                setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+              }}
+              placeholder={tb("urlHint")}
+              className="h-11 w-full bg-transparent px-1 text-sm outline-none"
+            />
+          </div>
+          <div className="mt-1 h-4 px-1 text-xs">
+            {slugStatus === "checking" && (
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <Loader2 className="size-3 animate-spin" />
+                {tb("checking")}
+              </span>
+            )}
+            {slugStatus === "ok" && (
+              <span className="flex items-center gap-1 text-success">
+                <Check className="size-3" />
+                {tb("available")}
+              </span>
+            )}
+            {slugStatus === "taken" && (
+              <span className="text-error">{tb("taken")}</span>
+            )}
+          </div>
         </div>
 
         {/* Logo + cover */}
@@ -344,10 +412,10 @@ export function AiWebsiteWizard({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            maxLength={800}
+            rows={8}
+            maxLength={3000}
             placeholder={t("descriptionPlaceholder")}
-            className="w-full resize-none rounded-xl border border-input bg-card p-3 text-sm outline-none focus:border-primary"
+            className="min-h-[180px] w-full resize-y rounded-xl border border-input bg-card p-3 text-sm leading-relaxed outline-none focus:border-primary"
           />
         </div>
 

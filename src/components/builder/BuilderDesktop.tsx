@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   Copy,
+  ExternalLink,
   Eye,
   EyeOff,
   Loader2,
@@ -21,7 +22,7 @@ import {
   Monitor,
   type LucideIcon,
 } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useEditorStore } from "@/stores/editor-store";
 import { cn } from "@/lib/utils";
 import { BuilderCanvas } from "./BuilderCanvas";
@@ -62,6 +63,7 @@ export function BuilderDesktop({
 }) {
   const t = useTranslations("builder");
   const tc = useTranslations("common");
+  const router = useRouter();
 
   const selectedId = useEditorStore((s) => s.selectedId);
   const heroTab = useEditorStore((s) => s.heroTab);
@@ -126,13 +128,14 @@ export function BuilderDesktop({
             !previewEnabled && "w-[380px]",
           )}
         >
-          <Link
-            href="/dashboard"
+          <button
+            type="button"
+            onClick={() => router.back()}
             aria-label={tc("back")}
             className="flex size-9 items-center justify-center rounded-full text-foreground hover:bg-muted"
           >
             <ArrowLeft className="size-5 rtl:rotate-180" />
-          </Link>
+          </button>
         </div>
 
         {/* Center zone — directly above the preview */}
@@ -150,14 +153,25 @@ export function BuilderDesktop({
             ) : (
               <>
                 <span className="truncate">{profileUrl}</span>
-                <button
-                  type="button"
-                  aria-label="Copy"
-                  onClick={() => navigator.clipboard?.writeText(profileUrl)}
-                  className="ms-auto shrink-0 hover:text-foreground"
-                >
-                  <Copy className="size-4" />
-                </button>
+                <div className="ms-auto flex shrink-0 items-center gap-1.5">
+                  <button
+                    type="button"
+                    aria-label={tc("copy")}
+                    onClick={() => navigator.clipboard?.writeText(profileUrl)}
+                    className="hover:text-foreground"
+                  >
+                    <Copy className="size-4" />
+                  </button>
+                  <a
+                    href={profileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={tc("openInNewTab")}
+                    className="hover:text-foreground"
+                  >
+                    <ExternalLink className="size-4" />
+                  </a>
+                </div>
               </>
             )}
           </div>

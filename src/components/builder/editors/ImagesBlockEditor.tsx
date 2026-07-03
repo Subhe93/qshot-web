@@ -66,6 +66,8 @@ const LAYOUTS: ReadonlyArray<{
   { type: "carousel", label: "Square Small 1:1", aspect: 1, svg: "image_layout_carousel.svg" },
   { type: "shorts", label: "Vertical 9:16", aspect: 9 / 16, svg: "image_layout_shorts.svg" },
   { type: "swiper", label: "Horizontal 16:9", aspect: 16 / 9, svg: "image_layout_swiper_16_9.svg" },
+  { type: "list", label: "List 16:9", aspect: 16 / 9, svg: "layout_list.svg" },
+  { type: "grid", label: "Grid 1:1", aspect: 1, svg: "layout_grid.svg" },
   {
     type: "singleSizable",
     label: "Single resizable image",

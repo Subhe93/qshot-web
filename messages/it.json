@@ -24,7 +24,9 @@
     "share": "Condividi",
     "genericError": "Qualcosa è andato storto.",
     "retry": "Riprova",
-    "invalidPhone": "Numero di telefono non valido"
+    "invalidPhone": "Numero di telefono non valido",
+    "copy": "Copia",
+    "openInNewTab": "Apri in una nuova scheda"
   },
   "auth": {
     "loginTitle": "Accedi",
@@ -263,7 +265,8 @@
       "cardNumberPlaceholder": "Card / QR number",
       "transferDesc": "Temporarily transfer this website to another user by their username.",
       "transferUserPlaceholder": "Username or email",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "websiteLogo": "Logo del sito"
     },
     "cropTitle": "Crop image",
     "cropConfirm": "Crop",
@@ -330,6 +333,8 @@
       "carousel": "Quadrato piccolo 1:1",
       "shorts": "Verticale 9:16",
       "swiper": "Orizzontale 16:9",
+      "list": "Elenco 16:9",
+      "grid": "Griglia 1:1",
       "singleSizable": "Singola immagine ridimensionabile"
     },
     "products": {
@@ -451,7 +456,8 @@
     "qrCodes": "Genera QR",
     "settings": "Impostazioni",
     "scanQr": "Scan QR",
-    "bookings": "Prenotazioni"
+    "bookings": "Prenotazioni",
+    "admin": "Admin"
   },
   "settings": {
     "title": "Impostazioni",
@@ -937,5 +943,130 @@
     "title": "Bookings",
     "subtitle": "Choose a website to manage its bookings",
     "empty": "Create a website first to enable booking."
+  },
+  "admin": {
+    "title": "Controllo profili",
+    "subtitle": "Strumenti admin — cerca un profilo o gestisci domini, piani e richieste.",
+    "open": "Apri",
+    "saved": "Salvato",
+    "search": {
+      "placeholder": "Cerca per nome o @handle",
+      "empty": "Nessun profilo trovato",
+      "error": "Ricerca non riuscita. Riprova."
+    },
+    "profile": {
+      "notFound": "Profilo non trovato",
+      "infoTitle": "Info profilo",
+      "handle": "Handle",
+      "editTitle": "Modifica profilo",
+      "nameLabel": "Nome",
+      "infoLabel": "Info (JSON)",
+      "invalidJson": "JSON non valido"
+    },
+    "verify": "Verifica",
+    "unverify": "Rimuovi verifica",
+    "verified": "Verificato",
+    "verifyConfirmTitle": "Cambiare la verifica?",
+    "verifyConfirmMsg": "Cambiare lo stato di verifica di @{name}?",
+    "extDomains": {
+      "title": "Domini esterni",
+      "add": "Aggiungi dominio",
+      "empty": "Ancora nessun dominio esterno",
+      "deleteConfirm": "Rimuovere il dominio {domain}?",
+      "invalidDomain": "Inserisci un dominio valido (example.com)"
+    },
+    "duplicate": {
+      "title": "Duplica profilo",
+      "newHandle": "Nuovo handle",
+      "confirmTitle": "Duplicare il profilo?",
+      "confirmMsg": "Creare una copia di @{name} come @{newName}?",
+      "done": "Profilo duplicato"
+    },
+    "move": {
+      "title": "Sposta profilo",
+      "emailLabel": "Email di destinazione",
+      "confirmTitle": "Spostare il profilo?",
+      "confirmMsg": "Spostare @{name} su {email}? Questo trasferisce la proprietà.",
+      "done": "Profilo spostato"
+    },
+    "plans": {
+      "title": "Abbonamenti",
+      "assign": "Assegna",
+      "emailLabel": "Email account",
+      "confirmTitle": "Assegnare il piano?",
+      "confirmMsg": "Assegnare {plan} a {email}?",
+      "done": "Abbonamento assegnato"
+    },
+    "company": {
+      "title": "Converti in azienda",
+      "desc": "Aggiorna un account personale a un account aziendale.",
+      "emailLabel": "Email account",
+      "confirmTitle": "Convertire in azienda?",
+      "confirmMsg": "Convertire {email} in un account aziendale?",
+      "done": "Account convertito"
+    },
+    "requests": {
+      "title": "Richieste di dominio",
+      "pending": "In attesa",
+      "active": "Attivo",
+      "approve": "Approva",
+      "hostnameLabel": "Hostname",
+      "confirmTitle": "Approvare la richiesta?",
+      "confirmMsg": "Provisionare l'hostname Cloudflare {name} per questa richiesta?",
+      "accepted": "Richiesta approvata",
+      "copy": "Copia",
+      "empty": "Nessuna richiesta di dominio"
+    },
+    "cloudflare": {
+      "title": "Domini Cloudflare",
+      "create": "Crea hostname",
+      "hostnameLabel": "Hostname",
+      "pickProfile": "Seleziona un profilo",
+      "deleteConfirm": "Eliminare l'hostname Cloudflare {hostname}?",
+      "empty": "Nessun dominio Cloudflare"
+    },
+    "manage": "Gestisci",
+    "tools": {
+      "profiles": {
+        "title": "Profili",
+        "desc": "Cerca qualsiasi profilo per nome o @handle per verificarlo, modificarlo, duplicarlo o spostarlo."
+      },
+      "requests": {
+        "title": "Richieste di dominio",
+        "desc": "Esamina e approva le richieste di dominio personalizzato degli utenti."
+      },
+      "cloudflare": {
+        "title": "Domini Cloudflare",
+        "desc": "Configura e rimuovi nomi host personalizzati Cloudflare."
+      },
+      "plans": {
+        "title": "Abbonamenti e piani",
+        "desc": "Assegna piani e converti gli account in account aziendali."
+      }
+    },
+    "actions": {
+      "info": {
+        "desc": "Visualizza e modifica il nome e le info JSON grezze di questo profilo."
+      },
+      "verify": {
+        "desc": "Attiva o disattiva il badge verificato su questo profilo."
+      },
+      "domains": {
+        "desc": "Gestisci i domini esterni collegati a questo profilo."
+      },
+      "duplicate": {
+        "desc": "Crea una copia di questo profilo con un nuovo handle."
+      },
+      "move": {
+        "desc": "Trasferisci la proprietà di questo profilo a un altro account."
+      },
+      "subscription": {
+        "desc": "Assegna o modifica il piano di abbonamento di questo account."
+      },
+      "company": {
+        "desc": "Aggiorna questo account personale a un account aziendale."
+      }
+    },
+    "websiteSection": "Amministratore"
   }
 }

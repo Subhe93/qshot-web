@@ -17,10 +17,28 @@ import type {
   Block,
   ButtonItem,
   ExternalLinkItem,
+  FormQuestion,
+  ImageItem,
+  ProductItem,
+  ReviewItem,
   SocialLinkItem,
 } from "@/lib/types/blocks";
 import type { HeroStyle, WebsiteSettings } from "@/lib/types/profile";
-import { aiBlockSchema, type AiWebsite } from "./schema";
+import { aiBlockSchema, type AiImageSpec, type AiWebsite } from "./schema";
+
+/**
+ * Map the AI font allowlist key (schema.FONTS) → the exact Google family-name
+ * string that `settings.font_family` expects (see google-fonts.GOOGLE_FONTS).
+ */
+const FONT_FAMILY: Record<string, string> = {
+  inter: "Inter",
+  poppins: "Poppins",
+  manrope: "Manrope",
+  sora: "Sora",
+  playfair: "Playfair Display",
+  montserrat: "Montserrat",
+  nunito: "Nunito",
+};
 
 export interface AiAssets {
   /** CDN file_name for the uploaded logo (from q-profile/image/create). */
@@ -46,9 +64,11 @@ function readableOn(argb: number): number {
   return luminance > 150 ? 0xff000000 : 0xffffffff;
 }
 
+// Header text must always read as a title — never smaller than 20px, even if the
+// model asks for less; default 24. Body/paragraph text sits well below this.
 function clampSize(size?: number): number {
   if (typeof size !== "number" || Number.isNaN(size)) return 24;
-  return Math.min(40, Math.max(14, Math.round(size)));
+  return Math.min(40, Math.max(20, Math.round(size)));
 }
 
 /** A very light, opaque tint of `argb` over white — for branded section cards. */
@@ -64,6 +84,15 @@ function softTint(argb: number, ratio = 0.1): number {
 function toDelta(text: string): string {
   const body = text.endsWith("\n") ? text : `${text}\n`;
   return JSON.stringify([{ insert: body }]);
+}
+
+/**
+ * Resolve an ImageSpec to its CDN key. The server fills `fileName` after
+ * generation/upload; transform reads ONLY `fileName` (never the prompt/alt) and
+ * returns `undefined` when the image was not generated — callers must skip it.
+ */
+function imageFileName(spec?: AiImageSpec): string | undefined {
+  return spec?.fileName || undefined;
 }
 
 /** Build full settings from the chosen style's defaults + AI hero/brand + assets. */
@@ -83,6 +112,27 @@ export function buildSettings(ai: AiWebsite, assets: AiAssets): WebsiteSettings 
   }
   if (assets.logoFileName) {
     s.logo = { ...(s.logo ?? {}), image_url: assets.logoFileName, hide: false };
+  }
+
+  // Cover when the user uploaded none: prefer the server-generated hero.cover;
+  // if generation failed, DROP the style template's placeholder stock cover — a
+  // clean branded hero looks far more professional than a random unrelated photo.
+  if (!assets.coverFileName) {
+    if (ai.hero?.cover?.fileName) {
+      s.cover_photo = {
+        ...(s.cover_photo ?? {}),
+        image_url: ai.hero.cover.fileName,
+        hide: false,
+      };
+    } else if (s.cover_photo) {
+      s.cover_photo = { ...s.cover_photo, image_url: undefined };
+    }
+  }
+
+  // Modern Google font (allowlist key → real family string).
+  if (ai.font) {
+    const family = FONT_FAMILY[ai.font];
+    if (family) s.font_family = family;
   }
 
   // Brand palette.
@@ -212,12 +262,16 @@ export function transformBlocks(
       }
 
       case "external_links": {
-        const links: ExternalLinkItem[] = b.items.map((it) => ({
-          id: nanoid(),
-          title: it.title,
-          url: it.url,
-          description: it.description ?? null,
-        }));
+        const links: ExternalLinkItem[] = b.items.map((it) => {
+          const thumb = imageFileName(it.image);
+          return {
+            id: nanoid(),
+            title: it.title,
+            url: it.url,
+            description: it.description ?? null,
+            ...(thumb ? { thumbnail_url: thumb } : {}),
+          };
+        });
         out.push({
           id: nanoid(),
           type: "ExternalLinksModule",
@@ -225,6 +279,107 @@ export function transformBlocks(
           layout_type: b.layout ?? "list",
           links,
           ...tint(b.accent),
+        });
+        break;
+      }
+
+      case "gallery": {
+        // Generated images live under `url` (CDN key); drop any the server
+        // could not generate (no fileName) — never emit a prompt as an src.
+        const items: ImageItem[] = [];
+        for (const img of b.images) {
+          const url = imageFileName(img);
+          if (url) items.push({ id: nanoid(), url });
+        }
+        if (!items.length) break;
+        out.push({
+          id: nanoid(),
+          type: "ImageModule",
+          layout_type: b.layout === "grid" ? "grid" : "carousel",
+          items,
+        });
+        break;
+      }
+
+      case "reviews": {
+        const reviews: ReviewItem[] = b.items.map((it) => ({
+          id: nanoid(),
+          reviewer_name: it.author,
+          // `role` has no dedicated field — surface it as the relative-time line.
+          relative_time_description: it.role ?? undefined,
+          rating: it.rating ?? 5,
+          text: it.text,
+        }));
+        out.push({
+          id: nanoid(),
+          type: "ReviewsModule",
+          title: b.title ?? "",
+          layout_type: "cards",
+          reviews,
+          ...tint(true),
+        });
+        break;
+      }
+
+      case "location": {
+        // The server resolves `place` from `address` via Google Places. Without
+        // a resolved place the map cannot render — skip the block entirely.
+        if (!b.place) break;
+        out.push({
+          id: nanoid(),
+          type: "LocationModule",
+          title: b.title ?? "",
+          value: b.place as Record<string, unknown>,
+        });
+        break;
+      }
+
+      case "products": {
+        const items: ProductItem[] = b.items.map((it) => {
+          const thumb = imageFileName(it.image);
+          return {
+            id: nanoid(),
+            title: it.name,
+            description: it.description ?? undefined,
+            price: it.price ?? null,
+            ...(thumb ? { thumbnail_url: thumb } : {}),
+          };
+        });
+        out.push({
+          id: nanoid(),
+          type: "ProductsModule",
+          title: b.title ?? "",
+          layout_type: "grid",
+          items,
+        });
+        break;
+      }
+
+      case "form": {
+        // Default to a standard contact form when the model gives no fields.
+        const defs =
+          b.fields && b.fields.length
+            ? b.fields
+            : [
+                { label: "Name", type: "text" as const, required: true },
+                { label: "Email", type: "text" as const, required: true },
+                { label: "Phone", type: "text" as const, required: false },
+                { label: "Message", type: "paragraph" as const, required: false },
+              ];
+        const questions: FormQuestion[] = defs.map((f) => ({
+          type: f.type ?? "text",
+          data: {
+            question: f.label,
+            description: null,
+            required: f.required ?? false,
+            hint: "",
+          },
+        }));
+        out.push({
+          id: nanoid(),
+          type: "FormModule",
+          title: b.title ?? "",
+          questions,
         });
         break;
       }

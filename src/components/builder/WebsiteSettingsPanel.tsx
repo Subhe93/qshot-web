@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { QRCodeCanvas } from "qrcode.react";
 import {
   Share2,
@@ -21,14 +22,26 @@ import {
   Download,
   Loader2,
   Sparkles,
+  ArrowUpRight,
+  ShieldCheck,
+  Globe,
 } from "lucide-react";
 import { useEditorStore } from "@/stores/editor-store";
 import { useRouter } from "@/i18n/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { ImageUploader } from "./hero/CoverTab";
+import {
+  DomainsSheet,
+  DuplicateSheet,
+  MoveSheet,
+  VerifyConfirmDialog,
+} from "@/components/admin/profile-action-sheets";
 import { checkUserName, deleteProfile } from "@/lib/api/profiles";
 import { cdnUrl } from "@/lib/api/qrcodes";
+import { getAccount } from "@/lib/api/account";
+import { getProfile as getAdminProfile } from "@/lib/api/admin";
 import {
   getQrNumber,
   createQrNumber,
@@ -46,11 +59,16 @@ type Sheet =
   | "delete"
   | "card"
   | "transfer"
+  | "adminMove"
+  | "adminVerify"
+  | "adminDomains"
+  | "adminDuplicate"
   | null;
 
 export function WebsiteSettingsPanel() {
   const t = useTranslations("builder.websiteSettings");
   const tc = useTranslations("common");
+  const ta = useTranslations("admin");
   const router = useRouter();
   const name = useEditorStore((s) => s.name);
   const settings = useEditorStore((s) => s.settings);
@@ -63,6 +81,18 @@ export function WebsiteSettingsPanel() {
   const [sheet, setSheet] = useState<Sheet>(null);
   const [soonLabel, setSoonLabel] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  // Admin-only "Admin" section (mirrors the mobile website-settings admin block).
+  const { data: account } = useQuery({
+    queryKey: ["account"],
+    queryFn: getAccount,
+  });
+  const isAdmin = Boolean(account?.user?.isAdmin);
+  const { data: adminProfile } = useQuery({
+    queryKey: ["admin", "profile", name],
+    queryFn: () => getAdminProfile(name),
+    enabled: isAdmin && !!realId,
+  });
 
   // Bound to the real settings (persisted via the builder's auto-save).
   const saveContact = settings.can_save_contact ?? false;
@@ -230,17 +260,57 @@ export function WebsiteSettingsPanel() {
         )}
       </Group>
 
+      {/* ADMIN (admins only, on a saved website) */}
+      {isAdmin && realId && (
+        <Group title={ta("websiteSection")}>
+          <Row
+            icon={<ArrowUpRight className="size-5" />}
+            color="#f35054"
+            title={ta("move.title")}
+            onClick={() => setSheet("adminMove")}
+          />
+          <Row
+            icon={<ShieldCheck className="size-5" />}
+            color="#34c759"
+            title={adminProfile?.verified ? ta("unverify") : ta("verify")}
+            right={
+              adminProfile?.verified ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                  <ShieldCheck className="size-3" />
+                  {ta("verified")}
+                </span>
+              ) : undefined
+            }
+            onClick={() => setSheet("adminVerify")}
+          />
+          <Row
+            icon={<Globe className="size-5" />}
+            color="#4488ff"
+            title={ta("extDomains.title")}
+            onClick={() => setSheet("adminDomains")}
+          />
+          <Row
+            icon={<Copy className="size-5" />}
+            color="#5856d6"
+            title={ta("duplicate.title")}
+            onClick={() => setSheet("adminDuplicate")}
+          />
+        </Group>
+      )}
+
       {/* ── Popups ───────────────────────────────────────────── */}
       {sheet === "name" && (
         <NameSheet
           initial={displayName}
-          onSave={(v) => {
-            updateSettings({ website_name: v });
+          initialLogo={settings.website_logo ?? undefined}
+          onSave={(v, lg) => {
+            updateSettings({ website_name: v, website_logo: lg ?? null });
             setSheet(null);
           }}
           onClose={() => setSheet(null)}
           title={t("websiteName")}
           placeholder={t("namePlaceholder")}
+          logoLabel={t("websiteLogo")}
           save={tc("save")}
         />
       )}
@@ -328,6 +398,27 @@ export function WebsiteSettingsPanel() {
           t={t}
         />
       )}
+
+      {/* Admin sheets — shared with the admin control panel. */}
+      {sheet === "adminMove" && realId && (
+        <MoveSheet profileName={name} onClose={() => setSheet(null)} />
+      )}
+      {sheet === "adminDomains" && realId && (
+        <DomainsSheet profileId={realId} onClose={() => setSheet(null)} />
+      )}
+      {sheet === "adminDuplicate" && realId && (
+        <DuplicateSheet
+          profileId={realId}
+          profileName={name}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      <VerifyConfirmDialog
+        open={sheet === "adminVerify"}
+        profileName={name}
+        verified={adminProfile?.verified}
+        onClose={() => setSheet(null)}
+      />
     </div>
   );
 }
@@ -517,20 +608,26 @@ function TransferSheet({
 // ── Name editor ────────────────────────────────────────────────
 function NameSheet({
   initial,
+  initialLogo,
   onSave,
   onClose,
   title,
   placeholder,
+  logoLabel,
   save,
 }: {
   initial: string;
-  onSave: (v: string) => void;
+  initialLogo?: string;
+  onSave: (name: string, logo: string | undefined) => void;
   onClose: () => void;
   title: string;
   placeholder: string;
+  logoLabel: string;
   save: string;
 }) {
   const [value, setValue] = useState(initial);
+  // Website logo lives alongside the name (mirrors the mobile name editor sheet).
+  const [logo, setLogo] = useState<string | undefined>(initialLogo);
   return (
     <BottomSheet
       title={title}
@@ -541,20 +638,35 @@ function NameSheet({
             variant="gradient"
             className="w-full"
             disabled={!value.trim()}
-            onClick={() => onSave(value.trim())}
+            onClick={() => onSave(value.trim(), logo)}
           >
             {save}
           </Button>
         </div>
       }
     >
-      <Input
-        autoFocus
-        value={value}
-        maxLength={40}
-        placeholder={placeholder}
-        onChange={(e) => setValue(e.target.value)}
-      />
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <span className="block text-sm font-medium text-muted-foreground">
+            {logoLabel}
+          </span>
+          <div className="mx-auto w-32">
+            <ImageUploader
+              path={logo}
+              onUploaded={(p) => setLogo(p)}
+              onDelete={() => setLogo(undefined)}
+              aspect={1}
+              rounded="rounded-2xl"
+            />
+          </div>
+        </div>
+        <Input
+          value={value}
+          maxLength={40}
+          placeholder={placeholder}
+          onChange={(e) => setValue(e.target.value)}
+        />
+      </div>
     </BottomSheet>
   );
 }

@@ -24,7 +24,9 @@
     "share": "分享",
     "genericError": "出了点问题。",
     "retry": "重试",
-    "invalidPhone": "电话号码无效"
+    "invalidPhone": "电话号码无效",
+    "copy": "复制",
+    "openInNewTab": "在新标签页中打开"
   },
   "auth": {
     "loginTitle": "登录",
@@ -263,7 +265,8 @@
       "cardNumberPlaceholder": "Card / QR number",
       "transferDesc": "Temporarily transfer this website to another user by their username.",
       "transferUserPlaceholder": "Username or email",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "websiteLogo": "网站徽标"
     },
     "cropTitle": "Crop image",
     "cropConfirm": "Crop",
@@ -330,6 +333,8 @@
       "carousel": "小正方形 1:1",
       "shorts": "竖向 9:16",
       "swiper": "横向 16:9",
+      "list": "列表 16:9",
+      "grid": "网格 1:1",
       "singleSizable": "单张可调整大小的图片"
     },
     "products": {
@@ -451,7 +456,8 @@
     "qrCodes": "生成二维码",
     "settings": "设置",
     "scanQr": "Scan QR",
-    "bookings": "预约"
+    "bookings": "预约",
+    "admin": "管理员"
   },
   "settings": {
     "title": "设置",
@@ -937,5 +943,130 @@
     "title": "Bookings",
     "subtitle": "Choose a website to manage its bookings",
     "empty": "Create a website first to enable booking."
+  },
+  "admin": {
+    "title": "资料管理",
+    "subtitle": "管理员工具 — 搜索资料或管理域名、套餐和请求。",
+    "open": "打开",
+    "saved": "已保存",
+    "search": {
+      "placeholder": "按名称或 @用户名搜索",
+      "empty": "未找到资料",
+      "error": "搜索失败，请重试。"
+    },
+    "profile": {
+      "notFound": "未找到资料",
+      "infoTitle": "资料信息",
+      "handle": "用户名",
+      "editTitle": "编辑资料",
+      "nameLabel": "名称",
+      "infoLabel": "信息 (JSON)",
+      "invalidJson": "无效的 JSON"
+    },
+    "verify": "验证",
+    "unverify": "移除验证",
+    "verified": "已验证",
+    "verifyConfirmTitle": "更改验证状态？",
+    "verifyConfirmMsg": "更改 @{name} 的验证状态？",
+    "extDomains": {
+      "title": "外部域名",
+      "add": "添加域名",
+      "empty": "暂无外部域名",
+      "deleteConfirm": "移除域名 {domain}？",
+      "invalidDomain": "请输入有效的域名 (example.com)"
+    },
+    "duplicate": {
+      "title": "复制资料",
+      "newHandle": "新用户名",
+      "confirmTitle": "复制资料？",
+      "confirmMsg": "将 @{name} 复制为 @{newName}？",
+      "done": "资料已复制"
+    },
+    "move": {
+      "title": "转移资料",
+      "emailLabel": "目标邮箱",
+      "confirmTitle": "转移资料？",
+      "confirmMsg": "将 @{name} 转移到 {email}？此操作将转移所有权。",
+      "done": "资料已转移"
+    },
+    "plans": {
+      "title": "订阅",
+      "assign": "分配",
+      "emailLabel": "账户邮箱",
+      "confirmTitle": "分配套餐？",
+      "confirmMsg": "将 {plan} 分配给 {email}？",
+      "done": "订阅已分配"
+    },
+    "company": {
+      "title": "转换为公司",
+      "desc": "将个人账户升级为公司账户。",
+      "emailLabel": "账户邮箱",
+      "confirmTitle": "转换为公司？",
+      "confirmMsg": "将 {email} 转换为公司账户？",
+      "done": "账户已转换"
+    },
+    "requests": {
+      "title": "域名请求",
+      "pending": "待处理",
+      "active": "已激活",
+      "approve": "批准",
+      "hostnameLabel": "主机名",
+      "confirmTitle": "批准请求？",
+      "confirmMsg": "为此请求配置 Cloudflare 主机名 {name}？",
+      "accepted": "请求已批准",
+      "copy": "复制",
+      "empty": "暂无域名请求"
+    },
+    "cloudflare": {
+      "title": "Cloudflare 域名",
+      "create": "创建主机名",
+      "hostnameLabel": "主机名",
+      "pickProfile": "选择资料",
+      "deleteConfirm": "删除 Cloudflare 主机名 {hostname}？",
+      "empty": "暂无 Cloudflare 域名"
+    },
+    "manage": "管理",
+    "tools": {
+      "profiles": {
+        "title": "资料页",
+        "desc": "按名称或 @用户名 搜索任意资料页，以进行验证、编辑、复制或转移。"
+      },
+      "requests": {
+        "title": "域名申请",
+        "desc": "审核并批准用户的自定义域名申请。"
+      },
+      "cloudflare": {
+        "title": "Cloudflare 域名",
+        "desc": "配置和删除 Cloudflare 自定义主机名。"
+      },
+      "plans": {
+        "title": "订阅与套餐",
+        "desc": "分配套餐并将账户转换为企业账户。"
+      }
+    },
+    "actions": {
+      "info": {
+        "desc": "查看并编辑此资料页的名称和原始 JSON 信息。"
+      },
+      "verify": {
+        "desc": "开启或关闭此资料页的已验证徽章。"
+      },
+      "domains": {
+        "desc": "管理关联到此资料页的外部域名。"
+      },
+      "duplicate": {
+        "desc": "以新用户名创建此资料页的副本。"
+      },
+      "move": {
+        "desc": "将此资料页的所有权转移到另一个账户。"
+      },
+      "subscription": {
+        "desc": "为此账户分配或更改订阅套餐。"
+      },
+      "company": {
+        "desc": "将此个人账户升级为企业账户。"
+      }
+    },
+    "websiteSection": "管理员"
   }
 }

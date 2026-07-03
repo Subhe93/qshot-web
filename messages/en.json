@@ -24,7 +24,9 @@
     "share": "Share",
     "genericError": "Something went wrong. Please try again.",
     "retry": "Retry",
-    "invalidPhone": "Invalid phone number"
+    "invalidPhone": "Invalid phone number",
+    "copy": "Copy",
+    "openInNewTab": "Open in new tab"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -263,7 +265,8 @@
       "cardNumberPlaceholder": "Card / QR number",
       "transferDesc": "Temporarily transfer this website to another user by their username.",
       "transferUserPlaceholder": "Username or email",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "websiteLogo": "Website logo"
     },
     "cropTitle": "Crop image",
     "cropConfirm": "Crop",
@@ -330,6 +333,8 @@
       "carousel": "Square Small 1:1",
       "shorts": "Vertical 9:16",
       "swiper": "Horizontal 16:9",
+      "list": "List 16:9",
+      "grid": "Grid 1:1",
       "singleSizable": "Single resizable image"
     },
     "products": {
@@ -451,7 +456,8 @@
     "qrCodes": "Generate QR",
     "settings": "Settings",
     "scanQr": "Scan QR",
-    "bookings": "Bookings"
+    "bookings": "Bookings",
+    "admin": "Admin"
   },
   "settings": {
     "title": "Settings",
@@ -937,5 +943,130 @@
     "title": "Bookings",
     "subtitle": "Choose a website to manage its bookings",
     "empty": "Create a website first to enable booking."
+  },
+  "admin": {
+    "title": "Profile control",
+    "subtitle": "Admin tools — search a profile or manage domains, plans and requests.",
+    "manage": "Manage",
+    "open": "Open",
+    "saved": "Saved",
+    "tools": {
+      "profiles": {
+        "title": "Profiles",
+        "desc": "Search any profile by name or @handle to verify, edit, duplicate or move it."
+      },
+      "requests": {
+        "title": "Domain requests",
+        "desc": "Review and approve custom-domain requests from users."
+      },
+      "cloudflare": {
+        "title": "Cloudflare domains",
+        "desc": "Provision and remove Cloudflare custom hostnames."
+      },
+      "plans": {
+        "title": "Subscriptions & plans",
+        "desc": "Assign plans and convert accounts to company accounts."
+      }
+    },
+    "actions": {
+      "info": {
+        "desc": "View and edit this profile's name and raw info JSON."
+      },
+      "verify": {
+        "desc": "Toggle the verified badge on this profile."
+      },
+      "domains": {
+        "desc": "Manage the external domains linked to this profile."
+      },
+      "duplicate": {
+        "desc": "Create a copy of this profile under a new handle."
+      },
+      "move": {
+        "desc": "Transfer ownership of this profile to another account."
+      },
+      "subscription": {
+        "desc": "Assign or change the subscription plan for this account."
+      },
+      "company": {
+        "desc": "Upgrade this personal account to a company account."
+      }
+    },
+    "search": {
+      "placeholder": "Search by name or @handle",
+      "empty": "No profiles found",
+      "error": "Search failed. Try again."
+    },
+    "profile": {
+      "notFound": "Profile not found",
+      "infoTitle": "Profile info",
+      "handle": "Handle",
+      "editTitle": "Edit profile",
+      "nameLabel": "Name",
+      "infoLabel": "Info (JSON)",
+      "invalidJson": "Invalid JSON"
+    },
+    "verify": "Verify",
+    "unverify": "Remove verification",
+    "verified": "Verified",
+    "verifyConfirmTitle": "Change verification?",
+    "verifyConfirmMsg": "Change the verification status of @{name}?",
+    "extDomains": {
+      "title": "External domains",
+      "add": "Add domain",
+      "empty": "No external domains yet",
+      "deleteConfirm": "Remove the domain {domain}?",
+      "invalidDomain": "Enter a valid domain (example.com)"
+    },
+    "duplicate": {
+      "title": "Duplicate profile",
+      "newHandle": "New handle",
+      "confirmTitle": "Duplicate profile?",
+      "confirmMsg": "Create a copy of @{name} as @{newName}?",
+      "done": "Profile duplicated"
+    },
+    "move": {
+      "title": "Move profile",
+      "emailLabel": "Destination email",
+      "confirmTitle": "Move profile?",
+      "confirmMsg": "Move @{name} to {email}? This transfers ownership.",
+      "done": "Profile moved"
+    },
+    "plans": {
+      "title": "Subscriptions",
+      "assign": "Assign",
+      "emailLabel": "Account email",
+      "confirmTitle": "Assign plan?",
+      "confirmMsg": "Assign {plan} to {email}?",
+      "done": "Subscription assigned"
+    },
+    "company": {
+      "title": "Convert to company",
+      "desc": "Upgrade a personal account to a company account.",
+      "emailLabel": "Account email",
+      "confirmTitle": "Convert to company?",
+      "confirmMsg": "Convert {email} to a company account?",
+      "done": "Account converted"
+    },
+    "requests": {
+      "title": "Domain requests",
+      "pending": "Pending",
+      "active": "Active",
+      "approve": "Approve",
+      "hostnameLabel": "Hostname",
+      "confirmTitle": "Approve request?",
+      "confirmMsg": "Provision the Cloudflare hostname {name} for this request?",
+      "accepted": "Request approved",
+      "copy": "Copy",
+      "empty": "No domain requests"
+    },
+    "cloudflare": {
+      "title": "Cloudflare domains",
+      "create": "Create hostname",
+      "hostnameLabel": "Hostname",
+      "pickProfile": "Select a profile",
+      "deleteConfirm": "Delete the Cloudflare hostname {hostname}?",
+      "empty": "No Cloudflare domains"
+    },
+    "websiteSection": "Admin"
   }
 }

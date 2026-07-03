@@ -18,6 +18,10 @@ import { cdnUrl } from "@/lib/api/qrcodes";
  *                       (cardAspectRatio 1920/1080), bordered + rounded-8
  *  - shorts           → horizontal scroll, padding h20 v5; each width 200,
  *                       rounded-10, margin h5, 9:16 (cardAspectRatio 1080/1920)
+ *  - list             → vertical column, padding h16 v5; each full-width 16:9
+ *                       (cardAspectRatio 1920/1080), rounded-8, v5 gaps
+ *  - grid             → 2-column grid, padding h16 v5; each cell 1:1
+ *                       (cardAspectRatio 1080/1080), 10px gaps, rounded-8
  *  - singleSizable    → h24 v5 padded, rounded-8, cover, first item only
  *
  * Hidden items are filtered out (`!getHidden()`). The block is wrapped with the
@@ -138,6 +142,39 @@ function renderContent(items: ImageItem[], layout: ImagesBlock["layout_type"]) {
               key={item.id ?? i}
               className="w-[200px] shrink-0 overflow-hidden rounded-[10px]"
               style={{ aspectRatio: String(9 / 16) }}
+            >
+              <RectImg item={item} className="size-full" />
+            </div>
+          ))}
+        </div>
+      );
+
+    case "list":
+      // Vertical column of full-width 16:9 images (cardAspectRatio 1920/1080).
+      return (
+        <div className="flex flex-col px-4 py-[5px]">
+          {items.map((item, i) => (
+            <div key={item.id ?? i} className="py-[5px]">
+              <div
+                className="overflow-hidden rounded-lg"
+                style={{ aspectRatio: String(16 / 9) }}
+              >
+                <RectImg item={item} className="size-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
+    case "grid":
+      // 2-column grid, 1:1 cells (cardAspectRatio 1080/1080), 10px gaps.
+      return (
+        <div className="grid grid-cols-2 gap-2.5 px-4 py-[5px]">
+          {items.map((item, i) => (
+            <div
+              key={item.id ?? i}
+              className="overflow-hidden rounded-lg"
+              style={{ aspectRatio: "1" }}
             >
               <RectImg item={item} className="size-full" />
             </div>

@@ -2,10 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Settings, LogOut, User, CalendarCheck } from "lucide-react";
+import { Settings, LogOut, User, CalendarCheck, ShieldCheck } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { getAccount } from "@/lib/api/account";
+import { cdnUrl } from "@/lib/api/qrcodes";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { FeedbackButton } from "@/components/feedback-button";
 import { AppIcon } from "@/components/qr/app-icon";
@@ -17,6 +18,7 @@ const NAV = [
   { href: "/dashboard", labelKey: "profiles", svg: "/nav/portfolio.svg" },
   { href: "/qr-codes", labelKey: "qrCodes", svg: "/nav/qr_code.svg" },
   { href: "/bookings", labelKey: "bookings", Icon: CalendarCheck },
+  { href: "/admin", labelKey: "admin", Icon: ShieldCheck },
   { href: "/settings", labelKey: "settings", Icon: Settings },
 ] as const;
 
@@ -32,6 +34,9 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { data: account } = useQuery({ queryKey: ["account"], queryFn: getAccount });
   const user = account?.user ?? storeUser;
   const plan = account?.plan;
+  const isAdmin = Boolean(account?.user?.isAdmin);
+  // Hide the admin entry for non-admins; the /admin/* routes are gated too.
+  const nav = NAV.filter((item) => item.href !== "/admin" || isAdmin);
   const name = user?.name ?? user?.email ?? "—";
   const planLabel = plan ? (plan.free ? ts("freePlan") : plan.name) : user?.email;
 
@@ -54,7 +59,12 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
         <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/70 bg-white/20">
           {user?.image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.image} alt={name} className="size-full object-cover" />
+            <img
+              src={cdnUrl(user.image)}
+              alt={name}
+              referrerPolicy="no-referrer"
+              className="size-full object-cover"
+            />
           ) : (
             <User className="size-5 text-white" />
           )}
@@ -71,7 +81,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Nav */}
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {NAV.map((item) => {
+        {nav.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
           return (

@@ -20,11 +20,13 @@ import type {
   SocialLinkItem,
   ExternalLinkItem,
   VideoLinkItem,
+  VideoLinksBlock,
   ProductItem,
   ReviewItem,
 } from "@/lib/types/blocks";
 import type { WebsiteSettings } from "@/lib/types/profile";
 import { hexToArgb } from "./color";
+import { solidArgb } from "./color-value";
 
 type Raw = Record<string, unknown>;
 
@@ -342,8 +344,25 @@ export function parseBlocks(input: unknown): Block[] {
   return input.map(parseBlock);
 }
 
-/** Identity — the editor model already matches the JSON shape. */
+/**
+ * Near-identity — the editor model already matches the JSON shape. The one
+ * exception: VideoLinkItem carries web-only `title`/`thumbnail_url` (the editor
+ * never sets them; the mobile contract is strictly `{id, url, hidden}`). Strip
+ * them so the outgoing JSON round-trips through the mobile app without extra keys.
+ */
 export function serializeBlock(block: Block): Record<string, unknown> {
+  if (block.type === "VideoLinksModule") {
+    const b = block as VideoLinksBlock;
+    return {
+      ...b,
+      items: (b.items ?? []).map((it) => {
+        const clean = { ...it };
+        delete clean.title;
+        delete clean.thumbnail_url;
+        return clean;
+      }),
+    };
+  }
   return block as unknown as Record<string, unknown>;
 }
 
@@ -364,7 +383,22 @@ export function parseSettings(input: unknown): WebsiteSettings {
 export function serializeSettings(
   settings: WebsiteSettings,
 ): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...(settings as Record<string, unknown>) };
   // `modules` (legacy block location) must never be sent under settings.
-  const { modules: _modules, ...rest } = settings;
-  return rest as Record<string, unknown>;
+  // `verified` is a profile-level, admin-managed flag — not part of the mobile
+  // settings contract — so don't echo it back inside `settings`.
+  delete out.modules;
+  delete out.verified;
+
+  // Colour contract: the solid `color_value.color` MUST be an ARGB int. The
+  // mobile app does `Color(json['color'])`, which throws on a legacy hex string,
+  // so normalize any hex/legacy value to an ARGB int on save.
+  const cv = settings.background?.color_value;
+  if (cv && cv.type === "solid") {
+    out.background = {
+      ...(settings.background as object),
+      color_value: { type: "solid", color: solidArgb(cv.color) },
+    };
+  }
+  return out;
 }

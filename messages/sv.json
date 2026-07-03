@@ -24,7 +24,9 @@
     "share": "Dela",
     "genericError": "Något gick fel.",
     "retry": "Försök igen",
-    "invalidPhone": "Ogiltigt telefonnummer"
+    "invalidPhone": "Ogiltigt telefonnummer",
+    "copy": "Kopiera",
+    "openInNewTab": "Öppna i ny flik"
   },
   "auth": {
     "loginTitle": "Logga in",
@@ -263,7 +265,8 @@
       "cardNumberPlaceholder": "Card / QR number",
       "transferDesc": "Temporarily transfer this website to another user by their username.",
       "transferUserPlaceholder": "Username or email",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "websiteLogo": "Webbplatslogga"
     },
     "cropTitle": "Crop image",
     "cropConfirm": "Crop",
@@ -330,6 +333,8 @@
       "carousel": "Kvadrat liten 1:1",
       "shorts": "Vertikal 9:16",
       "swiper": "Horisontell 16:9",
+      "list": "Lista 16:9",
+      "grid": "Rutnät 1:1",
       "singleSizable": "Enskild skalbar bild"
     },
     "products": {
@@ -451,7 +456,8 @@
     "qrCodes": "Generera QR",
     "settings": "Inställningar",
     "scanQr": "Scan QR",
-    "bookings": "Bokningar"
+    "bookings": "Bokningar",
+    "admin": "Admin"
   },
   "settings": {
     "title": "Inställningar",
@@ -937,5 +943,130 @@
     "title": "Bookings",
     "subtitle": "Choose a website to manage its bookings",
     "empty": "Create a website first to enable booking."
+  },
+  "admin": {
+    "title": "Profilkontroll",
+    "subtitle": "Adminverktyg — sök efter en profil eller hantera domäner, planer och förfrågningar.",
+    "open": "Öppna",
+    "saved": "Sparat",
+    "search": {
+      "placeholder": "Sök på namn eller @användarnamn",
+      "empty": "Inga profiler hittades",
+      "error": "Sökningen misslyckades. Försök igen."
+    },
+    "profile": {
+      "notFound": "Profil hittades inte",
+      "infoTitle": "Profilinfo",
+      "handle": "Användarnamn",
+      "editTitle": "Redigera profil",
+      "nameLabel": "Namn",
+      "infoLabel": "Info (JSON)",
+      "invalidJson": "Ogiltig JSON"
+    },
+    "verify": "Verifiera",
+    "unverify": "Ta bort verifiering",
+    "verified": "Verifierad",
+    "verifyConfirmTitle": "Ändra verifiering?",
+    "verifyConfirmMsg": "Ändra verifieringsstatusen för @{name}?",
+    "extDomains": {
+      "title": "Externa domäner",
+      "add": "Lägg till domän",
+      "empty": "Inga externa domäner ännu",
+      "deleteConfirm": "Ta bort domänen {domain}?",
+      "invalidDomain": "Ange en giltig domän (example.com)"
+    },
+    "duplicate": {
+      "title": "Duplicera profil",
+      "newHandle": "Nytt användarnamn",
+      "confirmTitle": "Duplicera profil?",
+      "confirmMsg": "Skapa en kopia av @{name} som @{newName}?",
+      "done": "Profil duplicerad"
+    },
+    "move": {
+      "title": "Flytta profil",
+      "emailLabel": "Mål-e-post",
+      "confirmTitle": "Flytta profil?",
+      "confirmMsg": "Flytta @{name} till {email}? Detta överför ägarskapet.",
+      "done": "Profil flyttad"
+    },
+    "plans": {
+      "title": "Prenumerationer",
+      "assign": "Tilldela",
+      "emailLabel": "Konto-e-post",
+      "confirmTitle": "Tilldela plan?",
+      "confirmMsg": "Tilldela {plan} till {email}?",
+      "done": "Prenumeration tilldelad"
+    },
+    "company": {
+      "title": "Konvertera till företag",
+      "desc": "Uppgradera ett personligt konto till ett företagskonto.",
+      "emailLabel": "Konto-e-post",
+      "confirmTitle": "Konvertera till företag?",
+      "confirmMsg": "Konvertera {email} till ett företagskonto?",
+      "done": "Konto konverterat"
+    },
+    "requests": {
+      "title": "Domänförfrågningar",
+      "pending": "Väntande",
+      "active": "Aktiv",
+      "approve": "Godkänn",
+      "hostnameLabel": "Värdnamn",
+      "confirmTitle": "Godkänna förfrågan?",
+      "confirmMsg": "Etablera Cloudflare-värdnamnet {name} för den här förfrågan?",
+      "accepted": "Förfrågan godkänd",
+      "copy": "Kopiera",
+      "empty": "Inga domänförfrågningar"
+    },
+    "cloudflare": {
+      "title": "Cloudflare-domäner",
+      "create": "Skapa värdnamn",
+      "hostnameLabel": "Värdnamn",
+      "pickProfile": "Välj en profil",
+      "deleteConfirm": "Ta bort Cloudflare-värdnamnet {hostname}?",
+      "empty": "Inga Cloudflare-domäner"
+    },
+    "manage": "Hantera",
+    "tools": {
+      "profiles": {
+        "title": "Profiler",
+        "desc": "Sök efter valfri profil med namn eller @användarnamn för att verifiera, redigera, duplicera eller flytta den."
+      },
+      "requests": {
+        "title": "Domänförfrågningar",
+        "desc": "Granska och godkänn förfrågningar om anpassad domän från användare."
+      },
+      "cloudflare": {
+        "title": "Cloudflare-domäner",
+        "desc": "Tillhandahåll och ta bort anpassade Cloudflare-värdnamn."
+      },
+      "plans": {
+        "title": "Prenumerationer och planer",
+        "desc": "Tilldela planer och konvertera konton till företagskonton."
+      }
+    },
+    "actions": {
+      "info": {
+        "desc": "Visa och redigera profilens namn och rå info-JSON."
+      },
+      "verify": {
+        "desc": "Slå på eller av den verifierade märkningen på den här profilen."
+      },
+      "domains": {
+        "desc": "Hantera de externa domäner som är kopplade till den här profilen."
+      },
+      "duplicate": {
+        "desc": "Skapa en kopia av den här profilen under ett nytt användarnamn."
+      },
+      "move": {
+        "desc": "Överför ägandet av den här profilen till ett annat konto."
+      },
+      "subscription": {
+        "desc": "Tilldela eller ändra prenumerationsplanen för det här kontot."
+      },
+      "company": {
+        "desc": "Uppgradera det här personliga kontot till ett företagskonto."
+      }
+    },
+    "websiteSection": "Administratör"
   }
 }

@@ -1,11 +1,12 @@
 /**
  * Thin browser client for the AI website generator. Just POSTs to the internal
- * Next route (src/app/api/ai/generate-website) — the Gemini call + key live
+ * Next route (src/app/api/ai/generate-website) — the OpenAI call + key live
  * server-side.
  */
 
 import type { Block } from "@/lib/types/blocks";
 import type { WebsiteSettings } from "@/lib/types/profile";
+import { useAuthStore } from "@/stores/auth-store";
 
 export interface GenerateWebsiteInput {
   description: string;
@@ -45,11 +46,17 @@ export class AiGenerateError extends Error {
 export async function generateWebsite(
   input: GenerateWebsiteInput,
 ): Promise<GenerateWebsiteResult> {
+  // Forward the user's bearer token so the route can upload generated images +
+  // geocode addresses server-side (those backend calls require auth).
+  const token = useAuthStore.getState().token;
   let res: Response;
   try {
     res = await fetch("/api/ai/generate-website", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(input),
     });
   } catch {

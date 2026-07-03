@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { CalendarCheck, ChevronRight, Globe } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { PageHeader } from "@/components/page-header";
 import { listProfiles } from "@/lib/api/profiles";
 import { cdnUrl } from "@/lib/api/qrcodes";
 
@@ -16,9 +17,12 @@ export default function BookingsListPage() {
   const items = data ?? [];
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-6">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
-      <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+    <div className="mx-auto max-w-5xl p-4 sm:p-6">
+      <PageHeader
+        Icon={CalendarCheck}
+        title={t("title")}
+        subtitle={t("subtitle")}
+      />
 
       <div className="mt-6 space-y-3">
         {isLoading &&
