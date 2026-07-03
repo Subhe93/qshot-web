@@ -45,3 +45,4 @@ next-env.d.ts
 .edgeprof*/
 .shots/
 public/seed.html
+*.zip
