@@ -34,43 +34,68 @@ export function ColorPopover({
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const roRef = useRef<ResizeObserver | null>(null);
   const [pos, setPos] = useState<{
-    top?: number;
-    bottom?: number;
+    top: number;
     left: number;
     maxHeight: number;
-    dropUp: boolean;
+    above: boolean;
   } | null>(null);
 
-  // Position the portalled panel against the trigger, flipping above it when
-  // there isn't room below (e.g. fields near the bottom of the page). The panel
-  // is capped to the available space on its side and scrolls if it still
-  // doesn't fit, so it never spills off the top or bottom of the viewport.
+  // Position the portalled panel so the WHOLE picker stays visible: prefer just
+  // below the trigger; flip fully ABOVE it when it would overflow the bottom
+  // (e.g. a field near the end of the page); and if it fits neither side exactly,
+  // shift it up so it sits within the viewport. Only a panel taller than the
+  // entire viewport scrolls (handled by the sticky action bar). Uses the panel's
+  // REAL measured height once rendered (an estimate on the very first paint).
   const computePos = useCallback(() => {
     const el = triggerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const margin = 8;
     const width = 288 + 24; // panel w-72 + padding
-    const estimated = 480; // approx panel height; only used to pick a side
-    const spaceBelow = window.innerHeight - rect.bottom - margin;
-    const spaceAbove = rect.top - margin;
-    // Prefer below, but flip up when below is too cramped and above has more room.
-    const dropUp = spaceBelow < estimated && spaceAbove > spaceBelow;
+    const vh = window.innerHeight;
+    const panelH = panelRef.current?.offsetHeight ?? 480;
+    const maxHeight = vh - margin * 2;
+    const fitH = Math.min(panelH, maxHeight);
 
     const left = Math.max(
       margin,
       Math.min(rect.left, window.innerWidth - width - margin),
     );
 
-    setPos({
-      left,
-      dropUp,
-      maxHeight: Math.max(0, dropUp ? spaceAbove : spaceBelow),
-      top: dropUp ? undefined : rect.bottom + margin,
-      bottom: dropUp ? window.innerHeight - rect.top + margin : undefined,
-    });
+    let top = rect.bottom + margin; // prefer below the trigger
+    let above = false;
+    if (top + fitH > vh - margin) {
+      const aboveTop = rect.top - margin - fitH; // fully above the trigger
+      if (aboveTop >= margin) {
+        top = aboveTop;
+        above = true;
+      } else {
+        // Fits neither side fully → clamp into the viewport (shift up).
+        top = Math.max(margin, vh - margin - fitH);
+        above = rect.top > vh / 2;
+      }
+    }
+    setPos({ top, left, maxHeight, above });
   }, []);
+
+  // Callback ref: measure + observe the panel the moment it mounts (and on any
+  // size change, e.g. toggling the gradient/alpha rows) so we always reposition
+  // against its real height.
+  const setPanelNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      roRef.current?.disconnect();
+      panelRef.current = node;
+      if (node && typeof ResizeObserver !== "undefined") {
+        roRef.current = new ResizeObserver(() => computePos());
+        roRef.current.observe(node);
+      }
+      if (node) computePos();
+    },
+    [computePos],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -139,13 +164,13 @@ export function ColorPopover({
         createPortal(
           <div className="fixed inset-0 z-[130]" onMouseDown={() => setOpen(false)}>
             <div
+              ref={setPanelNode}
               className={
                 "animate-popover-in fixed overflow-y-auto rounded-2xl border border-border bg-card p-3 shadow-xl " +
-                (pos.dropUp ? "origin-bottom" : "origin-top")
+                (pos.above ? "origin-bottom" : "origin-top")
               }
               style={{
                 top: pos.top,
-                bottom: pos.bottom,
                 left: pos.left,
                 maxHeight: pos.maxHeight,
               }}

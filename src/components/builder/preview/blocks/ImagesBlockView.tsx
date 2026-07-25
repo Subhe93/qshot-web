@@ -84,22 +84,36 @@ function renderContent(items: ImageItem[], layout: ImagesBlock["layout_type"]) {
           className="overflow-hidden rounded-lg"
           style={aspect != null ? { aspectRatio: String(aspect) } : undefined}
         >
-          <RectImg item={item} className="size-full" />
+          {/* With a crop rect the wrapper is aspect-sized so a bg fill needs
+              size-full; without one the <img> supplies its own natural height. */}
+          <RectImg item={item} className={aspect != null ? "size-full" : "w-full"} />
         </div>
       </div>
     );
   }
 
   switch (layout) {
-    case "singleSizable":
-      // Renders only the first item, free height (no aspect constraint).
+    case "singleSizable": {
+      // First item only, at its natural/cropped size (mobile: CachedNetworkImage,
+      // BoxFit.cover, no fixed aspect). A crop rect renders as a background fill,
+      // which needs an aspect-sized box + size-full; otherwise the <img> gives its
+      // own height. (Without this, a rect item became a 0-height bg → invisible.)
+      const item = items[0]!;
+      const aspect = rectAspect(item.rect);
       return (
         <div className="px-6 py-[5px]">
-          <div className="overflow-hidden rounded-lg">
-            <RectImg item={items[0]!} className="w-full" />
+          <div
+            className="overflow-hidden rounded-lg"
+            style={aspect != null ? { aspectRatio: String(aspect) } : undefined}
+          >
+            <RectImg
+              item={item}
+              className={aspect != null ? "size-full" : "w-full"}
+            />
           </div>
         </div>
       );
+    }
 
     case "cards":
     case "carousel": {

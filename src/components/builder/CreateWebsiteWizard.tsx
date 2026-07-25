@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, ImageIcon, Loader2, Pencil, Plus } from "lucide-react";
+import { Check, ImageIcon, Loader2, Pencil, Plus } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { TemplatePreview } from "./TemplatePreview";
-import { TEMPLATES, DEFAULT_STYLE, type HeroStyleId } from "@/lib/builder/templates";
+import { DEFAULT_STYLE } from "@/lib/builder/templates";
 import {
   checkUserName,
   createProfile,
@@ -29,15 +28,15 @@ function slugify(v: string) {
     .slice(0, 30);
 }
 
+// Mobile dropped its hero-style selector step: a site is created with the
+// default style and the builder's auto-open ThemeSheet gate (empty blocks, no
+// template) presents the whole-site Templates picker instead.
 export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
   const t = useTranslations("wizard");
   const tws = useTranslations("builder.websiteSettings");
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [step, setStep] = useState<1 | 2>(1);
-
-  // Step 1 state
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -46,22 +45,24 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
   const [status, setStatus] = useState<"idle" | "checking" | "ok" | "taken">("idle");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Step 2 state
-  const [style, setStyle] = useState<HeroStyleId>(DEFAULT_STYLE);
   const [creating, setCreating] = useState(false);
 
   // Auto-slug the domain from the name until the user edits it manually.
+  // (Deferred a tick — react-hooks/set-state-in-effect.)
   useEffect(() => {
-    if (!domainEdited) setDomain(slugify(name));
+    if (domainEdited) return;
+    const t = setTimeout(() => setDomain(slugify(name)), 0);
+    return () => clearTimeout(t);
   }, [name, domainEdited]);
 
-  // Live availability check.
+  // Live availability check. (Status flips inside timers so no set-state runs
+  // synchronously in the effect body — react-hooks/set-state-in-effect.)
   useEffect(() => {
     if (domain.length < 3) {
-      setStatus("idle");
-      return;
+      const t = setTimeout(() => setStatus("idle"), 0);
+      return () => clearTimeout(t);
     }
-    setStatus("checking");
+    const t = setTimeout(() => setStatus("checking"), 0);
     const h = setTimeout(async () => {
       try {
         await checkUserName(domain);
@@ -70,7 +71,10 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
         setStatus("taken");
       }
     }, 600);
-    return () => clearTimeout(h);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(h);
+    };
   }, [domain]);
 
   function pickLogo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -79,7 +83,7 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
     setLogoPreview(f ? URL.createObjectURL(f) : null);
   }
 
-  const canNext = name.trim().length > 0 && domain.length >= 3 && status !== "taken";
+  const canCreate = name.trim().length > 0 && domain.length >= 3 && status !== "taken";
 
   async function create() {
     setCreating(true);
@@ -96,7 +100,7 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
         domain,
         websiteName: name.trim(),
         websiteLogo: logo,
-        style,
+        style: DEFAULT_STYLE,
       });
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
       const id = created?._id ?? created?.id;
@@ -106,7 +110,7 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
         // auto-saves under the real id — instead of racing a list refetch.
         setAiDraft(id, {
           name: domain,
-          settings: fillDefaults(style as HeroStyle, {
+          settings: fillDefaults(DEFAULT_STYLE as HeroStyle, {
             websiteName: name.trim(),
             websiteLogo: logo,
           }),
@@ -127,47 +131,29 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
 
   return (
     <BottomSheet
-      title={step === 1 ? t("title") : t("selectTemplate")}
-      subtitle={`${t("step")} ${step}/2`}
+      title={t("title")}
       onClose={onClose}
       footer={
         <div className="flex gap-2 p-4">
-          {step === 2 && (
-            <Button variant="outline" onClick={() => setStep(1)}>
-              <ArrowLeft className="size-4 rtl:rotate-180" />
-            </Button>
-          )}
-          {step === 1 ? (
-            <Button
-              variant="gradient"
-              className="flex-1"
-              disabled={!canNext}
-              onClick={() => setStep(2)}
-            >
-              {t("next")}
-            </Button>
-          ) : (
-            <Button
-              variant="gradient"
-              className="flex-1"
-              disabled={creating}
-              onClick={create}
-            >
-              {creating ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  {t("creating")}
-                </>
-              ) : (
-                t("title")
-              )}
-            </Button>
-          )}
+          <Button
+            variant="gradient"
+            className="flex-1"
+            disabled={!canCreate || creating}
+            onClick={create}
+          >
+            {creating ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                {t("creating")}
+              </>
+            ) : (
+              t("title")
+            )}
+          </Button>
         </div>
       }
     >
-      {step === 1 ? (
-        <div className="space-y-5">
+      <div className="space-y-5">
           {/* Logo */}
           <div className="flex justify-center">
             <button
@@ -254,20 +240,6 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-3">
-          {TEMPLATES.map((tpl) => (
-            <button
-              key={tpl.style}
-              type="button"
-              onClick={() => setStyle(tpl.style)}
-              className={`rounded-2xl p-1 transition-all ${style === tpl.style ? "ring-2 ring-primary" : "ring-1 ring-border"}`}
-            >
-              <TemplatePreview config={tpl} />
-            </button>
-          ))}
-        </div>
-      )}
     </BottomSheet>
   );
 }

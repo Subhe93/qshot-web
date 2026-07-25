@@ -117,7 +117,7 @@
     "careful": "Careful",
     "coverSizeWarning": "The selected cover size may hide some text and buttons.",
     "confirm": "Confirm",
-    "addBlock": "Add block",
+    "addBlock": "Blocks",
     "save": "Save",
     "saved": "Saved",
     "emptyCanvas": "Your page is empty. Add a block to start.",
@@ -203,7 +203,7 @@
     "nav": {
       "home": "Home",
       "pages": "Pages",
-      "add": "Add Block",
+      "add": "Blocks",
       "style": "Style",
       "settings": "Settings",
       "comingSoon": "Coming soon",
@@ -432,6 +432,8 @@
     },
     "bookingBlock": {
       "bookNow": "Book Now",
+      "notReadyTitle": "Booking isn't set up yet",
+      "notReadyDesc": "Open Booking settings to turn it on, then create at least one service (and a provider). The booking widget won't appear on your site until you do.",
       "dropdown": "Dropdown"
     },
     "pages": {
@@ -449,7 +451,41 @@
       "urlPlaceholder": "page-url",
       "urlTaken": "This URL is taken"
     },
-    "dropdown": "Dropdown"
+    "dropdown": "Dropdown",
+    "backToDashboard": "Dashboard",
+    "templates": {
+      "title": "Templates",
+      "choose": "Choose a Template",
+      "startBlank": "Start Blank",
+      "applied": "Template Applied",
+      "switchMessage": "This restyles your website. Your content and brand color stay.",
+      "undo": "Undo",
+      "brandColor": "Brand Color",
+      "customColor": "Custom Color",
+      "theme": "Theme",
+      "apply": "Apply",
+      "names": {
+        "restaurant": "Restaurant & Café",
+        "salon": "Salon & Barber",
+        "creator": "Creator",
+        "shop": "Shop",
+        "professional": "Professional"
+      },
+      "sections": {
+        "menu": "Menu",
+        "reviews": "Reviews",
+        "booking": "Booking",
+        "videos": "Videos",
+        "links": "Links",
+        "products": "Products",
+        "about": "About",
+        "contact": "Contact",
+        "name": "Name",
+        "email": "Email",
+        "message": "Message",
+        "gallery": "Gallery"
+      }
+    }
   },
   "nav": {
     "profiles": "Website",
@@ -457,6 +493,7 @@
     "settings": "Settings",
     "scanQr": "Scan QR",
     "bookings": "Bookings",
+    "smartLinks": "Smart Links",
     "admin": "Admin"
   },
   "settings": {
@@ -528,7 +565,36 @@
       "noIncoming": "No incoming requests",
       "noOutgoing": "No outgoing requests"
     },
-    "freePlan": "Free plan"
+    "freePlan": "Free plan",
+    "changeEmail": {
+      "title": "Change Email",
+      "intro": "Please enter your new email and password",
+      "newEmail": "New Email Address",
+      "newEmailHint": "Please enter your new email",
+      "change": "Change",
+      "done": "Done",
+      "gotIt": "Got it!",
+      "submit": "Submit",
+      "required": "Required",
+      "invalidEmail": "Oops! Email address invalid",
+      "password": "Password",
+      "passwordHint": "Please enter your password",
+      "awaiting": "Awaiting confirmation",
+      "cancel": "Cancel email change",
+      "canceled": "Email change canceled",
+      "sent": "Confirmation email sent",
+      "sentTo": "We sent a confirmation link to {email}. Confirm it to complete your email change.",
+      "resend": "Resend",
+      "resendIn": "Resend in {seconds}s",
+      "changedTitle": "Email changed",
+      "changedDesc": "Your account email has been updated.",
+      "invalidTitle": "Link no longer valid",
+      "invalidDesc": "This confirmation link is invalid or has already been used.",
+      "expiredTitle": "Link expired",
+      "expiredDesc": "This link has expired. Please request the email change again.",
+      "conflictTitle": "Email no longer available",
+      "conflictDesc": "Someone else registered this email while your request was pending."
+    }
   },
   "qr": {
     "title": "Generate QR",
@@ -1068,5 +1134,51 @@
       "empty": "No Cloudflare domains"
     },
     "websiteSection": "Admin"
+  },
+  "smartLinks": {
+    "refreshCover": "Refresh cover",
+    "title": "Smart Links",
+    "subtitle": "Create one link that opens the right native app on every device.",
+    "create": "Create link",
+    "edit": "Edit link",
+    "empty": "No smart links yet",
+    "emptyDesc": "Create your first smart link to open native apps directly from a single URL.",
+    "urlLabel": "Source URL",
+    "urlPlaceholder": "Paste a YouTube, Spotify, TikTok… link",
+    "nameLabel": "Name",
+    "namePlaceholder": "Give this link a name",
+    "slugLabel": "Custom slug",
+    "slugPlaceholder": "summer-promo",
+    "slugAvailable": "Available",
+    "slugTaken": "Already taken",
+    "slugChecking": "Checking availability…",
+    "slugSuggestion": "Try {suggestion}",
+    "typeLabel": "Type",
+    "save": "Save",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this smart link? This cannot be undone.",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "open": "Open",
+    "shareUrl": "Share URL",
+    "clicks": "{count, plural, one {# click} other {# clicks}}",
+    "statsTab": "Stats",
+    "linksTab": "Links",
+    "error": "Something went wrong. Please try again.",
+    "saved": "Saved",
+    "stats": {
+      "empty": "No clicks in this period yet.",
+      "totalClicks": "Total clicks",
+      "today": "Today",
+      "last7": "Last 7 days",
+      "last30": "Last 30 days",
+      "byPlatform": "By platform",
+      "byLink": "By link",
+      "daily": "Daily clicks",
+      "days": "Last {days} days"
+    },
+    "preview": {
+      "noMetadata": "No preview available for this link."
+    }
   }
 }

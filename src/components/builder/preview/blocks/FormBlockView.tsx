@@ -1,5 +1,6 @@
 import type { FormBlock, FormQuestion } from "@/lib/types/blocks";
 import { dirOf } from "@/lib/builder/text-direction";
+import { useDesktopPreview } from "../desktop-preview";
 
 /**
  * Read-only preview of a FormModule, mirroring the mobile `FormWidget` +
@@ -21,6 +22,7 @@ import { dirOf } from "@/lib/builder/text-direction";
  * the mobile alpha steps (0.1 / 0.2 / 0.4 / 0.7).
  */
 export function FormBlockView({ block }: { block: FormBlock }) {
+  const desktop = useDesktopPreview();
   const questions = block.questions ?? [];
 
   return (
@@ -29,10 +31,15 @@ export function FormBlockView({ block }: { block: FormBlock }) {
         className="rounded-lg px-4 py-3"
         style={{ backgroundColor: "color-mix(in srgb, currentColor 10%, transparent)" }}
       >
+        {/* Desktop = Nuxt FormModule/Form.vue title: 24px / 400 / centered. */}
         {block.title ? (
           <h2
             dir={dirOf(block.title)}
-            className="text-2xl font-bold text-foreground"
+            className={
+              desktop
+                ? "text-center text-2xl font-normal text-foreground"
+                : "text-2xl font-bold text-foreground"
+            }
           >
             {block.title}
           </h2>
@@ -46,11 +53,15 @@ export function FormBlockView({ block }: { block: FormBlock }) {
             <QuestionField key={i} question={q} />
           ))}
 
-          {/* Submit button (non-submitting) */}
+          {/* Submit button (non-submitting). Desktop = Nuxt .btn-form: 16px / 400. */}
           <button
             type="button"
             onClick={(e) => e.preventDefault()}
-            className="flex h-12 items-center justify-center rounded-md bg-black px-5 text-sm font-medium text-white"
+            className={
+              desktop
+                ? "flex h-12 items-center justify-center rounded-md bg-black px-5 text-base font-normal text-white"
+                : "flex h-12 items-center justify-center rounded-md bg-black px-5 text-sm font-medium text-white"
+            }
           >
             Submit
           </button>
@@ -71,17 +82,27 @@ function FieldDivider() {
 }
 
 function FieldLabel({ data }: { data: FormQuestion["data"] }) {
+  const desktop = useDesktopPreview();
   const question = (data.question ?? "") + (data.required ? "*" : "");
   return (
     <>
-      <span dir={dirOf(data.question)} className="text-sm text-foreground">
+      {/* Desktop = Nuxt Form.vue question label: 18px (`text-lg`). */}
+      <span
+        dir={dirOf(data.question)}
+        className={desktop ? "text-lg text-foreground" : "text-sm text-foreground"}
+      >
         {question}
       </span>
+      {/* Desktop: description 16px / full page colour (`text-base`). */}
       {data.description ? (
         <span
           dir={dirOf(data.description)}
-          className="py-1 text-xs"
-          style={{ color: "color-mix(in srgb, currentColor 70%, transparent)" }}
+          className={desktop ? "py-1 text-base" : "py-1 text-xs"}
+          style={
+            desktop
+              ? undefined
+              : { color: "color-mix(in srgb, currentColor 70%, transparent)" }
+          }
         >
           {data.description}
         </span>
@@ -95,6 +116,7 @@ const fillStyle = {
 };
 
 function QuestionField({ question }: { question: FormQuestion }) {
+  const desktop = useDesktopPreview();
   const data = question.data ?? {};
 
   switch (question.type) {
@@ -103,11 +125,16 @@ function QuestionField({ question }: { question: FormQuestion }) {
         <div className="flex flex-col">
           <FieldLabel data={data} />
           <div className="h-2" />
+          {/* Desktop = Nuxt: input text 16px, placeholder at 50% opacity. */}
           <input
             type="text"
             readOnly
             placeholder={data.hint as string | undefined}
-            className="rounded border border-transparent px-5 py-2.5 text-sm text-foreground outline-none placeholder:opacity-100"
+            className={
+              desktop
+                ? "rounded border border-transparent px-5 py-2.5 text-base text-foreground outline-none placeholder:opacity-50"
+                : "rounded border border-transparent px-5 py-2.5 text-sm text-foreground outline-none placeholder:opacity-100"
+            }
             style={fillStyle}
           />
           <FieldDivider />
@@ -123,7 +150,11 @@ function QuestionField({ question }: { question: FormQuestion }) {
             readOnly
             rows={5}
             placeholder={data.hint as string | undefined}
-            className="resize-none rounded border border-transparent px-5 py-2.5 text-sm text-foreground outline-none"
+            className={
+              desktop
+                ? "resize-none rounded border border-transparent px-5 py-2.5 text-base text-foreground outline-none placeholder:opacity-50"
+                : "resize-none rounded border border-transparent px-5 py-2.5 text-sm text-foreground outline-none"
+            }
             style={fillStyle}
           />
           <FieldDivider />

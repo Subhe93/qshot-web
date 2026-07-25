@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import {
   Type,
@@ -9,10 +10,12 @@ import {
   Copy,
   CalendarDays,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useEditorStore } from "@/stores/editor-store";
 import { hexToArgbA } from "@/lib/builder/color";
+import { getBookingConfig, listServices } from "@/lib/api/booking";
 import type { BookingBlock } from "@/lib/types/blocks";
 import { GroupedCard, GroupedRow, ColorRow, ToggleSwitch } from "./sheet-kit";
 
@@ -39,10 +42,49 @@ export function BookingBlockEditor({ block }: { block: BookingBlock }) {
   // block to that website's booking management so it's reachable from here.
   const realId = profileId && profileId !== "new" ? profileId : null;
 
+  // Warn when booking isn't set up yet: no config saved, or no services created.
+  // The published widget can't work until both exist.
+  const configQ = useQuery({
+    queryKey: ["booking-config", realId],
+    queryFn: () => getBookingConfig(realId!),
+    enabled: !!realId,
+  });
+  const servicesQ = useQuery({
+    queryKey: ["booking-services", realId],
+    queryFn: () => listServices(realId!),
+    enabled: !!realId,
+  });
+  const notReady =
+    !!realId &&
+    !configQ.isLoading &&
+    !servicesQ.isLoading &&
+    (!configQ.data || (servicesQ.data?.length ?? 0) === 0);
+
   const setBlock = (patch: Partial<BookingBlock>) => updateBlock(block.id, patch);
 
   return (
     <div className="space-y-4">
+      {/* Not-set-up warning — points the owner to configure booking + add a
+          service before the widget will work on the published site. */}
+      {notReady && (
+        <button
+          type="button"
+          onClick={() => realId && router.push(`/sites/${realId}/booking`)}
+          className="flex w-full items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-start"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-foreground">
+              {t("bookingBlock.notReadyTitle")}
+            </span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">
+              {t("bookingBlock.notReadyDesc")}
+            </span>
+          </span>
+          <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground rtl:rotate-180" />
+        </button>
+      )}
+
       {/* Link to this website's booking management (services / providers /
           availability). */}
       <button

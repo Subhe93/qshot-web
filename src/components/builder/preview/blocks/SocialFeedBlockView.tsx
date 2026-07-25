@@ -1,5 +1,6 @@
 import type { SocialFeedBlock } from "@/lib/types/blocks";
 import { dirOf } from "@/lib/builder/text-direction";
+import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
 /**
  * Read-only preview of a SocialFeedModule, mirroring the mobile `FeedWidget`.
@@ -32,6 +33,7 @@ const DEFAULT_FEED_TITLE: Record<string, string> = {
 };
 
 export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
+  const desktop = useDesktopPreview();
   const configuration = block.configuration;
   const title =
     (block.title ?? "").trim() || DEFAULT_FEED_TITLE[configuration] || "";
@@ -47,10 +49,17 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
 
   return (
     <div className="my-[5px] py-2">
-      {/* Title — horizontal 24, headlineMedium bold */}
+      {/* Title — mobile: horizontal 24, headlineMedium bold; desktop = Nuxt
+          shared module title (Modules.vue h3.text-2xl, 400, no extra pad). */}
       {title ? (
-        <div className="px-6" dir={dir}>
-          <h2 className="text-[22px] font-bold leading-tight text-foreground">
+        <div className={desktop ? undefined : "px-6"} dir={dir}>
+          <h2
+            className={
+              desktop
+                ? `${DESKTOP_BLOCK_TITLE} text-foreground`
+                : "text-[22px] font-bold leading-tight text-foreground"
+            }
+          >
             {title}
           </h2>
         </div>
@@ -195,6 +204,7 @@ function InstagramFeed({
 }
 
 function InstagramHeader() {
+  const desktop = useDesktopPreview();
   return (
     <div className="pb-4">
       {/* avatar + name row, centered */}
@@ -220,7 +230,10 @@ function InstagramHeader() {
         {["Posts", "Followers", "Following"].map((label) => (
           <div key={label} className="flex flex-col items-center gap-1">
             <div className="h-4 w-8 rounded bg-foreground/20" />
-            <span className="text-xs text-muted-foreground">{label}</span>
+            {/* Desktop = Nuxt Instagram/Grid.vue stat label: 16px / full colour. */}
+            <span className={desktop ? "text-base text-foreground" : "text-xs text-muted-foreground"}>
+              {label}
+            </span>
           </div>
         ))}
       </div>

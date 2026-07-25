@@ -9,6 +9,7 @@ import {
   platformByName,
   isDynamicPlatform,
 } from "@/lib/builder/social-platforms";
+import { useDesktopPreview, usePageBackground } from "../desktop-preview";
 
 /**
  * Read-only preview of a `social_links` block, mirroring the mobile
@@ -35,6 +36,8 @@ import {
  * paints inline; if the fetch fails we fall back to a CSS mask tint.
  */
 export function SocialLinksBlockView({ block }: { block: SocialLinksBlock }) {
+  const desktop = useDesktopPreview();
+  const pageBg = usePageBackground();
   const items = (block.links ?? []).filter((l) => !l.hidden);
   if (items.length === 0) {
     return (
@@ -47,18 +50,24 @@ export function SocialLinksBlockView({ block }: { block: SocialLinksBlock }) {
   const layout = block.layout_type ?? "list";
 
   // Mirrors block.getEffectiveChipColor(pageBg): only when adaptive is on. We use
-  // the explicit custom color, else harmonize the block's own background color.
-  const chipColor = effectiveChipColor(block);
+  // the explicit custom color, else harmonize the block's own background color,
+  // falling back to the page background exactly like the mobile widget.
+  const chipColor = effectiveChipColor(block, pageBg);
   // When a chip color applies the mobile switches to the darkFilled icon variant
   // (and tints it). Otherwise the variant follows icon_type.
   const variant: "colored" | "dark" =
     chipColor != null || block.icon_type === "darkFilled" ? "dark" : "colored";
 
+  // Desktop chip metrics come from the Nuxt front (Social.vue): every chip is
+  // `size-10` (40px) except the plain grid (4.75rem = 76px) and listAlignCenter
+  // (`size-9` = 36px), and `.social-item` rounds them all to 10px.
+  const chip = (phoneSize: number, desktopSize: number) =>
+    desktop ? desktopSize : phoneSize;
   const renderIcon = (item: SocialLinkItem, size: number, radius: number) => (
     <SocialIcon
       item={item}
       size={size}
-      radius={radius}
+      radius={desktop ? 10 : radius}
       variant={variant}
       chipColor={chipColor}
     />
@@ -86,7 +95,7 @@ export function SocialLinksBlockView({ block }: { block: SocialLinksBlock }) {
               onClick={(e) => e.preventDefault()}
               className="block"
             >
-              {renderIcon(item, 44, 10)}
+              {renderIcon(item, chip(44, 40), 10)}
             </a>
           ))}
         </div>
@@ -104,19 +113,30 @@ export function SocialLinksBlockView({ block }: { block: SocialLinksBlock }) {
               key={item.id ?? i}
               href={item.link || undefined}
               onClick={(e) => e.preventDefault()}
-              className="flex w-[20%] min-w-[64px] flex-col"
+              className={
+                desktop
+                  ? "flex flex-col items-center"
+                  : "flex w-[20%] min-w-[64px] flex-col"
+              }
             >
+              {/* Desktop = Nuxt Social.vue grid: fixed 76px chip (4.75rem),
+                  rounded 10 by `.social-item`, label 8px below. */}
               <SocialIcon
                 item={item}
-                size="100%"
-                radius={20}
+                size={desktop ? 76 : "100%"}
+                radius={desktop ? 10 : 20}
                 variant={variant}
                 chipColor={chipColor}
-                square
+                square={!desktop}
               />
+              {/* Desktop = Nuxt Social.vue grid label: 14px / 500. */}
               <span
                 dir={dirOf(displayName(item))}
-                className="mt-[5px] text-center text-xs text-foreground"
+                className={
+                  desktop
+                    ? "mt-2 text-center text-sm font-medium text-foreground"
+                    : "mt-[5px] text-center text-xs text-foreground"
+                }
               >
                 {displayName(item)}
               </span>
@@ -139,7 +159,7 @@ export function SocialLinksBlockView({ block }: { block: SocialLinksBlock }) {
               onClick={(e) => e.preventDefault()}
               className="block shrink-0"
             >
-              {renderIcon(item, 44, 10)}
+              {renderIcon(item, chip(44, 40), 10)}
             </a>
           ))}
         </div>
@@ -163,10 +183,16 @@ export function SocialLinksBlockView({ block }: { block: SocialLinksBlock }) {
               onClick={(e) => e.preventDefault()}
               className="flex flex-col items-center"
             >
+              {/* 36px in both (Nuxt `size-9`); only the radius differs. */}
               {renderIcon(item, 36, 8)}
+              {/* Desktop = Nuxt: 16px, `capitalize` (Social.vue listAlignCenter). */}
               <span
                 dir={dir}
-                className="mt-1.5 text-center text-sm text-foreground"
+                className={
+                  desktop
+                    ? "mt-1.5 text-center capitalize text-foreground"
+                    : "mt-1.5 text-center text-sm text-foreground"
+                }
               >
                 {name}
               </span>
@@ -182,22 +208,23 @@ export function SocialLinksBlockView({ block }: { block: SocialLinksBlock }) {
           >
             {!isEnd && (
               <>
-                {renderIcon(item, 50, 10)}
+                {renderIcon(item, chip(50, 40), 10)}
                 <span className="w-[15px] shrink-0" />
               </>
             )}
+            {/* Desktop = Nuxt list rows: 16px, `capitalize` (Social.vue). */}
             <span
               dir={dir}
-              className={`flex-1 truncate text-sm text-foreground ${
-                isEnd ? "text-end" : "text-start"
-              }`}
+              className={`flex-1 truncate ${
+                desktop ? "capitalize" : "text-sm"
+              } text-foreground ${isEnd ? "text-end" : "text-start"}`}
             >
               {name}
             </span>
             {isEnd && (
               <>
                 <span className="w-[15px] shrink-0" />
-                {renderIcon(item, 50, 10)}
+                {renderIcon(item, chip(50, 40), 10)}
               </>
             )}
           </a>
@@ -354,18 +381,21 @@ function displayName(item: SocialLinkItem): string {
  * Mirrors SocialLinksBlock.getEffectiveChipColor(pageBg):
  *  - null unless adaptive_icon_color is on.
  *  - custom_icon_color wins outright.
- *  - else harmonize the block's own background color (page bg is not available to
- *    a single block view; the block bg is the closest faithful base).
+ *  - else harmonize the block's own background color, falling back to the page
+ *    background (mobile passes `context.editor.backgroundColor`, which itself
+ *    falls back to black — see PageBackgroundContext).
  * Returns a CSS color string or undefined.
  */
-function effectiveChipColor(block: SocialLinksBlock): string | undefined {
+function effectiveChipColor(
+  block: SocialLinksBlock,
+  pageBackground: number,
+): string | undefined {
   if (!block.adaptive_icon_color) return undefined;
   if (block.custom_icon_color != null) {
     return argbToCss(block.custom_icon_color);
   }
   const base = block.use_background_color ? block.background_color : null;
-  if (base == null) return undefined;
-  return harmonizeChipColor(base);
+  return harmonizeChipColor(base ?? pageBackground);
 }
 
 /**

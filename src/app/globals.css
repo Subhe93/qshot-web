@@ -166,6 +166,128 @@ summary {
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 
+/*
+ * Desktop "computer view" pane only (BuilderCanvas deviceWidth === "full").
+ * The Nuxt public front globally nukes every line-height with
+ * `* { line-height: unset !important }` (assets/style/main.scss:87-89) — unset
+ * on an inherited property = inherit, and the root resolves to `normal` — so
+ * NO Tailwind text-N or leading-N line-height survives on the live desktop site.
+ * Mirror that here, scoped to the desktop pane; the phone canvas keeps its
+ * 1.5 baseline and Tailwind leadings untouched.
+ */
+.builder-preview-isolate.builder-preview-desktop {
+  line-height: normal;
+}
+.builder-preview-desktop * {
+  line-height: unset !important;
+}
+
+/*
+ * Desktop paragraph rich text — mirrors the Nuxt renderer's BaseRichText.vue
+ * scoped styles (quill-delta-to-html output). Applied by QuillView only inside
+ * the desktop pane; higher specificity than the line-height mirror above, so
+ * the 1.6 rich-text line-height survives exactly like on the public site.
+ */
+.builder-preview-desktop .quill-desktop {
+  line-height: 1.6 !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  color: inherit;
+}
+.builder-preview-desktop .quill-desktop p {
+  margin: 0;
+  padding: 0;
+  min-height: 1.6em;
+  line-height: 1.6 !important;
+}
+.builder-preview-desktop .quill-desktop a {
+  color: #4a9eff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.builder-preview-desktop .quill-desktop ul,
+.builder-preview-desktop .quill-desktop ol {
+  margin: 4px 0;
+  padding-inline-start: 24px;
+}
+.builder-preview-desktop .quill-desktop ul {
+  list-style-type: disc;
+}
+.builder-preview-desktop .quill-desktop ol {
+  list-style-type: decimal;
+}
+.builder-preview-desktop .quill-desktop li {
+  line-height: 1.6 !important;
+  padding: 2px 0;
+}
+/* Checklist (Delta list: "checked"/"unchecked") — BaseRichText.vue:76-109. */
+.builder-preview-desktop .quill-desktop li[data-checked] {
+  list-style-type: none;
+  position: relative;
+  padding-inline-start: 6px;
+}
+.builder-preview-desktop .quill-desktop li[data-checked]::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid #888;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+.builder-preview-desktop .quill-desktop li[data-checked="true"]::before {
+  background-color: #4a9eff;
+  border-color: #4a9eff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z' fill='white'/%3E%3C/svg%3E");
+  background-size: 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.builder-preview-desktop .quill-desktop li[data-checked="true"] {
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+.builder-preview-desktop .quill-desktop blockquote {
+  border-inline-start: 4px solid #888;
+  margin: 6px 0;
+  padding: 4px 12px;
+  opacity: 0.85;
+}
+.builder-preview-desktop .quill-desktop pre {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  font-family: monospace;
+  font-size: 0.9em;
+  overflow-x: auto;
+}
+.builder-preview-desktop .quill-desktop code {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+.builder-preview-desktop .quill-desktop h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+.builder-preview-desktop .quill-desktop h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 6px 0 4px;
+}
+.builder-preview-desktop .quill-desktop h3 {
+  font-size: 1.17em;
+  font-weight: 600;
+  margin: 4px 0 2px;
+}
+
 /* Marching-ants dashed outline for selected blocks in the builder canvas —
  * mirrors the mobile AnimatedDashedBorder (primary, dashPattern [12,2]). */
 @keyframes march {
@@ -221,6 +343,30 @@ summary {
 }
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
+}
+
+/* Just-added block: a soft branded glow that fades, so the user's eye lands on
+   the block the builder just inserted (paired with the smooth auto-scroll). */
+@keyframes block-added {
+  0% {
+    box-shadow:
+      0 0 0 3px var(--primary),
+      0 0 0 10px color-mix(in srgb, var(--primary) 28%, transparent);
+  }
+  60% {
+    box-shadow:
+      0 0 0 3px var(--primary),
+      0 0 0 10px color-mix(in srgb, var(--primary) 10%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 transparent,
+      0 0 0 0 transparent;
+  }
+}
+.animate-block-added {
+  border-radius: 14px;
+  animation: block-added 1.5s ease-out;
 }
 
 /* QR scanner viewfinder line. */

@@ -19,6 +19,7 @@ import { useAuthStore } from "@/stores/auth-store";
 
 export default function PersonalInfoPage() {
   const t = useTranslations("settings.personal");
+  const tEmail = useTranslations("settings.changeEmail");
   const router = useRouter();
   const queryClient = useQueryClient();
   const logout = useAuthStore((s) => s.logout);
@@ -151,13 +152,29 @@ export default function PersonalInfoPage() {
       {/* Account info */}
       <h2 className="mt-6 text-lg font-bold">{t("accountSection")}</h2>
       <div className="mt-3.5 space-y-[9px]">
+        {/* Email — read-only with a "Change" action (mobile profile_settings_
+            layout: tapping opens ChangeEmailLayout; a pending request shows a
+            hint with the awaiting address under the field). */}
         <FancyField
           id="email"
           label={t("email")}
           iconSrc="/brand/ic_gradient_email.svg"
           readOnly
           value={user?.email ?? ""}
+          suffix={
+            <Link
+              href="/settings/personal-info/change-email"
+              className="brand-gradient-text text-sm font-semibold"
+            >
+              {tEmail("change")}
+            </Link>
+          }
         />
+        {account?.pendingEmailChange && (
+          <p className="px-1 text-xs text-muted-foreground">
+            {tEmail("sentTo", { email: account.pendingEmailChange.newEmail })}
+          </p>
+        )}
         <FancyField
           id="password"
           type="password"

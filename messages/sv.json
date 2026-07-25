@@ -117,7 +117,7 @@
     "careful": "Var försiktig",
     "coverSizeWarning": "Den valda omslagsstorleken kan dölja viss text och vissa knappar.",
     "confirm": "Bekräfta",
-    "addBlock": "Add block",
+    "addBlock": "Block",
     "save": "Save",
     "saved": "Saved",
     "emptyCanvas": "Your page is empty. Add a block to start.",
@@ -203,7 +203,7 @@
     "nav": {
       "home": "Hem",
       "pages": "Sidor",
-      "add": "Lägg till block",
+      "add": "Block",
       "style": "Stil",
       "settings": "Inställningar",
       "comingSoon": "Coming soon",
@@ -432,6 +432,8 @@
     },
     "bookingBlock": {
       "bookNow": "Boka nu",
+      "notReadyTitle": "Bokning är inte konfigurerad ännu",
+      "notReadyDesc": "Öppna bokningsinställningarna för att aktivera, och skapa minst en tjänst (och en leverantör). Bokningswidgeten visas inte på din webbplats förrän du gör det.",
       "dropdown": "Rullgardinsmeny"
     },
     "pages": {
@@ -449,7 +451,41 @@
       "urlPlaceholder": "page-url",
       "urlTaken": "Denna URL är upptagen"
     },
-    "dropdown": "Rullgardinsmeny"
+    "dropdown": "Rullgardinsmeny",
+    "backToDashboard": "Översikt",
+    "templates": {
+      "title": "Mallar",
+      "choose": "Välj en mall",
+      "startBlank": "Börja tomt",
+      "applied": "Mall tillämpad",
+      "switchMessage": "Detta ger din webbplats ny stil. Ditt innehåll och din varumärkesfärg behålls.",
+      "undo": "Ångra",
+      "brandColor": "Varumärkesfärg",
+      "customColor": "Anpassad färg",
+      "theme": "Tema",
+      "apply": "Tillämpa",
+      "names": {
+        "restaurant": "Restaurang & Café",
+        "salon": "Salong & Barberare",
+        "creator": "Kreatör",
+        "shop": "Butik",
+        "professional": "Professionell"
+      },
+      "sections": {
+        "menu": "Meny",
+        "reviews": "Recensioner",
+        "booking": "Bokning",
+        "videos": "Videor",
+        "links": "Länkar",
+        "products": "Produkter",
+        "about": "Om",
+        "contact": "Kontakt",
+        "name": "Namn",
+        "email": "E-post",
+        "message": "Meddelande",
+        "gallery": "Galleri"
+      }
+    }
   },
   "nav": {
     "profiles": "Webbplats",
@@ -457,6 +493,7 @@
     "settings": "Inställningar",
     "scanQr": "Scan QR",
     "bookings": "Bokningar",
+    "smartLinks": "Smarta länkar",
     "admin": "Admin"
   },
   "settings": {
@@ -528,7 +565,36 @@
       "noIncoming": "No incoming requests",
       "noOutgoing": "No outgoing requests"
     },
-    "freePlan": "Free plan"
+    "freePlan": "Free plan",
+    "changeEmail": {
+      "title": "Ändra e-post",
+      "intro": "Vänligen ange din nya e-postadress och ditt lösenord",
+      "newEmail": "Ny e-postadress",
+      "newEmailHint": "Vänligen ange din nya e-postadress",
+      "change": "Ändra",
+      "done": "Klar",
+      "gotIt": "Jag förstår!",
+      "submit": "Skicka",
+      "required": "Obligatorisk",
+      "invalidEmail": "Hoppsan! Ogiltig e-postadress",
+      "password": "Lösenord",
+      "passwordHint": "Vänligen ange ditt lösenord",
+      "awaiting": "Väntar på bekräftelse",
+      "cancel": "Avbryt e-poständring",
+      "canceled": "E-poständring avbruten",
+      "sent": "Bekräftelsemail skickat",
+      "sentTo": "Vi skickade en bekräftelselänk till {email}. Bekräfta den för att slutföra din e-poständring.",
+      "resend": "Skicka igen",
+      "resendIn": "Skicka igen om {seconds} s",
+      "changedTitle": "E-post ändrad",
+      "changedDesc": "Din konto-e-post har uppdaterats.",
+      "invalidTitle": "Länken är inte längre giltig",
+      "invalidDesc": "Denna bekräftelselänk är ogiltig eller har redan använts.",
+      "expiredTitle": "Länken har gått ut",
+      "expiredDesc": "Länken har gått ut. Begär e-poständringen igen.",
+      "conflictTitle": "E-postadressen är inte längre tillgänglig",
+      "conflictDesc": "Någon annan registrerade denna e-post medan din begäran väntade."
+    }
   },
   "qr": {
     "title": "Generera QR",
@@ -1068,5 +1134,51 @@
       }
     },
     "websiteSection": "Administratör"
+  },
+  "smartLinks": {
+    "refreshCover": "Uppdatera omslag",
+    "title": "Smarta länkar",
+    "subtitle": "Skapa en länk som öppnar rätt inbyggd app på varje enhet.",
+    "create": "Skapa länk",
+    "edit": "Redigera länk",
+    "empty": "Inga smarta länkar än",
+    "emptyDesc": "Skapa din första smarta länk för att öppna inbyggda appar direkt från en enda URL.",
+    "urlLabel": "Käll-URL",
+    "urlPlaceholder": "Klistra in en YouTube-, Spotify-, TikTok-länk…",
+    "nameLabel": "Namn",
+    "namePlaceholder": "Ge den här länken ett namn",
+    "slugLabel": "Anpassad slug",
+    "slugPlaceholder": "sommar-kampanj",
+    "slugAvailable": "Tillgänglig",
+    "slugTaken": "Redan upptagen",
+    "slugChecking": "Kontrollerar tillgänglighet…",
+    "slugSuggestion": "Prova {suggestion}",
+    "typeLabel": "Typ",
+    "save": "Spara",
+    "delete": "Ta bort",
+    "deleteConfirm": "Ta bort den här smarta länken? Detta kan inte ångras.",
+    "copy": "Kopiera länk",
+    "copied": "Kopierad",
+    "open": "Öppna",
+    "shareUrl": "Delnings-URL",
+    "clicks": "{count, plural, one {# klick} other {# klick}}",
+    "statsTab": "Statistik",
+    "linksTab": "Länkar",
+    "error": "Något gick fel. Försök igen.",
+    "saved": "Sparad",
+    "stats": {
+      "empty": "Inga klick under denna period än.",
+      "totalClicks": "Totalt antal klick",
+      "today": "Idag",
+      "last7": "Senaste 7 dagarna",
+      "last30": "Senaste 30 dagarna",
+      "byPlatform": "Per plattform",
+      "byLink": "Per länk",
+      "daily": "Dagliga klick",
+      "days": "Senaste {days} dagarna"
+    },
+    "preview": {
+      "noMetadata": "Ingen förhandsvisning tillgänglig för den här länken."
+    }
   }
 }

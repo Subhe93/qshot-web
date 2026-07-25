@@ -1,6 +1,7 @@
 import type { BookingBlock } from "@/lib/types/blocks";
 import { dirOf } from "@/lib/builder/text-direction";
 import { Foldable } from "../Foldable";
+import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
 /**
  * Read-only preview of a BookingModule, mirroring the mobile `BookingWidget`
@@ -26,6 +27,7 @@ import { Foldable } from "../Foldable";
  * Foreground = page text color (currentColor); primary = brand color (--primary).
  */
 export function BookingBlockView({ block }: { block: BookingBlock }) {
+  const desktop = useDesktopPreview();
   const title = block.title ?? "";
   const buttonLabel = block.button_label ?? "Book Now";
 
@@ -35,10 +37,15 @@ export function BookingBlockView({ block }: { block: BookingBlock }) {
         foldable={block.foldable}
         header={
           title ? (
-            <div className="px-6">
+            // Desktop = Nuxt shared module title: 24px / 400, no extra padding.
+            <div className={desktop ? undefined : "px-6"}>
               <h2
                 dir={dirOf(title)}
-                className="text-2xl font-bold text-foreground"
+                className={
+                  desktop
+                    ? `${DESKTOP_BLOCK_TITLE} text-foreground`
+                    : "text-2xl font-bold text-foreground"
+                }
               >
                 {title}
               </h2>
@@ -82,12 +89,20 @@ export function BookingBlockView({ block }: { block: BookingBlock }) {
 
           <div className="h-3.5" />
 
+          {/* Desktop = Nuxt ServiceCard.vue .book-now-btn: 14px / 500,
+              black label on a white pill. */}
           <span
             dir={dirOf(buttonLabel)}
-            className="rounded-[10px] px-6 py-2.5 text-sm font-semibold text-primary"
-            style={{
-              backgroundColor: "color-mix(in srgb, var(--primary) 10%, transparent)",
-            }}
+            className={
+              desktop
+                ? "rounded-[10px] px-6 py-2.5 text-sm font-medium"
+                : "rounded-[10px] px-6 py-2.5 text-sm font-semibold text-primary"
+            }
+            style={
+              desktop
+                ? { backgroundColor: "#ffffff", color: "#000" }
+                : { backgroundColor: "color-mix(in srgb, var(--primary) 10%, transparent)" }
+            }
           >
             {buttonLabel}
           </span>

@@ -2,7 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Settings, LogOut, User, CalendarCheck, ShieldCheck } from "lucide-react";
+import {
+  Settings,
+  LogOut,
+  User,
+  CalendarCheck,
+  ShieldCheck,
+  Link2,
+} from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { getAccount } from "@/lib/api/account";
@@ -17,6 +24,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/dashboard", labelKey: "profiles", svg: "/nav/portfolio.svg" },
   { href: "/qr-codes", labelKey: "qrCodes", svg: "/nav/qr_code.svg" },
+  { href: "/links", labelKey: "smartLinks", Icon: Link2 },
   { href: "/bookings", labelKey: "bookings", Icon: CalendarCheck },
   { href: "/admin", labelKey: "admin", Icon: ShieldCheck },
   { href: "/settings", labelKey: "settings", Icon: Settings },

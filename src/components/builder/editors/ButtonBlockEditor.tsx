@@ -38,6 +38,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useEditorStore } from "@/stores/editor-store";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { hexToArgbA, argbToCss } from "@/lib/builder/color";
+import { applyButtonTheme } from "@/lib/builder/apply-button-theme";
 import { cn } from "@/lib/utils";
 import type {
   ButtonBlock,
@@ -57,106 +58,42 @@ import { LayoutPicker } from "./LayoutPicker";
 
 type Tab = "sort" | "layout" | "theme" | "settings";
 
-/**
- * Mobile brand color (AppColors.primary = 0xFF4488ff). Theme templates derive
- * every color from it, exactly like the Flutter `ButtonThemeType.applyTo`.
- */
-const PRIMARY = "#4488ff";
-
-/** ARGB int for the brand color at a given alpha (0..1). */
-function primaryAlpha(alpha: number): number {
-  const base = hexToArgbA(PRIMARY)! & 0x00ffffff;
-  return (((Math.round(alpha * 255) & 0xff) << 24) | base) >>> 0;
-}
-
-/** ARGB int for an arbitrary hex at a given alpha (0..1). */
-function hexAlpha(hex: string, alpha: number): number {
-  const base = hexToArgbA(hex)! & 0x00ffffff;
-  return (((Math.round(alpha * 255) & 0xff) << 24) | base) >>> 0;
+interface ThemePreview {
+  fill: number | null;
+  text: number | null;
+  border: number | null;
+  radius: number;
 }
 
 /**
- * The five style templates, mirroring the mobile `ButtonThemeType` enum and its
- * `applyTo` exactly (order: minimal, solid, soft, outline, pill). Each entry is
- * a full `ButtonItem` style patch that gets stamped onto every button when the
- * theme is picked, plus the resolved colors used to render the preview chip.
+ * Preview chip colors for a theme = the exact style `applyButtonTheme` would
+ * stamp with the app-brand defaults (no palette), read off a blank item.
  */
-const THEMES = [
-  {
-    theme: "minimal",
-    label: "Minimal",
-    patch: {
-      use_background_color: true,
-      background_color: hexAlpha("#9e9e9e", 0.3), // Colors.grey @ 30%
-      use_border: false,
-      use_text_color: false,
-      corner_radius: 8,
-    },
-    preview: { fill: hexAlpha("#9e9e9e", 0.3), text: null, border: null, radius: 8 },
-  },
-  {
-    theme: "solid",
-    label: "Solid",
-    patch: {
-      use_background_color: true,
-      background_color: hexToArgbA(PRIMARY)!,
-      use_border: false,
-      use_text_color: true,
-      text_color: hexToArgbA("#ffffff")!,
-      corner_radius: 12,
-    },
-    preview: { fill: hexToArgbA(PRIMARY)!, text: hexToArgbA("#ffffff")!, border: null, radius: 12 },
-  },
-  {
-    theme: "soft",
-    label: "Soft",
-    patch: {
-      use_background_color: true,
-      background_color: primaryAlpha(0.14),
-      use_border: false,
-      use_text_color: true,
-      text_color: hexToArgbA(PRIMARY)!,
-      corner_radius: 12,
-    },
-    preview: { fill: primaryAlpha(0.14), text: hexToArgbA(PRIMARY)!, border: null, radius: 12 },
-  },
-  {
-    theme: "outline",
-    label: "Outline",
-    patch: {
-      use_background_color: false,
-      use_border: true,
-      border_color: hexToArgbA(PRIMARY)!,
-      use_text_color: true,
-      text_color: hexToArgbA(PRIMARY)!,
-      corner_radius: 12,
-    },
-    preview: { fill: null, text: hexToArgbA(PRIMARY)!, border: hexToArgbA(PRIMARY)!, radius: 12 },
-  },
-  {
-    theme: "pill",
-    label: "Pill",
-    patch: {
-      use_background_color: true,
-      background_color: hexToArgbA(PRIMARY)!,
-      use_border: false,
-      use_text_color: true,
-      text_color: hexToArgbA("#ffffff")!,
-      corner_radius: 100,
-    },
-    preview: { fill: hexToArgbA(PRIMARY)!, text: hexToArgbA("#ffffff")!, border: null, radius: 100 },
-  },
-] as const satisfies ReadonlyArray<{
-  theme: ButtonThemeType;
-  label: string;
-  patch: Partial<ButtonItem>;
-  preview: {
-    fill: number | null;
-    text: number | null;
-    border: number | null;
-    radius: number;
+function themePreview(theme: ButtonThemeType): ThemePreview {
+  const s = applyButtonTheme(theme, { title: "" });
+  return {
+    fill: s.use_background_color ? s.background_color ?? null : null,
+    text: s.use_text_color ? s.text_color ?? null : null,
+    border: s.use_border ? s.border_color ?? null : null,
+    radius: s.corner_radius ?? 12,
   };
-}>;
+}
+
+/**
+ * The five style templates, mirroring the mobile `ButtonThemeType` enum
+ * (order: minimal, solid, soft, outline, pill). The actual per-item stamp is
+ * the shared `applyButtonTheme` (lib/builder/apply-button-theme.ts), which the
+ * website-template engine reuses with palette colors.
+ */
+const THEMES = (
+  [
+    { theme: "minimal", label: "Minimal" },
+    { theme: "solid", label: "Solid" },
+    { theme: "soft", label: "Soft" },
+    { theme: "outline", label: "Outline" },
+    { theme: "pill", label: "Pill" },
+  ] as const satisfies ReadonlyArray<{ theme: ButtonThemeType; label: string }>
+).map((t) => ({ ...t, preview: themePreview(t.theme) }));
 
 type Theme = (typeof THEMES)[number];
 
@@ -229,7 +166,7 @@ export function ButtonBlockEditor({ block }: { block: ButtonBlock }) {
                 setBlock({
                   theme: theme.theme,
                   // Picking a theme re-stamps every button (mobile applyTo).
-                  buttons: buttons.map((b) => ({ ...b, ...theme.patch })),
+                  buttons: buttons.map((b) => applyButtonTheme(theme.theme, b)),
                 })
               }
             />

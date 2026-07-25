@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type {
   Block,
   ButtonBlock,
@@ -34,9 +35,11 @@ import { EmbedBlockView } from "./blocks/EmbedBlockView";
 import { IntroductionVideoBlockView } from "./blocks/IntroductionVideoBlockView";
 import { BookingBlockView } from "./blocks/BookingBlockView";
 import { QuillView } from "./QuillView";
+import { useDesktopPreview } from "./desktop-preview";
 
 /** Read-only renderer for a single block — mirrors the Nuxt renderer. */
 export function BlockView({ block }: { block: Block }) {
+  const desktop = useDesktopPreview();
   switch (block.type) {
     case "HeaderModule": {
       const b = block as HeaderBlock;
@@ -45,7 +48,11 @@ export function BlockView({ block }: { block: Block }) {
       // logical `text-align: start/end`, which flips with `dir` and would
       // right-align an Arabic header the user aligned left. `dir` still drives
       // bidi shaping of the text itself.
-      const align = b.align === "center" ? "center" : b.align === "end" ? "right" : "left";
+      // Desktop pane: the Nuxt front passes the raw LOGICAL value straight
+      // through (`text-align: module.align`, HeaderModule.vue:16) — mirror it.
+      const align = desktop
+        ? (b.align as CSSProperties["textAlign"])
+        : b.align === "center" ? "center" : b.align === "end" ? "right" : "left";
       return (
         <p
           dir={dirOf(b.value)}

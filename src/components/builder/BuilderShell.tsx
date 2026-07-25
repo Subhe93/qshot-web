@@ -9,7 +9,7 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
-  Plus,
+  Blocks,
   Home,
   Files,
   Paintbrush,
@@ -20,7 +20,7 @@ import {
   Save,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
-import { useEditorStore } from "@/stores/editor-store";
+import { useEditorStore, type EditorSnapshot } from "@/stores/editor-store";
 import { getProfile, saveProfile } from "@/lib/api/profiles";
 import {
   getProfile as getAdminProfile,
@@ -46,8 +46,10 @@ import { WebsiteSettingsPanel } from "./WebsiteSettingsPanel";
 import { WebsiteStylePanel } from "./WebsiteStylePanel";
 import { HeroSettingsSheet } from "./hero/HeroSettingsSheet";
 import { NameBioSheet } from "./hero/NameBioSheet";
+import { ThemeSheet } from "./ThemeSheet";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { cn } from "@/lib/utils";
+import { TEMPLATES_ENABLED } from "@/lib/builder/feature-flags";
 
 type Panel = "home" | "pages" | "style" | "settings";
 
@@ -103,10 +105,14 @@ export function BuilderShell({
   const exitToHome = useEditorStore((s) => s.exitToHome);
   const previewEnabled = useEditorStore((s) => s.previewEnabled);
   const togglePreview = useEditorStore((s) => s.togglePreview);
+  const restoreSnapshot = useEditorStore((s) => s.restoreSnapshot);
   const router = useRouter();
 
   const [panel, setPanel] = useState<Panel>("home");
   const [addOpen, setAddOpen] = useState(false);
+  // Theme (templates) sheet + the 5s post-apply undo snapshot.
+  const [themeOpen, setThemeOpen] = useState(false);
+  const [templateUndo, setTemplateUndo] = useState<EditorSnapshot | null>(null);
   // Desktop (≥lg) uses the Elementor-style two-pane layout; mobile keeps this tree.
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
@@ -126,7 +132,9 @@ export function BuilderShell({
   useEffect(() => {
     const h = window.location.hash.replace("#", "");
     if (h === "pages" || h === "style" || h === "settings" || h === "home") {
-      setPanel(h);
+      // Deferred a tick — react-hooks/set-state-in-effect.
+      const t = setTimeout(() => setPanel(h), 0);
+      return () => clearTimeout(t);
     }
   }, []);
   const [saving, setSaving] = useState(false);
@@ -161,14 +169,17 @@ export function BuilderShell({
         blocks: draft.blocks,
         dirty: id !== "new",
       });
-      setLoading(false);
-      return;
+      // Deferred a tick — react-hooks/set-state-in-effect.
+      const t = setTimeout(() => setLoading(false), 0);
+      return () => clearTimeout(t);
     }
 
     // Admin mode: load ANY profile via the admin `show` endpoint (raw payload →
     // parse to the editor's normalized shapes, same as the user loader).
     if (adminName) {
-      setLoading(true);
+      // Deferred a tick — react-hooks/set-state-in-effect. The fetch below
+      // resolves later, so the loading flag is always raised before it lands.
+      const t = setTimeout(() => setLoading(true), 0);
       (async () => {
         let p = null;
         try {
@@ -193,6 +204,7 @@ export function BuilderShell({
       })();
       return () => {
         active = false;
+        clearTimeout(t);
       };
     }
 
@@ -234,6 +246,32 @@ export function BuilderShell({
     };
   }, [id, load, adminName, adminProfileId]);
 
+  // Auto-open Theme gate (mobile WebsiteEditorLayout.initState): a brand-new
+  // site — main page, no blocks, never templated — starts at the Theme sheet
+  // instead of an empty builder. Dismissable via "Start Blank" (no marker is
+  // written, so it re-opens on the next visit until blocks exist or a
+  // template is applied). Runs once per builder mount, after the site loads.
+  const themeGateRan = useRef(false);
+  useEffect(() => {
+    if (!TEMPLATES_ENABLED) return;
+    if (loading || themeGateRan.current) return;
+    themeGateRan.current = true;
+    const s = useEditorStore.getState();
+    if (s.pageId === null && s.blocks.length === 0 && s.settings.template == null) {
+      // Deferred a tick (lets the builder paint first, and avoids a synchronous
+      // set-state in the effect body — react-hooks/set-state-in-effect).
+      const t = setTimeout(() => setThemeOpen(true), 0);
+      return () => clearTimeout(t);
+    }
+  }, [loading]);
+
+  // Auto-dismiss (force-close) the template undo toast after 5s (mobile Timer).
+  useEffect(() => {
+    if (!templateUndo) return;
+    const h = setTimeout(() => setTemplateUndo(null), 5000);
+    return () => clearTimeout(h);
+  }, [templateUndo]);
+
   // The actual save — shared by the debounced auto-save and the manual button.
   const doSave = useCallback(async () => {
     setSaving(true);
@@ -270,12 +308,14 @@ export function BuilderShell({
     if (!saving) void doSave();
   }, [saving, doSave]);
 
-  // Debounced silent auto-save (mirrors the mobile app's auto-save).
+  // Debounced silent auto-save (mirrors the mobile app's auto-save). Paused
+  // while the Theme sheet is open — its live preview writes into the store
+  // but must not persist (mobile previews via a non-destructive overlay).
   useEffect(() => {
-    if (!dirty) return;
+    if (!dirty || themeOpen) return;
     const handle = setTimeout(() => void doSave(), 1500);
     return () => clearTimeout(handle);
-  }, [dirty, doSave]);
+  }, [dirty, themeOpen, doSave]);
 
   // Auto-dismiss the toast.
   useEffect(() => {
@@ -291,6 +331,50 @@ export function BuilderShell({
 
   const blockSheetOpen = panel === "home" && selectedId != null;
 
+  // Style panel "Templates" row → back to the website view first (mobile pops
+  // the style page to the home tab — two live-previewing surfaces can't
+  // stack), then open the Theme sheet over the visible canvas.
+  function openThemeSheet() {
+    if (!TEMPLATES_ENABLED) return;
+    select(null);
+    editHero(null);
+    setPanel("home");
+    setThemeOpen(true);
+  }
+
+  // Hosted once for both layouts: the Theme sheet (live preview + apply) and
+  // the 5s "Template Applied / Undo" toast restoring the pre-apply snapshot.
+  const themeLayer = (
+    <>
+      {themeOpen && (
+        <ThemeSheet
+          onClose={() => setThemeOpen(false)}
+          onApplied={(snapshot) => {
+            setThemeOpen(false);
+            setTemplateUndo(snapshot);
+          }}
+        />
+      )}
+      {templateUndo && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[110] flex justify-center px-4">
+          <div className="animate-fade-in pointer-events-auto flex items-center gap-3 rounded-full bg-dark px-4 py-2 text-sm font-medium text-white shadow-lg">
+            {t("templates.applied")}
+            <button
+              type="button"
+              onClick={() => {
+                restoreSnapshot(templateUndo);
+                setTemplateUndo(null);
+              }}
+              className="font-bold uppercase text-primary hover:opacity-80"
+            >
+              {t("templates.undo")}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
   if (isDesktop) {
     return (
       <>
@@ -302,7 +386,9 @@ export function BuilderShell({
           saved={saved}
           dirty={dirty}
           onSave={saveNow}
+          onOpenTemplates={TEMPLATES_ENABLED ? openThemeSheet : undefined}
         />
+        {themeLayer}
         <SaveToast text={toast} />
       </>
     );
@@ -316,9 +402,12 @@ export function BuilderShell({
           type="button"
           onClick={() => router.back()}
           aria-label={tc("back")}
-          className="flex size-9 items-center justify-center rounded-full text-foreground hover:bg-muted"
+          className="flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-foreground hover:bg-muted"
         >
           <ArrowLeft className="size-5 rtl:rotate-180" />
+          <span className="text-[9px] font-medium leading-none text-muted-foreground">
+            {t("backToDashboard")}
+          </span>
         </button>
         <div className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full bg-muted px-3 text-sm text-muted-foreground">
           {loading ? (
@@ -410,7 +499,7 @@ export function BuilderShell({
       <div className="flex-1 overflow-y-auto">
         {loading && panel === "home" && <CanvasSkeleton />}
         {!loading && panel === "home" && <BuilderCanvas />}
-        {panel === "style" && <WebsiteStylePanel />}
+        {panel === "style" && <WebsiteStylePanel onOpenTemplates={TEMPLATES_ENABLED ? openThemeSheet : undefined} />}
         {panel === "settings" && (
           <div className="p-4">
             <WebsiteSettingsPanel />
@@ -445,7 +534,7 @@ export function BuilderShell({
             aria-label={t("addBlock")}
             className="brand-gradient -mt-5 flex size-14 items-center justify-center rounded-full text-white shadow-lg"
           >
-            <Plus className="size-6" />
+            <Blocks className="size-6" />
           </button>
         </div>
         <NavItem
@@ -495,6 +584,7 @@ export function BuilderShell({
         <NameBioSheet which={heroTab} onClose={() => editHero(null)} />
       )}
 
+      {themeLayer}
       <SaveToast text={toast} />
     </div>
   );

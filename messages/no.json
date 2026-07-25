@@ -117,7 +117,7 @@
     "careful": "Vær forsiktig",
     "coverSizeWarning": "Den valgte forsidestørrelsen kan skjule noe tekst og knapper.",
     "confirm": "Bekreft",
-    "addBlock": "Add block",
+    "addBlock": "Blokker",
     "save": "Save",
     "saved": "Saved",
     "emptyCanvas": "Your page is empty. Add a block to start.",
@@ -203,7 +203,7 @@
     "nav": {
       "home": "Hjem",
       "pages": "Sider",
-      "add": "Legg til blokk",
+      "add": "Blokker",
       "style": "Stil",
       "settings": "Innstillinger",
       "comingSoon": "Coming soon",
@@ -432,6 +432,8 @@
     },
     "bookingBlock": {
       "bookNow": "Bestill nå",
+      "notReadyTitle": "Booking er ikke satt opp ennå",
+      "notReadyDesc": "Åpne bookinginnstillingene for å slå det på, og opprett minst én tjeneste (og en leverandør). Booking-widgeten vises ikke på nettstedet ditt før du gjør det.",
       "dropdown": "Nedtrekksmeny"
     },
     "pages": {
@@ -449,7 +451,41 @@
       "urlPlaceholder": "page-url",
       "urlTaken": "Denne URL-en er opptatt"
     },
-    "dropdown": "Nedtrekksmeny"
+    "dropdown": "Nedtrekksmeny",
+    "backToDashboard": "Oversikt",
+    "templates": {
+      "title": "Maler",
+      "choose": "Velg en mal",
+      "startBlank": "Start tomt",
+      "applied": "Mal brukt",
+      "switchMessage": "Dette gir nettstedet ditt ny stil. Innholdet og merkefargen din beholdes.",
+      "undo": "Angre",
+      "brandColor": "Merkefarge",
+      "customColor": "Egendefinert farge",
+      "theme": "Tema",
+      "apply": "Bruk",
+      "names": {
+        "restaurant": "Restaurant & kafé",
+        "salon": "Salong & frisør",
+        "creator": "Skaper",
+        "shop": "Butikk",
+        "professional": "Profesjonell"
+      },
+      "sections": {
+        "menu": "Meny",
+        "reviews": "Anmeldelser",
+        "booking": "Booking",
+        "videos": "Videoer",
+        "links": "Lenker",
+        "products": "Produkter",
+        "about": "Om",
+        "contact": "Kontakt",
+        "name": "Navn",
+        "email": "E-post",
+        "message": "Melding",
+        "gallery": "Galleri"
+      }
+    }
   },
   "nav": {
     "profiles": "Nettside",
@@ -457,6 +493,7 @@
     "settings": "Innstillinger",
     "scanQr": "Scan QR",
     "bookings": "Bestillinger",
+    "smartLinks": "Smarte lenker",
     "admin": "Admin"
   },
   "settings": {
@@ -528,7 +565,36 @@
       "noIncoming": "No incoming requests",
       "noOutgoing": "No outgoing requests"
     },
-    "freePlan": "Free plan"
+    "freePlan": "Free plan",
+    "changeEmail": {
+      "title": "Endre e-post",
+      "intro": "Vennligst skriv inn din nye e-post og passord",
+      "newEmail": "Ny e-postadresse",
+      "newEmailHint": "Vennligst skriv inn din nye e-post",
+      "change": "Endre",
+      "done": "Ferdig",
+      "gotIt": "Forstått!",
+      "submit": "Send inn",
+      "required": "Påkrevd",
+      "invalidEmail": "Oisann! Ugyldig e-postadresse",
+      "password": "Passord",
+      "passwordHint": "Vennligst skriv inn passordet ditt",
+      "awaiting": "Venter på bekreftelse",
+      "cancel": "Avbryt e-postendring",
+      "canceled": "E-postendring avbrutt",
+      "sent": "Bekreftelses-e-post sendt",
+      "sentTo": "Vi sendte en bekreftelseslenke til {email}. Bekreft den for å fullføre e-postendringen.",
+      "resend": "Send på nytt",
+      "resendIn": "Send på nytt om {seconds} s",
+      "changedTitle": "E-post endret",
+      "changedDesc": "E-posten for kontoen din er oppdatert.",
+      "invalidTitle": "Lenken er ikke lenger gyldig",
+      "invalidDesc": "Denne bekreftelseslenken er ugyldig eller allerede brukt.",
+      "expiredTitle": "Lenken er utløpt",
+      "expiredDesc": "Denne lenken er utløpt. Be om e-postendringen på nytt.",
+      "conflictTitle": "E-posten er ikke lenger tilgjengelig",
+      "conflictDesc": "Noen andre registrerte denne e-posten mens forespørselen din ventet."
+    }
   },
   "qr": {
     "title": "Generer QR",
@@ -1068,5 +1134,51 @@
       }
     },
     "websiteSection": "Administrator"
+  },
+  "smartLinks": {
+    "refreshCover": "Oppdater forsidebilde",
+    "title": "Smarte lenker",
+    "subtitle": "Lag én lenke som åpner riktig innebygd app på hver enhet.",
+    "create": "Opprett lenke",
+    "edit": "Rediger lenke",
+    "empty": "Ingen smarte lenker ennå",
+    "emptyDesc": "Lag din første smarte lenke for å åpne innebygde apper direkte fra én enkelt URL.",
+    "urlLabel": "Kilde-URL",
+    "urlPlaceholder": "Lim inn en YouTube-, Spotify-, TikTok-lenke…",
+    "nameLabel": "Navn",
+    "namePlaceholder": "Gi denne lenken et navn",
+    "slugLabel": "Egendefinert slug",
+    "slugPlaceholder": "sommer-kampanje",
+    "slugAvailable": "Tilgjengelig",
+    "slugTaken": "Allerede tatt",
+    "slugChecking": "Sjekker tilgjengelighet…",
+    "slugSuggestion": "Prøv {suggestion}",
+    "typeLabel": "Type",
+    "save": "Lagre",
+    "delete": "Slett",
+    "deleteConfirm": "Slette denne smarte lenken? Dette kan ikke angres.",
+    "copy": "Kopier lenke",
+    "copied": "Kopiert",
+    "open": "Åpne",
+    "shareUrl": "Delings-URL",
+    "clicks": "{count, plural, one {# klikk} other {# klikk}}",
+    "statsTab": "Statistikk",
+    "linksTab": "Lenker",
+    "error": "Noe gikk galt. Prøv igjen.",
+    "saved": "Lagret",
+    "stats": {
+      "empty": "Ingen klikk i denne perioden ennå.",
+      "totalClicks": "Totalt antall klikk",
+      "today": "I dag",
+      "last7": "Siste 7 dager",
+      "last30": "Siste 30 dager",
+      "byPlatform": "Etter plattform",
+      "byLink": "Etter lenke",
+      "daily": "Daglige klikk",
+      "days": "Siste {days} dager"
+    },
+    "preview": {
+      "noMetadata": "Ingen forhåndsvisning tilgjengelig for denne lenken."
+    }
   }
 }

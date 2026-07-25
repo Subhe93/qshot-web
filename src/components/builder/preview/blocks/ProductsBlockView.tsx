@@ -2,6 +2,7 @@ import type { ProductsBlock, ProductItem } from "@/lib/types/blocks";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { dirOf } from "@/lib/builder/text-direction";
 import { Foldable } from "../Foldable";
+import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
 /**
  * Read-only preview of a ProductsModule, mirroring the mobile `ProductsWidget`
@@ -32,6 +33,9 @@ function ProductImage({ url, className }: { url?: string | null; className?: str
 
 /** Mirrors ProductsWidget.buildPrice: discounted price (bold) + struck original. */
 function Price({ item, centered = false }: { item: ProductItem; centered?: boolean }) {
+  // Desktop = Nuxt PriceTag.vue: main 0.95rem / 700 / inherit (full page
+  // colour); struck original 0.8rem / 55% with the same 2px line-through.
+  const desktop = useDesktopPreview();
   const hasDiscount = item.price_after_discount != null && item.price_after_discount !== "";
   const hasPrice = item.price != null && item.price !== "";
   if (!hasDiscount && !hasPrice) return null;
@@ -43,8 +47,8 @@ function Price({ item, centered = false }: { item: ProductItem; centered?: boole
     >
       {hasDiscount && (
         <span
-          className="truncate text-sm font-bold"
-          style={{ color: fg(0.95) }}
+          className={desktop ? "truncate font-bold" : "truncate text-sm font-bold"}
+          style={desktop ? { fontSize: "0.95rem" } : { color: fg(0.95) }}
         >
           {item.price_after_discount} {currency}
         </span>
@@ -59,10 +63,13 @@ function Price({ item, centered = false }: { item: ProductItem; centered?: boole
                   textDecoration: "line-through",
                   textDecorationColor: fg(0.75),
                   textDecorationThickness: 2,
-                  // Mobile struck price = FontSizes.labelLarge (10px).
-                  fontSize: 10,
+                  // Mobile struck price = FontSizes.labelLarge (10px);
+                  // Nuxt desktop .price-original = 0.8rem.
+                  fontSize: desktop ? "0.8rem" : 10,
                 }
-              : { color: fg(0.95), fontSize: 14, fontWeight: 700 }
+              : desktop
+                ? { fontSize: "0.95rem", fontWeight: 700 }
+                : { color: fg(0.95), fontSize: 14, fontWeight: 700 }
           }
         >
           {item.price} {currency}
@@ -101,6 +108,7 @@ function SwipeItem({
   showArrow: boolean;
   circleImage: boolean;
 }) {
+  const desktop = useDesktopPreview();
   return (
     <div className="px-1 py-1" style={{ height: "100%" }}>
       <div
@@ -115,17 +123,19 @@ function SwipeItem({
           <ProductImage url={item.thumbnail_url} className="aspect-square h-full shrink-0" />
         )}
         <div className="flex min-w-0 flex-1 flex-col justify-center px-3">
+          {/* Desktop = Nuxt ProductCard.vue .card-title: 16px / 500 / 85%, wraps. */}
           <p
             dir={dirOf(item.title)}
-            className="truncate text-sm font-medium"
-            style={{ color: fg(0.8) }}
+            className={desktop ? "font-medium" : "truncate text-sm font-medium"}
+            style={{ color: fg(desktop ? 0.85 : 0.8) }}
           >
             {item.title}
           </p>
           {item.description ? (
+            // Desktop = .card-desc: 14px / 60% / clamp 3.
             <p
               dir={dirOf(item.description)}
-              className="line-clamp-3 text-xs"
+              className={desktop ? "line-clamp-3 text-sm" : "line-clamp-3 text-xs"}
               style={{ color: fg(0.6) }}
             >
               {item.description}
@@ -153,22 +163,33 @@ function PromoItem({
   showArrow: boolean;
   circleImage: boolean;
 }) {
+  const desktop = useDesktopPreview();
   return (
     // BlurredBox = page foreground @ 10% (website_components.dart), radius 16, pad 16.
     <div className="rounded-2xl p-4" style={{ backgroundColor: fg(0.1) }}>
       <div className="flex items-center gap-3.5">
         <div className="flex min-w-0 flex-1 flex-col items-start">
+          {/* Desktop = Nuxt Promo.vue: title 18px / 700 / inherit 100%. */}
           <p
             dir={dirOf(item.title)}
-            className="line-clamp-2 text-base font-bold leading-tight"
-            style={{ color: fg(0.9) }}
+            className={
+              desktop
+                ? "line-clamp-2 text-lg font-bold leading-tight"
+                : "line-clamp-2 text-base font-bold leading-tight"
+            }
+            style={desktop ? undefined : { color: fg(0.9) }}
           >
             {item.title}
           </p>
           {item.description ? (
+            // Desktop = .promo-desc: 14px / 70% / clamp 3.
             <p
               dir={dirOf(item.description)}
-              className="mt-1.5 line-clamp-3 text-xs leading-snug"
+              className={
+                desktop
+                  ? "mt-1.5 line-clamp-3 text-sm leading-snug"
+                  : "mt-1.5 line-clamp-3 text-xs leading-snug"
+              }
               style={{ color: fg(0.7) }}
             >
               {item.description}
@@ -179,7 +200,11 @@ function PromoItem({
             className="mt-3 flex items-center gap-1.5 rounded-full px-3.5 py-2"
             style={{ backgroundColor: fg(0.12) }}
           >
-            <span className="text-xs font-semibold" style={{ color: fg(0.9) }}>
+            {/* Desktop = .promo-pill: 14px / 600 / inherit 100%. */}
+            <span
+              className={desktop ? "text-sm font-semibold" : "text-xs font-semibold"}
+              style={desktop ? undefined : { color: fg(0.9) }}
+            >
               Open
             </span>
             {showArrow && <ChevronRight size={10} color={fg(0.9)} />}
@@ -196,6 +221,7 @@ function PromoItem({
 
 // ─── shop card (vertical, horizontal scroll) ────────────────────────────────
 function ShopItem({ item, circleImage }: { item: ProductItem; circleImage: boolean }) {
+  const desktop = useDesktopPreview();
   return (
     <div className="relative h-full w-[170px] shrink-0">
       {/* BlurredBox starts 70px down behind the image */}
@@ -210,21 +236,32 @@ function ShopItem({ item, circleImage }: { item: ProductItem; circleImage: boole
             className={`aspect-square w-full ${circleImage ? "rounded-full" : "rounded-lg"}`}
           />
         </div>
+        {/* Desktop = Nuxt Shop.vue .shop-title: 14px / 700 / inherit 100%. */}
         <p
           dir={dirOf(item.title)}
           className="mt-2.5 line-clamp-2 text-center text-sm font-bold leading-tight"
-          style={{ color: fg(0.9) }}
+          style={desktop ? undefined : { color: fg(0.9) }}
         >
           {item.title}
         </p>
         <div className="flex-1" />
-        <div style={{ color: "#757575" }}>
+        {/* Desktop: PriceTag inherits the page colour (no #757575 hardcode). */}
+        <div style={desktop ? undefined : { color: "#757575" }}>
           <Price item={item} centered />
         </div>
         <div className="mt-2 flex justify-center">
+          {/* Desktop = .shop-pill: 13px / 600 / inherit 100%. */}
           <span
-            className="rounded-full px-4 py-2 text-xs font-semibold"
-            style={{ color: fg(0.9), border: `1px solid ${fg(0.4)}` }}
+            className={
+              desktop
+                ? "rounded-full px-4 py-2 text-[0.8125rem] font-semibold"
+                : "rounded-full px-4 py-2 text-xs font-semibold"
+            }
+            style={
+              desktop
+                ? { border: `1px solid ${fg(0.4)}` }
+                : { color: fg(0.9), border: `1px solid ${fg(0.4)}` }
+            }
           >
             Open
           </span>
@@ -235,21 +272,36 @@ function ShopItem({ item, circleImage }: { item: ProductItem; circleImage: boole
 }
 
 // ─── grid / grid2 card ──────────────────────────────────────────────────────
-function GridCard({ item }: { item: ProductItem }) {
+function GridCard({ item, layout }: { item: ProductItem; layout: "grid" | "grid2" }) {
+  const desktop = useDesktopPreview();
   return (
     <div className="flex flex-col items-center">
       <ProductImage url={item.thumbnail_url} className="aspect-square w-full rounded-[10px]" />
+      {/* Desktop = Nuxt layout/Grid.vue & Grid2.vue: title 16px / 500
+          (.text-heading-weight) / full page colour, centered, truncate. */}
       <p
         dir={dirOf(item.title)}
-        className="mt-2 w-full truncate text-center text-sm font-medium"
-        style={{ color: fg(0.8) }}
+        className={
+          desktop
+            ? "mt-2 w-full truncate text-center font-medium"
+            : "mt-2 w-full truncate text-center text-sm font-medium"
+        }
+        style={desktop ? undefined : { color: fg(0.8) }}
       >
         {item.title}
       </p>
+      {/* Desktop desc — grid: 16px / 100% (bare Marquee, Grid.vue:51-55);
+          grid2: 14px / 80% (`text-sm opacity-80`, Grid2.vue:29-33). */}
       <p
         dir={dirOf(item.description)}
-        className="w-full truncate text-center text-xs"
-        style={{ color: fg(0.6) }}
+        className={
+          desktop
+            ? layout === "grid2"
+              ? "w-full truncate text-center text-sm"
+              : "w-full truncate text-center"
+            : "w-full truncate text-center text-xs"
+        }
+        style={desktop ? (layout === "grid2" ? { color: fg(0.8) } : undefined) : { color: fg(0.6) }}
       >
         {item.description}
       </p>
@@ -260,21 +312,26 @@ function GridCard({ item }: { item: ProductItem }) {
 
 // ─── swiper3 card ───────────────────────────────────────────────────────────
 function Swiper3Card({ item }: { item: ProductItem }) {
+  const desktop = useDesktopPreview();
   return (
     <div className="flex h-full flex-col px-1">
       <div className="min-h-0 flex-1">
         <ProductImage url={item.thumbnail_url} className="size-full rounded-[10px]" />
       </div>
+      {/* Desktop = Nuxt Swiper3.vue .lg-title: 16px / 500 / 80%, truncate. */}
       <p
         dir={dirOf(item.title)}
-        className="mt-2 truncate text-start text-sm font-medium"
+        className={
+          desktop ? "mt-2 truncate text-start font-medium" : "mt-2 truncate text-start text-sm font-medium"
+        }
         style={{ color: fg(0.8) }}
       >
         {item.title}
       </p>
+      {/* Desktop = .lg-desc: 14px / 60%. */}
       <p
         dir={dirOf(item.description)}
-        className="truncate text-xs"
+        className={desktop ? "truncate text-sm" : "truncate text-xs"}
         style={{ color: fg(0.6) }}
       >
         {item.description}
@@ -286,20 +343,27 @@ function Swiper3Card({ item }: { item: ProductItem }) {
 
 // ─── banner card (16:9 + centered text) ─────────────────────────────────────
 function BannerCard({ item }: { item: ProductItem }) {
+  const desktop = useDesktopPreview();
   return (
     <div className="flex flex-col items-center">
       <ProductImage url={item.thumbnail_url} className="aspect-video w-full rounded-xl" />
+      {/* Desktop = Nuxt Banner.vue .banner-title: 16px / 600 / 85%, ellipsis. */}
       <p
         dir={dirOf(item.title)}
-        className="mt-2 w-full truncate text-center text-sm font-semibold"
+        className={
+          desktop
+            ? "mt-2 w-full truncate text-center text-base font-semibold"
+            : "mt-2 w-full truncate text-center text-sm font-semibold"
+        }
         style={{ color: fg(0.85) }}
       >
         {item.title}
       </p>
       {item.description ? (
+        // Desktop = .banner-desc: 14px / 60%.
         <p
           dir={dirOf(item.description)}
-          className="w-full truncate text-center text-xs"
+          className={desktop ? "w-full truncate text-center text-sm" : "w-full truncate text-center text-xs"}
           style={{ color: fg(0.6) }}
         >
           {item.description}
@@ -311,6 +375,7 @@ function BannerCard({ item }: { item: ProductItem }) {
 }
 
 export function ProductsBlockView({ block }: { block: ProductsBlock }) {
+  const desktop = useDesktopPreview();
   const items = (block.items ?? []).filter((i) => !i.hidden);
   const showArrow = !!block.show_arrow;
   const circleImage = !!block.circle_image;
@@ -414,7 +479,7 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
           <div className="flex items-start gap-2 overflow-x-auto px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {items.map((item) => (
               <div key={item.id} className="w-[120px] shrink-0">
-                <GridCard item={item} />
+                <GridCard item={item} layout="grid" />
               </div>
             ))}
           </div>
@@ -428,7 +493,7 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
         <div className="grid grid-cols-2 gap-x-2.5 gap-y-3.5 px-4 py-1">
           {items.map((item) => (
             <div key={item.id} style={{ aspectRatio: "0.72" }}>
-              <GridCard item={item} />
+              <GridCard item={item} layout="grid2" />
             </div>
           ))}
         </div>
@@ -455,10 +520,15 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
         foldable={block.foldable}
         header={
           block.title ? (
-            // Mobile headlineMedium = 20px (text-xl).
+            // Mobile headlineMedium = 20px (text-xl); desktop = Nuxt shared
+            // module title (h3.text-2xl, weight 400, no extra padding).
             <h2
               dir={dirOf(block.title)}
-              className="px-6 text-xl font-bold text-foreground"
+              className={
+                desktop
+                  ? `${DESKTOP_BLOCK_TITLE} text-foreground`
+                  : "px-6 text-xl font-bold text-foreground"
+              }
             >
               {block.title}
             </h2>

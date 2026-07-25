@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { VideoLinkItem, VideoLinksBlock } from "@/lib/types/blocks";
 import { dirOf } from "@/lib/builder/text-direction";
 import { Foldable } from "../Foldable";
+import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
 /**
  * Read-only preview for VideoLinksBlock ("VideoLinksModule"), faithful to the
@@ -105,6 +106,7 @@ function useYoutubeTitle(url: string | undefined, enabled: boolean): string | un
  * the item has no title we fetch the YouTube title via oEmbed (mobile parity).
  */
 function VideoCard({ item }: { item: VideoLinkItem }) {
+  const desktop = useDesktopPreview();
   const thumb = youtubeThumbnail(item.url);
   const explicit = item.title?.trim() || "";
   const fetched = useYoutubeTitle(item.url, !explicit);
@@ -140,23 +142,33 @@ function VideoCard({ item }: { item: VideoLinkItem }) {
           </div>
         </div>
 
-        {/* Title overlay: gradient scrim + white text, 1-2 lines at the bottom. */}
-        {title && (
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent px-4 pb-3 pt-8">
-            <span
-              dir={dirOf(title)}
-              className="line-clamp-2 text-sm font-semibold leading-snug text-white"
-            >
-              {title}
-            </span>
-          </div>
-        )}
+        {/* Title overlay. Mobile/phone canvas: bottom gradient scrim, 14px/600,
+            2 lines. Desktop = Nuxt VideoPlayer/Inline.vue .video-title: TOP bar
+            on black/50, 16px / 700 / white, single line ellipsis, pad 6/10. */}
+        {title &&
+          (desktop ? (
+            <div className="absolute inset-x-0 top-0 bg-black/50 px-2.5 py-1.5">
+              <span dir={dirOf(title)} className="block truncate font-bold text-white">
+                {title}
+              </span>
+            </div>
+          ) : (
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent px-4 pb-3 pt-8">
+              <span
+                dir={dirOf(title)}
+                className="line-clamp-2 text-sm font-semibold leading-snug text-white"
+              >
+                {title}
+              </span>
+            </div>
+          ))}
       </div>
     </div>
   );
 }
 
 export function VideoLinksBlockView({ block }: { block: VideoLinksBlock }) {
+  const desktop = useDesktopPreview();
   const items = (block.items ?? []).filter((it) => !it.hidden);
   const title = block.title?.trim() ?? "";
   const layout = block.layout_type ?? "list";
@@ -214,9 +226,14 @@ export function VideoLinksBlockView({ block }: { block: VideoLinksBlock }) {
         header={
           title ? (
             <>
+              {/* Desktop = Nuxt shared module title (text-2xl / 400 / no pad). */}
               <h2
                 dir={dirOf(title)}
-                className="px-6 text-xl font-bold text-foreground"
+                className={
+                  desktop
+                    ? `${DESKTOP_BLOCK_TITLE} text-foreground`
+                    : "px-6 text-xl font-bold text-foreground"
+                }
               >
                 {title}
               </h2>

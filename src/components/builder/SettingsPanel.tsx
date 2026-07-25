@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronUp, ChevronDown, Eye, EyeOff, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronUp, ChevronDown, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/stores/editor-store";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -151,13 +151,24 @@ function BlockSettings({ block }: { block: Block }) {
 
       {/* Header toolbar */}
       <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">
-            {t(`blocks.${labelKeyOf(block.type)}`)}
-          </p>
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-            {t("nav.settings")}
-          </p>
+        <div className="flex min-w-0 items-center gap-1.5">
+          {/* Back to the block list (deselect this block). */}
+          <button
+            type="button"
+            onClick={() => select(null)}
+            aria-label={tc("back")}
+            className="-ms-1 flex size-8 shrink-0 items-center justify-center rounded-full text-foreground hover:bg-muted"
+          >
+            <ChevronLeft className="size-5 rtl:rotate-180" />
+          </button>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground">
+              {t(`blocks.${labelKeyOf(block.type)}`)}
+            </p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              {t("nav.settings")}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <ToolBtn

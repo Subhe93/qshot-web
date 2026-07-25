@@ -6,6 +6,7 @@ import { ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { uploadImage } from "@/lib/api/media";
 import { ImageCropper } from "@/components/ui/image-cropper";
+import { croppedUploadFile } from "@/lib/builder/crop-image";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { heroStyleFlags } from "@/lib/builder/hero-defaults";
 import { cn } from "@/lib/utils";
@@ -219,7 +220,7 @@ export function CoverTab({
           aspect={SIZE_ASPECT[cropSize]}
           onCancel={() => setCropSize(null)}
           onCropped={async (blob) => {
-            const file = new File([blob], "cover.jpg", { type: "image/jpeg" });
+            const file = croppedUploadFile(blob, "cover");
             const uploaded = await uploadImage(file);
             if (uploaded) setCoverImage(uploaded, { size: cropSize });
             else setCover({ size: cropSize });
@@ -259,7 +260,8 @@ export function ImageUploader({
     e.target.value = "";
     if (!file) return;
     // Crop + compress before uploading (mirrors the mobile flow; the backend
-    // rejects raw/oversized files). getCroppedBlob exports a small JPEG.
+    // rejects raw/oversized files). getCroppedBlob exports a small JPEG, or a
+    // PNG when the crop has transparency.
     setCropSrc(URL.createObjectURL(file));
   }
 
@@ -271,7 +273,7 @@ export function ImageUploader({
   async function onCropped(blob: Blob) {
     setBusy(true);
     try {
-      const file = new File([blob], "icon.jpg", { type: "image/jpeg" });
+      const file = croppedUploadFile(blob, "icon");
       const uploaded = await uploadImage(file);
       if (uploaded) onUploaded(uploaded);
     } finally {

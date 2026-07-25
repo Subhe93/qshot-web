@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Trash2, Eye, EyeOff } from "lucide-react";
 import type { Block } from "@/lib/types/blocks";
+import { useEditorStore } from "@/stores/editor-store";
 import { BlockView } from "./preview/BlockView";
 import { argbToCss } from "@/lib/builder/color";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export function SortableBlock({
     useSortable({ id: block.id });
   const t = useTranslations("builder");
   const tc = useTranslations("common");
+  const updateBlock = useEditorStore((s) => s.updateBlock);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const bg =
@@ -72,6 +74,17 @@ export function SortableBlock({
         </div>
       </div>
 
+      {/* Hidden overlay — a translucent veil + eye-off badge so a hidden block
+          reads clearly as "won't show on the live site" (mobile removes it in
+          preview; here we keep it dimmed + marked). */}
+      {hidden && (
+        <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center rounded-[5px] bg-background/45">
+          <span className="flex size-9 items-center justify-center rounded-full bg-black/55 text-white shadow">
+            <EyeOff className="size-5" />
+          </span>
+        </div>
+      )}
+
       {/* Dashed editing outline (SVG so we can match the 12/2 dash + marching) */}
       <svg
         className="pointer-events-none absolute inset-0 size-full"
@@ -112,9 +125,18 @@ export function SortableBlock({
         </span>
         <button
           type="button"
+          onClick={() => updateBlock(block.id, { hide: !hidden })}
+          className="p-1 text-black/50 hover:text-black/80"
+          aria-label={t("fields.toggleVisibility")}
+          title={t("fields.toggleVisibility")}
+        >
+          {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+        <button
+          type="button"
           onClick={() => setConfirmDelete(true)}
           className="p-1 text-error"
-          aria-label="Delete"
+          aria-label={tc("delete")}
         >
           <Trash2 className="size-4" />
         </button>

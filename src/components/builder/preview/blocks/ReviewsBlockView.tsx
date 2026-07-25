@@ -2,6 +2,7 @@ import type { ReviewsBlock, ReviewItem } from "@/lib/types/blocks";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { dirOf } from "@/lib/builder/text-direction";
 import { Foldable } from "../Foldable";
+import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
 /**
  * Read-only preview of a ReviewsModule, mirroring the mobile `ReviewsWidget`
@@ -109,6 +110,7 @@ function Avatar({ item, size }: { item: ReviewItem; size: number }) {
 // ─── Card item (cards layout): padding 16, rounded 12, fill fg@0.05, border fg@0.1 ──
 
 function CardItem({ item }: { item: ReviewItem }) {
+  const desktop = useDesktopPreview();
   const name = item.reviewer_name ?? "";
   const text = item.text ?? "";
   const time = item.relative_time_description ?? "";
@@ -121,20 +123,26 @@ function CardItem({ item }: { item: ReviewItem }) {
         <div className="flex items-center">
           <Avatar item={item} size={36} />
           <div className="ms-2.5 min-w-0 flex-1">
+            {/* Desktop = Nuxt Cards.vue: name 14px / 600 / full page colour. */}
             <p
               dir={dirOf(name)}
               className="truncate text-sm font-semibold"
-              style={{ color: fg(0.9) }}
+              style={desktop ? undefined : { color: fg(0.9) }}
             >
               {name}
             </p>
             <Stars rating={item.rating ?? 0} size={16} />
           </div>
         </div>
+        {/* Desktop = Nuxt review text: 14px / 90% (`text-sm opacity-90`). */}
         <p
           dir={dirOf(text)}
-          className="mt-2.5 flex-1 overflow-hidden text-xs leading-[1.4]"
-          style={{ color: fg(0.7), display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 4 }}
+          className={
+            desktop
+              ? "mt-2.5 flex-1 overflow-hidden text-sm leading-[1.4]"
+              : "mt-2.5 flex-1 overflow-hidden text-xs leading-[1.4]"
+          }
+          style={{ color: fg(desktop ? 0.9 : 0.7), display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 4 }}
         >
           {text}
         </p>
@@ -151,6 +159,7 @@ function CardItem({ item }: { item: ReviewItem }) {
 // ─── List item: padding h20 v10, avatar 40, name expanded + stars 14, text 3 lines ──
 
 function ListItem({ item }: { item: ReviewItem }) {
+  const desktop = useDesktopPreview();
   const name = item.reviewer_name ?? "";
   const text = item.text ?? "";
   const time = item.relative_time_description ?? "";
@@ -159,24 +168,30 @@ function ListItem({ item }: { item: ReviewItem }) {
       <Avatar item={item} size={40} />
       <div className="ms-3 min-w-0 flex-1">
         <div className="flex items-center gap-2">
+          {/* Desktop = Nuxt List.vue: name 14px / 600 / full page colour. */}
           <p
             dir={dirOf(name)}
             className="min-w-0 flex-1 truncate text-sm font-semibold"
-            style={{ color: fg(0.9) }}
+            style={desktop ? undefined : { color: fg(0.9) }}
           >
             {name}
           </p>
           <Stars rating={item.rating ?? 0} size={14} />
         </div>
+        {/* Desktop = review text 14px / 90% clamp 3; time 12px / 40%. */}
         <p
           dir={dirOf(text)}
-          className="mt-1 overflow-hidden text-xs leading-[1.4]"
-          style={{ color: fg(0.7), display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 3 }}
+          className={
+            desktop
+              ? "mt-1 overflow-hidden text-sm leading-[1.4]"
+              : "mt-1 overflow-hidden text-xs leading-[1.4]"
+          }
+          style={{ color: fg(desktop ? 0.9 : 0.7), display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 3 }}
         >
           {text}
         </p>
         {time && (
-          <p className="mt-1 text-[11px]" style={{ color: fg(0.4) }}>
+          <p className={desktop ? "mt-1 text-xs" : "mt-1 text-[11px]"} style={{ color: fg(0.4) }}>
             {time}
           </p>
         )}
@@ -188,15 +203,21 @@ function ListItem({ item }: { item: ReviewItem }) {
 // ─── Testimonial item: centered, text bodyLarge fg@0.8, stars 18, avatar 28 + name ──
 
 function TestimonialItem({ item }: { item: ReviewItem }) {
+  const desktop = useDesktopPreview();
   const name = item.reviewer_name ?? "";
   const text = item.text ?? "";
   const time = item.relative_time_description ?? "";
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-2 text-center">
+      {/* Desktop = Nuxt Testimonial.vue: body 16px, ITALIC, 90%. */}
       <p
         dir={dirOf(text)}
-        className="overflow-hidden text-base leading-snug"
-        style={{ color: fg(0.8), display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 4 }}
+        className={
+          desktop
+            ? "overflow-hidden text-base italic leading-snug"
+            : "overflow-hidden text-base leading-snug"
+        }
+        style={{ color: fg(desktop ? 0.9 : 0.8), display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 4 }}
       >
         {text}
       </p>
@@ -205,10 +226,11 @@ function TestimonialItem({ item }: { item: ReviewItem }) {
       </div>
       <div className="mt-2 flex items-center justify-center gap-2">
         <Avatar item={item} size={28} />
+        {/* Desktop: name 14px / 600 / full page colour. */}
         <p
           dir={dirOf(name)}
           className="truncate text-sm font-semibold"
-          style={{ color: fg(0.8) }}
+          style={desktop ? undefined : { color: fg(0.8) }}
         >
           {name}
         </p>
@@ -254,6 +276,7 @@ function Swiper({
 }
 
 export function ReviewsBlockView({ block }: { block: ReviewsBlock }) {
+  const desktop = useDesktopPreview();
   const items = (block.reviews ?? []).filter((r) => !r.hidden);
   const title = block.title?.trim() ?? "";
   const layout = block.layout_type ?? "cards";
@@ -269,9 +292,14 @@ export function ReviewsBlockView({ block }: { block: ReviewsBlock }) {
         header={
           title ? (
             <>
+              {/* Desktop = Nuxt shared module title (text-2xl / 400 / no pad). */}
               <h2
                 dir={dirOf(title)}
-                className="px-6 text-xl font-bold text-foreground"
+                className={
+                  desktop
+                    ? `${DESKTOP_BLOCK_TITLE} text-foreground`
+                    : "px-6 text-xl font-bold text-foreground"
+                }
               >
                 {title}
               </h2>
@@ -316,11 +344,16 @@ export function ReviewsBlockView({ block }: { block: ReviewsBlock }) {
 
       {showAddReview && items.length > 0 && (
         <div className="px-6 pt-3.5">
+          {/* Desktop = Nuxt .add-review-btn: 16px / 600, border 45%. */}
           <a
             href={block.add_review_url || undefined}
             onClick={(e) => e.preventDefault()}
-            className="flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold"
-            style={{ color: FG, border: `1px solid ${fg(0.3)}` }}
+            className={
+              desktop
+                ? "flex items-center justify-center gap-2 rounded-xl py-3 text-base font-semibold"
+                : "flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold"
+            }
+            style={{ color: FG, border: `1px solid ${fg(desktop ? 0.45 : 0.3)}` }}
           >
             <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M12 17.27l5.18 3.12c.5.3 1.11-.16.98-.73l-1.37-5.89 4.56-3.95c.43-.38.2-1.1-.36-1.14l-6-.51-2.34-5.53c-.22-.52-.96-.52-1.18 0L9.13 8.16l-6 .51c-.56.04-.79.76-.36 1.14l4.56 3.95-1.37 5.89c-.13.57.48 1.03.98.73L12 17.27z" />

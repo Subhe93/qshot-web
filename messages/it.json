@@ -117,7 +117,7 @@
     "careful": "Attenzione",
     "coverSizeWarning": "La dimensione della copertina selezionata potrebbe nascondere alcuni testi e pulsanti.",
     "confirm": "Conferma",
-    "addBlock": "Add block",
+    "addBlock": "Blocchi",
     "save": "Save",
     "saved": "Saved",
     "emptyCanvas": "Your page is empty. Add a block to start.",
@@ -203,7 +203,7 @@
     "nav": {
       "home": "Home",
       "pages": "Pagine",
-      "add": "Aggiungi blocco",
+      "add": "Blocchi",
       "style": "Stile",
       "settings": "Impostazioni",
       "comingSoon": "Coming soon",
@@ -432,6 +432,8 @@
     },
     "bookingBlock": {
       "bookNow": "Prenota ora",
+      "notReadyTitle": "La prenotazione non è ancora configurata",
+      "notReadyDesc": "Apri le impostazioni di prenotazione per attivarla, poi crea almeno un servizio (e un operatore). Il widget di prenotazione non apparirà sul tuo sito finché non lo fai.",
       "dropdown": "Menu a tendina"
     },
     "pages": {
@@ -449,7 +451,41 @@
       "urlPlaceholder": "page-url",
       "urlTaken": "Questo URL è già in uso"
     },
-    "dropdown": "Menu a tendina"
+    "dropdown": "Menu a tendina",
+    "backToDashboard": "Dashboard",
+    "templates": {
+      "title": "Modelli",
+      "choose": "Scegli un modello",
+      "startBlank": "Inizia da zero",
+      "applied": "Modello applicato",
+      "switchMessage": "Questo cambia lo stile del sito. I contenuti e il colore del brand restano.",
+      "undo": "Annulla",
+      "brandColor": "Colore del brand",
+      "customColor": "Colore personalizzato",
+      "theme": "Tema",
+      "apply": "Applica",
+      "names": {
+        "restaurant": "Ristorante & Caffè",
+        "salon": "Salone & Barbiere",
+        "creator": "Creator",
+        "shop": "Negozio",
+        "professional": "Professionista"
+      },
+      "sections": {
+        "menu": "Menu",
+        "reviews": "Recensioni",
+        "booking": "Prenotazione",
+        "videos": "Video",
+        "links": "Link",
+        "products": "Prodotti",
+        "about": "Chi siamo",
+        "contact": "Contatto",
+        "name": "Nome",
+        "email": "Email",
+        "message": "Messaggio",
+        "gallery": "Galleria"
+      }
+    }
   },
   "nav": {
     "profiles": "Sito web",
@@ -457,6 +493,7 @@
     "settings": "Impostazioni",
     "scanQr": "Scan QR",
     "bookings": "Prenotazioni",
+    "smartLinks": "Link intelligenti",
     "admin": "Admin"
   },
   "settings": {
@@ -528,7 +565,36 @@
       "noIncoming": "No incoming requests",
       "noOutgoing": "No outgoing requests"
     },
-    "freePlan": "Free plan"
+    "freePlan": "Free plan",
+    "changeEmail": {
+      "title": "Cambia email",
+      "intro": "Inserisci la tua nuova email e password",
+      "newEmail": "Nuovo indirizzo email",
+      "newEmailHint": "Inserisci la tua nuova email",
+      "change": "Modifica",
+      "done": "Fatto",
+      "gotIt": "Ho capito!",
+      "submit": "Invia",
+      "required": "Obbligatorio",
+      "invalidEmail": "Oops! Indirizzo email non valido",
+      "password": "Password",
+      "passwordHint": "Inserisci la tua password",
+      "awaiting": "In attesa di conferma",
+      "cancel": "Annulla modifica email",
+      "canceled": "Modifica email annullata",
+      "sent": "Email di conferma inviata",
+      "sentTo": "Abbiamo inviato un link di conferma a {email}. Confermalo per completare la modifica dell'email.",
+      "resend": "Invia di nuovo",
+      "resendIn": "Invia di nuovo tra {seconds} s",
+      "changedTitle": "Email modificata",
+      "changedDesc": "L'email del tuo account è stata aggiornata.",
+      "invalidTitle": "Link non più valido",
+      "invalidDesc": "Questo link di conferma non è valido o è già stato utilizzato.",
+      "expiredTitle": "Link scaduto",
+      "expiredDesc": "Questo link è scaduto. Richiedi di nuovo la modifica dell'email.",
+      "conflictTitle": "Email non più disponibile",
+      "conflictDesc": "Qualcun altro ha registrato questa email mentre la tua richiesta era in attesa."
+    }
   },
   "qr": {
     "title": "Genera QR",
@@ -1068,5 +1134,51 @@
       }
     },
     "websiteSection": "Amministratore"
+  },
+  "smartLinks": {
+    "refreshCover": "Aggiorna copertina",
+    "title": "Link intelligenti",
+    "subtitle": "Crea un unico link che apre l'app nativa giusta su ogni dispositivo.",
+    "create": "Crea link",
+    "edit": "Modifica link",
+    "empty": "Nessun link intelligente",
+    "emptyDesc": "Crea il tuo primo link intelligente per aprire le app native direttamente da un unico URL.",
+    "urlLabel": "URL di origine",
+    "urlPlaceholder": "Incolla un link YouTube, Spotify, TikTok…",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Assegna un nome a questo link",
+    "slugLabel": "Slug personalizzato",
+    "slugPlaceholder": "promo-estate",
+    "slugAvailable": "Disponibile",
+    "slugTaken": "Già in uso",
+    "slugChecking": "Verifica disponibilità…",
+    "slugSuggestion": "Prova {suggestion}",
+    "typeLabel": "Tipo",
+    "save": "Salva",
+    "delete": "Elimina",
+    "deleteConfirm": "Eliminare questo link intelligente? L'operazione non può essere annullata.",
+    "copy": "Copia link",
+    "copied": "Copiato",
+    "open": "Apri",
+    "shareUrl": "URL di condivisione",
+    "clicks": "{count, plural, one {# clic} other {# clic}}",
+    "statsTab": "Statistiche",
+    "linksTab": "Link",
+    "error": "Qualcosa è andato storto. Riprova.",
+    "saved": "Salvato",
+    "stats": {
+      "empty": "Nessun clic in questo periodo.",
+      "totalClicks": "Clic totali",
+      "today": "Oggi",
+      "last7": "Ultimi 7 giorni",
+      "last30": "Ultimi 30 giorni",
+      "byPlatform": "Per piattaforma",
+      "byLink": "Per link",
+      "daily": "Clic giornalieri",
+      "days": "Ultimi {days} giorni"
+    },
+    "preview": {
+      "noMetadata": "Nessuna anteprima disponibile per questo link."
+    }
   }
 }

@@ -3,6 +3,7 @@ import { argbToCss } from "@/lib/builder/color";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { dirOf } from "@/lib/builder/text-direction";
 import { Foldable } from "../Foldable";
+import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
 /**
  * Read-only preview for ButtonBlock ("ButtonModule"), faithful to the Flutter
@@ -137,6 +138,7 @@ function ButtonTile({
 }
 
 export function ButtonBlockView({ block }: { block: ButtonBlock }) {
+  const desktop = useDesktopPreview();
   const items = (block.buttons ?? []).filter((b) => !b.hidden);
   const title = block.title?.trim() ?? "";
   const showArrow = !!block.show_arrow;
@@ -149,11 +151,19 @@ export function ButtonBlockView({ block }: { block: ButtonBlock }) {
         header={
           title ? (
             <>
-              {/* Mobile headlineMedium = 20px (text-xl). */}
-              <h2 dir={dirOf(title)} className="px-6 text-xl font-bold text-foreground">
+              {/* Mobile headlineMedium = 20px (text-xl); desktop = Nuxt shared
+                  module title (ButtonModule.vue h3.text-2xl, 400) + mb-3 gap. */}
+              <h2
+                dir={dirOf(title)}
+                className={
+                  desktop
+                    ? `${DESKTOP_BLOCK_TITLE} text-foreground`
+                    : "px-6 text-xl font-bold text-foreground"
+                }
+              >
                 {title}
               </h2>
-              <div className="h-[5px]" />
+              <div className={desktop ? "h-3" : "h-[5px]"} />
             </>
           ) : null
         }

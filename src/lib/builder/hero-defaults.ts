@@ -235,6 +235,71 @@ export function heroDefaults(style: HeroStyle): WebsiteSettings {
 }
 
 /**
+ * Resolved per-style HEADER defaults for rendering. Mobile runs
+ * `SettingsEntity.fillDefaults` (= template.defaults().merge(stored)) on every
+ * load, so an ABSENT header key falls back to the style's template default:
+ * position onCover + fillSides false for styles 1/3 (floating pill),
+ * aboveCover + true elsewhere, plus bar colors for styles 5/6/7.
+ */
+export interface HeaderStyleDefaults {
+  position: "aboveCover" | "onCover";
+  fillSides: boolean;
+  background_color: number | null;
+  foreground_color: number | null;
+}
+
+export function headerStyleDefaults(style: HeroStyle | undefined | null): HeaderStyleDefaults {
+  const h = heroDefaults((style ?? "style1") as HeroStyle).header;
+  return {
+    position: h?.position ?? "aboveCover",
+    fillSides: h?.fillSides ?? false,
+    background_color: h?.background_color ?? null,
+    foreground_color: h?.foreground_color ?? null,
+  };
+}
+
+// ---- Placeholder detection sets (mobile HeroTemplateRegistry, origin/dev) ----
+// Used by mergeUserContent (template-apply.ts): a value matching one of these
+// is demo copy shipped by a style's defaults, not user content. Derived from
+// ALL 7 factories exactly like mobile derives them from `_templates.values`.
+
+/** Mobile `Links.websiteUrl` — the default url baked into every hero button. */
+export const PLACEHOLDER_URL = URL;
+
+/**
+ * Every non-empty `title.text`, `text.text`, `button1.text`, `button2.text`
+ * and `header.title.text` across the 7 style defaults.
+ */
+export const PLACEHOLDER_TEXTS: ReadonlySet<string> = (() => {
+  const texts = new Set<string>();
+  for (const factory of Object.values(FACTORIES)) {
+    const d = factory();
+    for (const t of [
+      d.title?.text,
+      d.text?.text,
+      d.button1?.text,
+      d.button2?.text,
+      d.header?.title?.text,
+    ]) {
+      if (t) texts.add(t);
+    }
+  }
+  return texts;
+})();
+
+/** Every default `cover_photo.image_url` / `profile_picture.image_url`. */
+export const PLACEHOLDER_IMAGES: ReadonlySet<string> = (() => {
+  const images = new Set<string>();
+  for (const factory of Object.values(FACTORIES)) {
+    const d = factory();
+    for (const url of [d.cover_photo?.image_url, d.profile_picture?.image_url]) {
+      if (typeof url === "string") images.add(url);
+    }
+  }
+  return images;
+})();
+
+/**
  * SettingsEntity.fillDefaults — the chosen style's full defaults with the user's
  * name/logo overlaid. Used on website creation.
  */

@@ -60,6 +60,15 @@ export function BottomSheet({
           className,
         )}
       >
+        {/* Soft green gradient glow at the top (mirrors the Feedback sheet). */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-24"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(125,216,213,0.30) 0%, rgba(125,216,213,0) 100%)",
+          }}
+        />
         <div className="flex shrink-0 items-center gap-2 border-b border-border px-2 py-2">
           <button
             type="button"
@@ -104,6 +113,17 @@ export function BottomSheet({
           className,
         )}
       >
+        {/* Soft green gradient glow at the top (mirrors the Feedback sheet).
+            Negative z sits it above the card bg but under all content. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-28"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(125,216,213,0.35) 0%, rgba(125,216,213,0) 100%)",
+          }}
+        />
+
         {/* Grab handle */}
         <div className="flex shrink-0 justify-center pt-2.5">
           <span className="h-1.5 w-10 rounded-full bg-foreground/15" />

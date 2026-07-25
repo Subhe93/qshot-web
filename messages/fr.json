@@ -117,7 +117,7 @@
     "careful": "Attention",
     "coverSizeWarning": "La taille de couverture sélectionnée peut masquer certains textes et boutons.",
     "confirm": "Confirmer",
-    "addBlock": "Add block",
+    "addBlock": "Blocs",
     "save": "Save",
     "saved": "Saved",
     "emptyCanvas": "Your page is empty. Add a block to start.",
@@ -203,7 +203,7 @@
     "nav": {
       "home": "Accueil",
       "pages": "Pages",
-      "add": "Ajouter un bloc",
+      "add": "Blocs",
       "style": "Style",
       "settings": "Paramètres",
       "comingSoon": "Coming soon",
@@ -432,6 +432,8 @@
     },
     "bookingBlock": {
       "bookNow": "Réserver",
+      "notReadyTitle": "La réservation n'est pas encore configurée",
+      "notReadyDesc": "Ouvrez les paramètres de réservation pour l'activer, puis créez au moins un service (et un prestataire). Le widget de réservation n'apparaîtra pas sur votre site tant que ce n'est pas fait.",
       "dropdown": "Menu déroulant"
     },
     "pages": {
@@ -449,7 +451,41 @@
       "urlPlaceholder": "page-url",
       "urlTaken": "Cette URL est déjà prise"
     },
-    "dropdown": "Menu déroulant"
+    "dropdown": "Menu déroulant",
+    "backToDashboard": "Tableau de bord",
+    "templates": {
+      "title": "Modèles",
+      "choose": "Choisissez un modèle",
+      "startBlank": "Commencer vide",
+      "applied": "Modèle appliqué",
+      "switchMessage": "Cela restyle votre site. Votre contenu et votre couleur de marque sont conservés.",
+      "undo": "Annuler",
+      "brandColor": "Couleur de marque",
+      "customColor": "Couleur personnalisée",
+      "theme": "Thème",
+      "apply": "Appliquer",
+      "names": {
+        "restaurant": "Restaurant & Café",
+        "salon": "Salon & Barbier",
+        "creator": "Créateur",
+        "shop": "Boutique",
+        "professional": "Professionnel"
+      },
+      "sections": {
+        "menu": "Menu",
+        "reviews": "Avis",
+        "booking": "Réservation",
+        "videos": "Vidéos",
+        "links": "Liens",
+        "products": "Produits",
+        "about": "À propos",
+        "contact": "Contact",
+        "name": "Nom",
+        "email": "E-mail",
+        "message": "Message",
+        "gallery": "Galerie"
+      }
+    }
   },
   "nav": {
     "profiles": "Site web",
@@ -457,6 +493,7 @@
     "settings": "Paramètres",
     "scanQr": "Scan QR",
     "bookings": "Réservations",
+    "smartLinks": "Liens intelligents",
     "admin": "Admin"
   },
   "settings": {
@@ -528,7 +565,36 @@
       "noIncoming": "No incoming requests",
       "noOutgoing": "No outgoing requests"
     },
-    "freePlan": "Free plan"
+    "freePlan": "Free plan",
+    "changeEmail": {
+      "title": "Changer l'e-mail",
+      "intro": "Veuillez saisir votre nouvel e-mail et votre mot de passe",
+      "newEmail": "Nouvelle adresse e-mail",
+      "newEmailHint": "Veuillez saisir votre nouvel e-mail",
+      "change": "Changer",
+      "done": "Terminé",
+      "gotIt": "Compris !",
+      "submit": "Envoyer",
+      "required": "Requis",
+      "invalidEmail": "Oups ! Adresse e-mail invalide",
+      "password": "Mot de passe",
+      "passwordHint": "Veuillez saisir votre mot de passe",
+      "awaiting": "En attente de confirmation",
+      "cancel": "Annuler le changement d'e-mail",
+      "canceled": "Changement d'e-mail annulé",
+      "sent": "E-mail de confirmation envoyé",
+      "sentTo": "Nous avons envoyé un lien de confirmation à {email}. Confirmez-le pour terminer le changement d'e-mail.",
+      "resend": "Renvoyer",
+      "resendIn": "Renvoyer dans {seconds} s",
+      "changedTitle": "E-mail modifié",
+      "changedDesc": "L'e-mail de votre compte a été mis à jour.",
+      "invalidTitle": "Lien non valide",
+      "invalidDesc": "Ce lien de confirmation est invalide ou a déjà été utilisé.",
+      "expiredTitle": "Lien expiré",
+      "expiredDesc": "Ce lien a expiré. Veuillez demander à nouveau le changement d'e-mail.",
+      "conflictTitle": "E-mail non disponible",
+      "conflictDesc": "Quelqu'un d'autre a enregistré cet e-mail pendant que votre demande était en attente."
+    }
   },
   "qr": {
     "title": "Générer un QR",
@@ -1068,5 +1134,51 @@
       }
     },
     "websiteSection": "Administrateur"
+  },
+  "smartLinks": {
+    "refreshCover": "Actualiser l’aperçu",
+    "title": "Liens intelligents",
+    "subtitle": "Créez un seul lien qui ouvre la bonne application native sur chaque appareil.",
+    "create": "Créer un lien",
+    "edit": "Modifier le lien",
+    "empty": "Aucun lien intelligent",
+    "emptyDesc": "Créez votre premier lien intelligent pour ouvrir les applications natives directement depuis une seule URL.",
+    "urlLabel": "URL source",
+    "urlPlaceholder": "Collez un lien YouTube, Spotify, TikTok…",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Donnez un nom à ce lien",
+    "slugLabel": "Slug personnalisé",
+    "slugPlaceholder": "promo-ete",
+    "slugAvailable": "Disponible",
+    "slugTaken": "Déjà pris",
+    "slugChecking": "Vérification de la disponibilité…",
+    "slugSuggestion": "Essayez {suggestion}",
+    "typeLabel": "Type",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "deleteConfirm": "Supprimer ce lien intelligent ? Cette action est irréversible.",
+    "copy": "Copier le lien",
+    "copied": "Copié",
+    "open": "Ouvrir",
+    "shareUrl": "URL de partage",
+    "clicks": "{count, plural, one {# clic} other {# clics}}",
+    "statsTab": "Statistiques",
+    "linksTab": "Liens",
+    "error": "Une erreur s'est produite. Veuillez réessayer.",
+    "saved": "Enregistré",
+    "stats": {
+      "empty": "Aucun clic sur cette période.",
+      "totalClicks": "Total des clics",
+      "today": "Aujourd'hui",
+      "last7": "7 derniers jours",
+      "last30": "30 derniers jours",
+      "byPlatform": "Par plateforme",
+      "byLink": "Par lien",
+      "daily": "Clics quotidiens",
+      "days": "{days} derniers jours"
+    },
+    "preview": {
+      "noMetadata": "Aucun aperçu disponible pour ce lien."
+    }
   }
 }

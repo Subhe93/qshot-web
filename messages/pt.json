@@ -117,7 +117,7 @@
     "careful": "Cuidado",
     "coverSizeWarning": "O tamanho de capa selecionado pode ocultar alguns textos e botões.",
     "confirm": "Confirmar",
-    "addBlock": "Add block",
+    "addBlock": "Blocos",
     "save": "Save",
     "saved": "Saved",
     "emptyCanvas": "Your page is empty. Add a block to start.",
@@ -203,7 +203,7 @@
     "nav": {
       "home": "Início",
       "pages": "Páginas",
-      "add": "Adicionar bloco",
+      "add": "Blocos",
       "style": "Estilo",
       "settings": "Configurações",
       "comingSoon": "Coming soon",
@@ -432,6 +432,8 @@
     },
     "bookingBlock": {
       "bookNow": "Reservar agora",
+      "notReadyTitle": "As reservas ainda não estão configuradas",
+      "notReadyDesc": "Abra as configurações de reservas para ativá-las e crie pelo menos um serviço (e um profissional). O widget de reservas não aparecerá no seu site até você fazer isso.",
       "dropdown": "Menu suspenso"
     },
     "pages": {
@@ -449,7 +451,41 @@
       "urlPlaceholder": "page-url",
       "urlTaken": "Este URL já está em uso"
     },
-    "dropdown": "Menu suspenso"
+    "dropdown": "Menu suspenso",
+    "backToDashboard": "Painel",
+    "templates": {
+      "title": "Modelos",
+      "choose": "Escolha um modelo",
+      "startBlank": "Começar em branco",
+      "applied": "Modelo aplicado",
+      "switchMessage": "Isso muda o estilo do seu site. Seu conteúdo e cor da marca permanecem.",
+      "undo": "Desfazer",
+      "brandColor": "Cor da marca",
+      "customColor": "Cor personalizada",
+      "theme": "Tema",
+      "apply": "Aplicar",
+      "names": {
+        "restaurant": "Restaurante & Café",
+        "salon": "Salão & Barbearia",
+        "creator": "Criador",
+        "shop": "Loja",
+        "professional": "Profissional"
+      },
+      "sections": {
+        "menu": "Menu",
+        "reviews": "Avaliações",
+        "booking": "Reserva",
+        "videos": "Vídeos",
+        "links": "Links",
+        "products": "Produtos",
+        "about": "Sobre",
+        "contact": "Contato",
+        "name": "Nome",
+        "email": "E-mail",
+        "message": "Mensagem",
+        "gallery": "Galeria"
+      }
+    }
   },
   "nav": {
     "profiles": "Site",
@@ -457,6 +493,7 @@
     "settings": "Configurações",
     "scanQr": "Scan QR",
     "bookings": "Reservas",
+    "smartLinks": "Links inteligentes",
     "admin": "Admin"
   },
   "settings": {
@@ -528,7 +565,36 @@
       "noIncoming": "No incoming requests",
       "noOutgoing": "No outgoing requests"
     },
-    "freePlan": "Free plan"
+    "freePlan": "Free plan",
+    "changeEmail": {
+      "title": "Alterar E-mail",
+      "intro": "Por favor, insira seu novo e-mail e senha",
+      "newEmail": "Novo Endereço de E-mail",
+      "newEmailHint": "Por favor, insira seu novo e-mail",
+      "change": "Alterar",
+      "done": "Concluído",
+      "gotIt": "Entendi!",
+      "submit": "Enviar",
+      "required": "Obrigatório",
+      "invalidEmail": "Ops! Endereço de e-mail inválido",
+      "password": "Senha",
+      "passwordHint": "Por favor, insira sua senha",
+      "awaiting": "Aguardando confirmação",
+      "cancel": "Cancelar alteração de e-mail",
+      "canceled": "Alteração de e-mail cancelada",
+      "sent": "E-mail de confirmação enviado",
+      "sentTo": "Enviamos um link de confirmação para {email}. Confirme-o para concluir a alteração de e-mail.",
+      "resend": "Reenviar",
+      "resendIn": "Reenviar em {seconds} s",
+      "changedTitle": "E-mail alterado",
+      "changedDesc": "O e-mail da sua conta foi atualizado.",
+      "invalidTitle": "O link não é mais válido",
+      "invalidDesc": "Este link de confirmação é inválido ou já foi usado.",
+      "expiredTitle": "Link expirado",
+      "expiredDesc": "Este link expirou. Solicite a alteração de e-mail novamente.",
+      "conflictTitle": "E-mail não está mais disponível",
+      "conflictDesc": "Outra pessoa registrou este e-mail enquanto sua solicitação estava pendente."
+    }
   },
   "qr": {
     "title": "Gerar QR",
@@ -1068,5 +1134,51 @@
       }
     },
     "websiteSection": "Administrador"
+  },
+  "smartLinks": {
+    "refreshCover": "Atualizar capa",
+    "title": "Links inteligentes",
+    "subtitle": "Crie um único link que abre o app nativo certo em cada dispositivo.",
+    "create": "Criar link",
+    "edit": "Editar link",
+    "empty": "Nenhum link inteligente ainda",
+    "emptyDesc": "Crie seu primeiro link inteligente para abrir apps nativos diretamente de um único URL.",
+    "urlLabel": "URL de origem",
+    "urlPlaceholder": "Cole um link do YouTube, Spotify, TikTok…",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Dê um nome a este link",
+    "slugLabel": "Slug personalizado",
+    "slugPlaceholder": "promo-verao",
+    "slugAvailable": "Disponível",
+    "slugTaken": "Já em uso",
+    "slugChecking": "Verificando disponibilidade…",
+    "slugSuggestion": "Tente {suggestion}",
+    "typeLabel": "Tipo",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "deleteConfirm": "Excluir este link inteligente? Isso não pode ser desfeito.",
+    "copy": "Copiar link",
+    "copied": "Copiado",
+    "open": "Abrir",
+    "shareUrl": "URL de compartilhamento",
+    "clicks": "{count, plural, one {# clique} other {# cliques}}",
+    "statsTab": "Estatísticas",
+    "linksTab": "Links",
+    "error": "Algo deu errado. Tente novamente.",
+    "saved": "Salvo",
+    "stats": {
+      "empty": "Ainda sem cliques neste período.",
+      "totalClicks": "Total de cliques",
+      "today": "Hoje",
+      "last7": "Últimos 7 dias",
+      "last30": "Últimos 30 dias",
+      "byPlatform": "Por plataforma",
+      "byLink": "Por link",
+      "daily": "Cliques diários",
+      "days": "Últimos {days} dias"
+    },
+    "preview": {
+      "noMetadata": "Nenhuma prévia disponível para este link."
+    }
   }
 }

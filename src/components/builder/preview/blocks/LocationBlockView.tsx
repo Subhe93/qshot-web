@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { MapPin, Copy, Check, Star } from "lucide-react";
 import type { LocationBlock } from "@/lib/types/blocks";
 import { dirOf } from "@/lib/builder/text-direction";
+import { useDesktopPreview } from "../desktop-preview";
 
 /**
  * Read-only renderer for a LocationModule, mirroring the mobile `LocationPreview`
@@ -27,6 +28,7 @@ import { dirOf } from "@/lib/builder/text-direction";
  * otherwise a placeholder. The `value` map is opaque and read verbatim.
  */
 export function LocationBlockView({ block }: { block: LocationBlock }) {
+  const desktop = useDesktopPreview();
   const t = useTranslations("builder.location");
   const value = (block.value ?? {}) as Record<string, unknown>;
   const place = readPlace(value);
@@ -43,34 +45,70 @@ export function LocationBlockView({ block }: { block: LocationBlock }) {
   return (
     <div dir={dir} className="flex flex-col items-stretch px-5 py-3">
       {block.title ? (
+        // Desktop = Nuxt LocationModule/Map.vue h3.text-2xl: 24px / 400.
         <p
           dir={dirOf(block.title)}
-          className="mb-[5px] text-xl font-bold leading-snug text-foreground"
+          className={
+            desktop
+              ? "mb-[5px] text-2xl font-normal leading-snug text-foreground"
+              : "mb-[5px] text-xl font-bold leading-snug text-foreground"
+          }
         >
           {block.title}
         </p>
       ) : null}
 
-      {/* Info card ("BlurredBox": padding 8/12, min-height 50) */}
-      <div className="rounded-xl bg-foreground/[0.04] px-3 py-2">
-        <div className="flex min-h-[50px] flex-col justify-center">
+      {/* Mobile: info card stacked above a full-width square map.
+          Desktop: a compact info SQUARE on the left + a wide map RECTANGLE on
+          the right (equal heights). The square (self-start + aspect-square)
+          fixes the row height; the map (flex-1, stretched) fills the rest as a
+          landscape rectangle — a sensible, professional map size. */}
+      <div className={desktop ? "flex flex-row gap-4" : "contents"}>
+      {/* Info card ("BlurredBox") — a tidy square on desktop */}
+      <div
+        className={`rounded-xl bg-foreground/[0.04] ${
+          desktop
+            ? "aspect-square shrink-0 grow-0 basis-[36%] self-start p-5"
+            : "px-3 py-2"
+        }`}
+      >
+        <div className="flex h-full min-h-[50px] flex-col justify-start gap-1">
           {name || address || place.lat != null ? (
             <>
               <div className="flex items-center gap-1.5">
-                <span className="flex-1 truncate text-sm font-bold text-foreground">
+                {/* Desktop = Nuxt Map.vue: name 16px / 700, wraps. */}
+                <span
+                  className={
+                    desktop
+                      ? "flex-1 font-bold text-foreground"
+                      : "flex-1 truncate text-sm font-bold text-foreground"
+                  }
+                >
                   {name || address}
                 </span>
                 <OpenInMapsButton url={url} label={t("openInMaps")} />
                 <CopyAddressButton text={address || name} label={t("copyAddress")} />
               </div>
               {address ? (
-                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                // Desktop: address 16px / full page colour / unclamped.
+                <p
+                  className={
+                    desktop
+                      ? "mt-1 text-foreground"
+                      : "mt-1 line-clamp-2 text-xs text-muted-foreground"
+                  }
+                >
                   {address}
                 </p>
               ) : null}
               {showReviews ? (
                 <div className="mt-1 flex items-center gap-2">
-                  <span className="text-sm font-bold text-foreground">
+                  {/* Desktop: rating value 16px / 700. */}
+                  <span
+                    className={
+                      desktop ? "font-bold text-foreground" : "text-sm font-bold text-foreground"
+                    }
+                  >
                     {rating}
                   </span>
                   <span className="flex gap-px">
@@ -84,7 +122,11 @@ export function LocationBlockView({ block }: { block: LocationBlock }) {
                       />
                     ))}
                   </span>
-                  <span className="text-xs text-muted-foreground underline">
+                  {/* Desktop = Nuxt: 16px, #458aff, underline. */}
+                  <span
+                    className={desktop ? "underline" : "text-xs text-muted-foreground underline"}
+                    style={desktop ? { color: "#458aff" } : undefined}
+                  >
                     {`${reviewsTotal ?? 0} ${t("reviews")}`}
                   </span>
                 </div>
@@ -96,9 +138,14 @@ export function LocationBlockView({ block }: { block: LocationBlock }) {
         </div>
       </div>
 
-      {/* Square map (AspectRatio 1, radius 12) */}
+      {/* Map — a square below the card on mobile, a wide rectangle beside it
+          (flex-1, stretched to the info square's height) on desktop. */}
       {block.hide !== true ? (
-        <div className="mt-3 aspect-square w-full overflow-hidden rounded-xl bg-foreground/5">
+        <div
+          className={`overflow-hidden rounded-xl bg-foreground/5 ${
+            desktop ? "min-w-0 flex-1 self-stretch" : "mt-3 aspect-square w-full"
+          }`}
+        >
           {place.lat != null && place.lng != null ? (
             <StaticMap lat={place.lat} lng={place.lng} />
           ) : (
@@ -108,6 +155,7 @@ export function LocationBlockView({ block }: { block: LocationBlock }) {
           )}
         </div>
       ) : null}
+      </div>
     </div>
   );
 }

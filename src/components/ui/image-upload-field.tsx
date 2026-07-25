@@ -6,6 +6,7 @@ import { Loader2, Pencil, Plus, ImageIcon } from "lucide-react";
 import { uploadImage } from "@/lib/api/media";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { ImageCropper } from "./image-cropper";
+import { croppedUploadFile } from "@/lib/builder/crop-image";
 
 /**
  * Square image picker that crops 1:1 (like the mobile ImageCropper) then uploads
@@ -38,7 +39,7 @@ export function ImageUploadField({
   async function onCropped(blob: Blob) {
     setBusy(true);
     try {
-      const file = new File([blob], "icon.jpg", { type: "image/jpeg" });
+      const file = croppedUploadFile(blob, "icon");
       onChange(await uploadImage(file));
     } catch {
       setFailed(true);

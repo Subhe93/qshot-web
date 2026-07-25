@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronRight, Image as ImageIcon, Type, Baseline } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { ChevronRight, Image as ImageIcon, Type, Baseline, Palette } from "lucide-react";
 import { useEditorStore } from "@/stores/editor-store";
 import { ColorValueField, ColorPickerField } from "@/components/ui/color-picker";
 import { solid, primaryArgb, type ColorValue } from "@/lib/builder/color-value";
 import { DEFAULT_FONT, ensureGoogleFonts, fontStack } from "@/lib/builder/google-fonts";
+import { websiteTemplateOf } from "@/lib/builder/website-templates";
 import { FontSelectorSheet } from "./FontSelectorSheet";
 
 const WHITE = 0xffffffff;
@@ -20,15 +22,25 @@ function isBright(argb: number): boolean {
 }
 
 /**
- * Per-website Style page — mirrors the mobile WebsiteStyleLayout: a "General"
- * grouped list editing the page background (solid/gradient), the website font,
- * and the font color, with the same auto-contrast (flip the font color when it
- * would clash with the new background).
+ * Per-website Style page — mirrors the mobile WebsiteStyleLayout: a "Theme"
+ * group (Templates row → opens the ThemeSheet) above a "General" grouped list
+ * editing the page background (solid/gradient), the website font, and the
+ * font color, with the same auto-contrast (flip the font color when it would
+ * clash with the new background).
  */
-export function WebsiteStylePanel() {
+export function WebsiteStylePanel({
+  onOpenTemplates,
+}: {
+  /** Opens the ThemeSheet (the host first returns to the website view, as the
+   *  mobile style page pops with `ThemeSheet.openSignal` — two live-previewing
+   *  surfaces can't stack). */
+  onOpenTemplates?: () => void;
+}) {
+  const tt = useTranslations("builder.templates");
   const settings = useEditorStore((s) => s.settings);
   const update = useEditorStore((s) => s.updateSettings);
   const [fontOpen, setFontOpen] = useState(false);
+  const currentTemplate = websiteTemplateOf(settings.template?.id);
 
   const fontFamily = settings.font_family ?? DEFAULT_FONT;
   const fontColor = settings.font_color ?? WHITE;
@@ -51,6 +63,33 @@ export function WebsiteStylePanel() {
 
   return (
     <div className="mx-auto max-w-md p-4">
+      {/* Theme group — mobile website_style_layout.dart puts it above General.
+          Rendered only when the host provides an opener: BuilderShell passes
+          `undefined` while TEMPLATES_ENABLED is off (feature temporarily
+          hidden), which removes the whole group as if it didn't exist. */}
+      {onOpenTemplates && (
+        <>
+          <p className="mb-2 px-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {tt("theme")}
+          </p>
+          <div className="mb-6 overflow-hidden rounded-2xl bg-card">
+            <Row
+              icon={<IconBox color="#FF9500"><Palette className="size-[17px]" /></IconBox>}
+              label={tt("title")}
+              onClick={onOpenTemplates}
+              trailing={
+                <div className="flex items-center gap-1">
+                  <span className="max-w-[130px] truncate text-[13px] text-muted-foreground">
+                    {currentTemplate ? tt(`names.${currentTemplate.id}`) : tt("theme")}
+                  </span>
+                  <ChevronRight className="size-5 text-muted-foreground/60 rtl:rotate-180" />
+                </div>
+              }
+            />
+          </div>
+        </>
+      )}
+
       <p className="mb-2 px-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         General
       </p>

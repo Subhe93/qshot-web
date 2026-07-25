@@ -2,14 +2,17 @@
 
 import { Check } from "lucide-react";
 import { heroDefaults } from "@/lib/builder/hero-defaults";
+import { mergeUserContent } from "@/lib/builder/template-apply";
 import { cn } from "@/lib/utils";
 import type { HeroStyle, WebsiteSettings } from "@/lib/types/profile";
 
 /**
  * StyleTab — a 3-column grid of the 7 hero styles, each shown with the same
  * static preview thumbnail the mobile app uses (assets/image/st1..st7 →
- * /style-previews/*). Selecting a style applies that style's full template
- * defaults (mobile resets the hero to the chosen template).
+ * /style-previews/*). Selecting a style applies that style's defaults with
+ * the user's content carried over (mobile `HeroSettingsCubit.set style` at
+ * origin/dev runs `mergeUserContent(current, defaults)` — texts, urls and
+ * uploaded images survive; visual fields reset to the style's defaults).
  */
 
 const STYLES: { id: HeroStyle; label: string; img: string }[] = [
@@ -40,14 +43,26 @@ export function StyleTab({
             key={id}
             type="button"
             onClick={() => {
-              // Apply the style's template defaults, but PRESERVE the user's
-              // name / bio / floating button (mobile `set style` resets the hero
-              // but leaves these untouched — heroDefaults ships empty ones).
-              const patch: Partial<WebsiteSettings> = { ...heroDefaults(id) };
-              delete patch.name;
-              delete patch.bio;
-              delete patch.floating_button;
-              update(patch);
+              // Mobile `set style`: merge user content into the style's
+              // defaults, then REPLACE exactly these hero fields with the
+              // merged values (fields the style doesn't use become null, as
+              // mobile serializes them). name / bio / floating button / font
+              // are left untouched by the cubit.
+              const merged = mergeUserContent(settings, heroDefaults(id));
+              update({
+                style: merged.style,
+                background: merged.background ?? null,
+                header: merged.header ?? null,
+                cover_photo: merged.cover_photo ?? null,
+                logo: merged.logo ?? null,
+                profile_picture: merged.profile_picture ?? null,
+                title: merged.title ?? null,
+                text: merged.text ?? null,
+                button1: merged.button1 ?? null,
+                button2: merged.button2 ?? null,
+                font_color: merged.font_color ?? null,
+                card_style: merged.card_style ?? null,
+              });
             }}
             className={cn(
               "relative flex flex-col items-center gap-1.5 rounded-2xl bg-surface p-1.5 transition-all",

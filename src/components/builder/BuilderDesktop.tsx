@@ -12,7 +12,7 @@ import {
   Loader2,
   Check,
   Save,
-  Plus,
+  Blocks,
   Files,
   Paintbrush,
   Settings as SettingsIcon,
@@ -52,6 +52,7 @@ export function BuilderDesktop({
   saved,
   dirty,
   onSave,
+  onOpenTemplates,
 }: {
   id: string;
   profileUrl: string;
@@ -60,6 +61,8 @@ export function BuilderDesktop({
   saved: boolean;
   dirty: boolean;
   onSave: () => void;
+  /** Opens the ThemeSheet (hosted by BuilderShell, overlays the preview). */
+  onOpenTemplates?: () => void;
 }) {
   const t = useTranslations("builder");
   const tc = useTranslations("common");
@@ -107,7 +110,7 @@ export function BuilderDesktop({
   } else if (tab === "pages") {
     leftBody = <PagesPanel profileId={id} onOpenPage={() => setTab("elements")} />;
   } else if (tab === "style") {
-    leftBody = <WebsiteStylePanel />;
+    leftBody = <WebsiteStylePanel onOpenTemplates={onOpenTemplates} />;
   } else if (tab === "settings") {
     leftBody = <WebsiteSettingsPanel />;
   } else {
@@ -125,16 +128,19 @@ export function BuilderDesktop({
         <div
           className={cn(
             "flex shrink-0 items-center gap-2",
-            !previewEnabled && "w-[380px]",
+            !previewEnabled && "w-[410px]",
           )}
         >
           <button
             type="button"
             onClick={() => router.back()}
             aria-label={tc("back")}
-            className="flex size-9 items-center justify-center rounded-full text-foreground hover:bg-muted"
+            className="flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-foreground hover:bg-muted"
           >
             <ArrowLeft className="size-5 rtl:rotate-180" />
+            <span className="text-[9px] font-medium leading-none text-muted-foreground">
+              {t("backToDashboard")}
+            </span>
           </button>
         </div>
 
@@ -216,10 +222,10 @@ export function BuilderDesktop({
       <div className="flex min-h-0 flex-1">
         {/* ── LEFT edit panel ── */}
         {!previewEnabled && (
-          <aside className="flex w-[380px] shrink-0 border-e border-border bg-card">
+          <aside className="flex w-[410px] shrink-0 border-e border-border bg-card">
             {/* Icon rail */}
             <div className="flex w-16 shrink-0 flex-col items-center gap-1 border-e border-border py-3">
-              <RailBtn label={t("nav.add")} Icon={Plus} active={!selectedId && !heroTab && tab === "elements"} onClick={() => goTab("elements")} />
+              <RailBtn label={t("nav.add")} Icon={Blocks} active={!selectedId && !heroTab && tab === "elements"} onClick={() => goTab("elements")} />
               <RailBtn label={t("nav.pages")} Icon={Files} active={!selectedId && !heroTab && tab === "pages"} onClick={() => goTab("pages")} />
               <RailBtn label={t("nav.style")} Icon={Paintbrush} active={!selectedId && !heroTab && tab === "style"} onClick={() => goTab("style")} />
               <RailBtn label={t("nav.settings")} Icon={SettingsIcon} active={!selectedId && !heroTab && tab === "settings"} onClick={() => goTab("settings")} />

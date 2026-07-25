@@ -117,7 +117,7 @@
     "careful": "请注意",
     "coverSizeWarning": "所选封面尺寸可能会隐藏部分文本和按钮。",
     "confirm": "确认",
-    "addBlock": "Add block",
+    "addBlock": "区块",
     "save": "Save",
     "saved": "Saved",
     "emptyCanvas": "Your page is empty. Add a block to start.",
@@ -203,7 +203,7 @@
     "nav": {
       "home": "首页",
       "pages": "页面",
-      "add": "添加区块",
+      "add": "区块",
       "style": "样式",
       "settings": "设置",
       "comingSoon": "Coming soon",
@@ -432,6 +432,8 @@
     },
     "bookingBlock": {
       "bookNow": "立即预订",
+      "notReadyTitle": "预约尚未设置",
+      "notReadyDesc": "打开预约设置以启用，然后至少创建一项服务（和一位服务者）。在此之前，预约小部件不会显示在你的网站上。",
       "dropdown": "下拉菜单"
     },
     "pages": {
@@ -449,7 +451,41 @@
       "urlPlaceholder": "page-url",
       "urlTaken": "该网址已被占用"
     },
-    "dropdown": "下拉菜单"
+    "dropdown": "下拉菜单",
+    "backToDashboard": "主页",
+    "templates": {
+      "title": "模板",
+      "choose": "选择模板",
+      "startBlank": "从空白开始",
+      "applied": "模板已应用",
+      "switchMessage": "这将重新设计您的网站样式。您的内容和品牌颜色保持不变。",
+      "undo": "撤销",
+      "brandColor": "品牌颜色",
+      "customColor": "自定义颜色",
+      "theme": "主题",
+      "apply": "应用",
+      "names": {
+        "restaurant": "餐厅与咖啡馆",
+        "salon": "美发沙龙",
+        "creator": "创作者",
+        "shop": "商店",
+        "professional": "专业人士"
+      },
+      "sections": {
+        "menu": "菜单",
+        "reviews": "评论",
+        "booking": "预约",
+        "videos": "视频",
+        "links": "链接",
+        "products": "产品",
+        "about": "关于",
+        "contact": "联系方式",
+        "name": "名称",
+        "email": "电子邮件",
+        "message": "消息",
+        "gallery": "图库"
+      }
+    }
   },
   "nav": {
     "profiles": "网站",
@@ -457,6 +493,7 @@
     "settings": "设置",
     "scanQr": "Scan QR",
     "bookings": "预约",
+    "smartLinks": "智能链接",
     "admin": "管理员"
   },
   "settings": {
@@ -528,7 +565,36 @@
       "noIncoming": "No incoming requests",
       "noOutgoing": "No outgoing requests"
     },
-    "freePlan": "Free plan"
+    "freePlan": "Free plan",
+    "changeEmail": {
+      "title": "更改电子邮件",
+      "intro": "请输入您的新电子邮件和密码",
+      "newEmail": "新电子邮件地址",
+      "newEmailHint": "请输入您的新电子邮件",
+      "change": "更改",
+      "done": "完成",
+      "gotIt": "知道了！",
+      "submit": "提交",
+      "required": "必填",
+      "invalidEmail": "哎呀！无效的电子邮件地址",
+      "password": "密码",
+      "passwordHint": "请输入您的密码",
+      "awaiting": "等待确认",
+      "cancel": "取消更改邮箱",
+      "canceled": "邮箱更改已取消",
+      "sent": "确认邮件已发送",
+      "sentTo": "我们已向 {email} 发送确认链接。请确认以完成邮箱更改。",
+      "resend": "重新发送",
+      "resendIn": "{seconds} 秒后重新发送",
+      "changedTitle": "邮箱已更改",
+      "changedDesc": "您的账户邮箱已更新。",
+      "invalidTitle": "链接已失效",
+      "invalidDesc": "此确认链接无效或已被使用。",
+      "expiredTitle": "链接已过期",
+      "expiredDesc": "此链接已过期。请重新申请更改邮箱。",
+      "conflictTitle": "该邮箱已不可用",
+      "conflictDesc": "在您的请求等待期间，其他人已注册了该邮箱。"
+    }
   },
   "qr": {
     "title": "生成二维码",
@@ -1068,5 +1134,51 @@
       }
     },
     "websiteSection": "管理员"
+  },
+  "smartLinks": {
+    "refreshCover": "刷新封面",
+    "title": "智能链接",
+    "subtitle": "创建一个链接，在每台设备上打开正确的原生应用。",
+    "create": "创建链接",
+    "edit": "编辑链接",
+    "empty": "还没有智能链接",
+    "emptyDesc": "创建您的第一个智能链接，通过单个网址直接打开原生应用。",
+    "urlLabel": "源网址",
+    "urlPlaceholder": "粘贴 YouTube、Spotify、TikTok… 链接",
+    "nameLabel": "名称",
+    "namePlaceholder": "为此链接命名",
+    "slugLabel": "自定义短链",
+    "slugPlaceholder": "summer-promo",
+    "slugAvailable": "可用",
+    "slugTaken": "已被占用",
+    "slugChecking": "正在检查可用性…",
+    "slugSuggestion": "试试 {suggestion}",
+    "typeLabel": "类型",
+    "save": "保存",
+    "delete": "删除",
+    "deleteConfirm": "删除此智能链接？此操作无法撤销。",
+    "copy": "复制链接",
+    "copied": "已复制",
+    "open": "打开",
+    "shareUrl": "分享网址",
+    "clicks": "{count, plural, other {# 次点击}}",
+    "statsTab": "统计",
+    "linksTab": "链接",
+    "error": "出了点问题，请重试。",
+    "saved": "已保存",
+    "stats": {
+      "empty": "此期间暂无点击。",
+      "totalClicks": "总点击数",
+      "today": "今天",
+      "last7": "最近 7 天",
+      "last30": "最近 30 天",
+      "byPlatform": "按平台",
+      "byLink": "按链接",
+      "daily": "每日点击",
+      "days": "最近 {days} 天"
+    },
+    "preview": {
+      "noMetadata": "此链接暂无预览。"
+    }
   }
 }

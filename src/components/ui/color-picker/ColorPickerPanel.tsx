@@ -180,13 +180,19 @@ export function ColorPickerPanel({
         onSelect={selectArgb}
       />
 
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1" onClick={onCancel}>
-          {t("cancel")}
-        </Button>
-        <Button size="sm" className="flex-1" onClick={apply}>
-          {t("apply")}
-        </Button>
+      {/* Sticky action bar — stays visible while the picker scrolls (the popover
+          scrolls when it doesn't fit). The upward fade above it hints that more
+          options continue behind/above the bar, so the user knows to scroll. */}
+      <div className="sticky bottom-[-10px] z-10 -mx-3 -mb-3 border-t border-border bg-card px-3 pb-3 pt-2.5">
+        <div className="pointer-events-none absolute inset-x-0 -top-5 h-5 bg-gradient-to-t from-card to-transparent" />
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="flex-1" onClick={onCancel}>
+            {t("cancel")}
+          </Button>
+          <Button size="sm" className="flex-1" onClick={apply}>
+            {t("apply")}
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -131,27 +131,51 @@ export interface CardStyle {
   color?: ArgbColor | null;
 }
 
+/**
+ * Reference to the website template a site was created from (or last
+ * re-stamped with) and the brand color the user picked (mobile:
+ * settings_entity.dart TemplateRef). Palette colors are baked into the
+ * blocks/settings as literal values at apply time — this object is
+ * editor-side memory only: it highlights the current template in the picker,
+ * carries the brand color over when switching templates, and drives
+ * template-aware recoloring.
+ */
+export interface TemplateRef {
+  id: string;
+  /** ARGB32 int of the RAW user-picked brand color (not a palette color). */
+  brand_color: number;
+}
+
 export interface WebsiteSettings {
   website_logo?: string | null;
   website_name?: string | null;
   style?: HeroStyle;
-  logo?: Logo;
-  header?: Header;
+  logo?: Logo | null;
+  header?: Header | null;
   /** Legacy/un-modeled key seen in real data — preserved verbatim (correction ❷). */
   header_text?: HeroText | null;
-  profile_picture?: ProfilePicture;
-  cover_photo?: CoverPhoto;
-  title?: HeroText;
-  text?: HeroText;
-  button1?: HeroButton;
-  button2?: HeroButton;
-  background?: PageBackground;
+  profile_picture?: ProfilePicture | null;
+  cover_photo?: CoverPhoto | null;
+  /* Hero content slots — styles that don't use a slot store an explicit `null`
+     (mobile toJson writes `title?.toJson()` etc.), so every reader must
+     tolerate null/absent (render nothing), matching mobile commit a3005680. */
+  title?: HeroText | null;
+  text?: HeroText | null;
+  button1?: HeroButton | null;
+  button2?: HeroButton | null;
+  background?: PageBackground | null;
   name?: NameField;
   bio?: BioField;
   floating_button?: FloatingButton;
   font_family?: string | null;
   font_color?: ArgbColor | null;
-  card_style?: CardStyle;
+  card_style?: CardStyle | null;
+  /**
+   * Website-template memory (sits next to card_style in the mobile JSON).
+   * Absent on sites that never applied a template; mobile treats a missing
+   * key and null identically.
+   */
+  template?: TemplateRef | null;
   can_save_contact?: boolean;
   index_in_google?: boolean;
   /** Website verification flag (mobile: EditorConfig.verified). Shows a verified badge next to the name. */

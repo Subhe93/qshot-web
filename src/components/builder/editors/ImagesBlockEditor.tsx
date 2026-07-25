@@ -40,6 +40,8 @@ import type {
   ImagesLayoutType,
 } from "@/lib/types/blocks";
 import { ImageUploader } from "@/components/builder/hero/CoverTab";
+import { ImageCropper } from "@/components/ui/image-cropper";
+import { croppedUploadFile } from "@/lib/builder/crop-image";
 import {
   SheetTabBar,
   GroupedCard,
@@ -77,15 +79,31 @@ const LAYOUTS: ReadonlyArray<{
 ];
 
 /**
+ * Per-layout crop aspect ratio (width/height), keyed by layout_type. Mirrors the
+ * mobile `cardAspectRatio` and the web viewer's per-card aspect. `null` =
+ * singleSizable (free / no fixed crop). Used to decide whether a layout change
+ * needs the images re-cropped.
+ */
+const ASPECT = Object.fromEntries(
+  LAYOUTS.map((l) => [l.type, l.aspect]),
+) as Record<ImagesLayoutType, number | null>;
+
+/**
  * Image block editor, mirroring the mobile ImagesSettingsSheet:
  * Sort (add/reorder/hide/replace/delete images) / Layout (swipe picker of the
  * five layout types) / Settings (duplicate + background color).
  */
 export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
   const t = useTranslations("builder");
+  const tc = useTranslations("common");
   const updateBlock = useEditorStore((s) => s.updateBlock);
   const addBlock = useEditorStore((s) => s.addBlock);
   const [tab, setTab] = useState<Tab>("sort");
+  // Sequential re-crop queue after a layout change to a different aspect
+  // (mobile cropImagesRect). `index` walks the items list one image at a time.
+  const [recrop, setRecrop] = useState<{ aspect: number; index: number } | null>(
+    null,
+  );
 
   const items = block.items ?? [];
   const setBlock = (patch: Partial<ImagesBlock>) => updateBlock(block.id, patch);
@@ -104,6 +122,11 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
       {tab === "sort" && (
         <SortTab
           items={items}
+          // Mobile _addItems crops at block.layoutType.cardAspectRatio — the
+          // CURRENT layout drives the crop (carousel/cards/grid 1:1, shorts
+          // 9:16, swiper/list 16:9). singleSizable has no fixed aspect (null);
+          // fall back to 16:9 (the image stays freely resizable via its rect).
+          aspect={ASPECT[block.layout_type ?? "cards"] ?? 16 / 9}
           onAdd={(url) =>
             setItems([...items, { id: nanoid(), url, hidden: false }])
           }
@@ -126,7 +149,19 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
             svg: l.svg,
           }))}
           value={block.layout_type ?? "cards"}
-          onChange={(v) => setBlock({ layout_type: v })}
+          onChange={(v) => {
+            const current = block.layout_type ?? "cards";
+            const nextAspect = ASPECT[v];
+            const changedAspect =
+              nextAspect != null && nextAspect !== ASPECT[current];
+            // Apply the new layout immediately (live preview, matching the mobile
+            // page-change preview). If the crop aspect changed and there are
+            // images, kick off a sequential re-crop starting at the first image.
+            setBlock({ layout_type: v });
+            if (changedAspect && items.length > 0) {
+              setRecrop({ aspect: nextAspect, index: 0 });
+            }
+          }}
         />
       )}
 
@@ -147,6 +182,41 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
           />
         </GroupedCard>
       )}
+
+      {/* Re-crop each image to the newly chosen layout aspect (mobile
+          cropImagesRect). Runs sequentially; cancelling stops the queue but
+          keeps the already-applied layout and any images cropped so far. */}
+      {recrop && items[recrop.index] && (
+        <ImageCropper
+          key={recrop.index}
+          // Load through our same-origin proxy — the CDN has no CORS headers, so
+          // a direct CDN <img> would taint the canvas and break toBlob() export.
+          src={`/api/image-proxy?url=${encodeURIComponent(
+            cdnUrl(items[recrop.index].url),
+          )}`}
+          title={t("cropTitle")}
+          cancelLabel={tc("cancel")}
+          confirmLabel={t("cropConfirm")}
+          aspect={recrop.aspect}
+          onCancel={() => setRecrop(null)}
+          onCropped={async (blob) => {
+            const idx = recrop.index;
+            const file = croppedUploadFile(blob, "image");
+            const uploaded = await uploadImage(file);
+            if (uploaded) {
+              // Crop is baked into the uploaded pixels, so clear any stale rect
+              // (matches the add-image flow, which stores no rect).
+              setItems(
+                items.map((it, i) =>
+                  i === idx ? { ...it, url: uploaded, rect: null } : it,
+                ),
+              );
+            }
+            const next = idx + 1;
+            setRecrop(next < items.length ? { aspect: recrop.aspect, index: next } : null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -155,6 +225,7 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
 
 function SortTab({
   items,
+  aspect,
   onAdd,
   onReplace,
   onReorder,
@@ -162,6 +233,8 @@ function SortTab({
   onDelete,
 }: {
   items: ImageItem[];
+  /** Crop aspect for add/replace — the current layout's cardAspectRatio. */
+  aspect: number;
   onAdd: (url: string) => void;
   onReplace: (id: string, url: string) => void;
   onReorder: (next: ImageItem[]) => void;
@@ -182,13 +255,13 @@ function SortTab({
 
   return (
     <div className="space-y-2">
-      {/* Add image (mobile: pickMultiImage → crop → upload). The web uploader
-          crops + uploads a single image; appended to the list. */}
+      {/* Add image (mobile: pickMultiImage → crop at the layout's aspect →
+          upload). The web uploader crops + uploads a single image; appended. */}
       <ImageUploader
         path={undefined}
         onUploaded={onAdd}
         onDelete={() => {}}
-        aspect={16 / 9}
+        aspect={aspect}
         rounded="rounded-xl"
       />
 
@@ -199,6 +272,7 @@ function SortTab({
               <SortRow
                 key={item.id}
                 item={item}
+                aspect={aspect}
                 onReplace={(url) => onReplace(item.id!, url)}
                 onToggleHide={() => onToggleHide(item.id!, !item.hidden)}
                 onDelete={() => onDelete(item.id!)}
@@ -213,11 +287,14 @@ function SortTab({
 
 function SortRow({
   item,
+  aspect,
   onReplace,
   onToggleHide,
   onDelete,
 }: {
   item: ImageItem;
+  /** Crop aspect (the current layout's cardAspectRatio). */
+  aspect: number;
   onReplace: (url: string) => void;
   onToggleHide: () => void;
   onDelete: () => void;
@@ -227,17 +304,30 @@ function SortRow({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id! });
   const [busy, setBusy] = useState(false);
+  // Replacement goes through the same crop-at-layout-aspect step as adding
+  // (mobile replaces via the image editor too — never a raw upload).
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
-  async function onPickReplace(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPickReplace(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    setCropSrc(URL.createObjectURL(file));
+  }
+
+  function closeCropper() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+  }
+
+  async function onCropped(blob: Blob) {
     setBusy(true);
     try {
-      const url = await uploadImage(file);
+      const url = await uploadImage(croppedUploadFile(blob, "image"));
       if (url) onReplace(url);
     } finally {
       setBusy(false);
+      closeCropper();
     }
   }
 
@@ -300,6 +390,18 @@ function SortRow({
       >
         <Trash2 className="size-4" />
       </button>
+
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc}
+          title={t("cropTitle")}
+          cancelLabel={tc("cancel")}
+          confirmLabel={t("cropConfirm")}
+          aspect={aspect}
+          onCancel={closeCropper}
+          onCropped={onCropped}
+        />
+      )}
     </div>
   );
 }

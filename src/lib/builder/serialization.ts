@@ -374,6 +374,11 @@ export function serializeBlocks(blocks: Block[]): Record<string, unknown>[] {
  * Settings are largely passthrough (the type mirrors the JSON). We only ensure
  * a default style and keep every other key — including the legacy `header_text`
  * and any unknown keys — verbatim.
+ *
+ * `template` ({id, brand_color} | null — mobile TemplateRef) rides this
+ * passthrough like `card_style`: a mobile-saved value round-trips untouched,
+ * and web never invents a `"template": null` on sites that never had the key
+ * (mobile fromJson treats missing and null identically).
  */
 export function parseSettings(input: unknown): WebsiteSettings {
   const raw = (input ?? {}) as Raw;

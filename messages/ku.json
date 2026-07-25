@@ -117,7 +117,7 @@
     "careful": "Hay jê hebe",
     "coverSizeWarning": "Mezinahiya berfa hilbijartî dibe ku hin nivîs û bişkokan veşêre.",
     "confirm": "Peyitandin",
-    "addBlock": "Add block",
+    "addBlock": "Blok",
     "save": "Save",
     "saved": "Saved",
     "emptyCanvas": "Your page is empty. Add a block to start.",
@@ -203,7 +203,7 @@
     "nav": {
       "home": "Mal",
       "pages": "Rûpel",
-      "add": "Blok lê zêde bike",
+      "add": "Blok",
       "style": "Stîl",
       "settings": "Mîheng",
       "comingSoon": "Coming soon",
@@ -432,6 +432,8 @@
     },
     "bookingBlock": {
       "bookNow": "Niha Cî Veqetîne",
+      "notReadyTitle": "Rezervkirin hîna nehatiye sazkirin",
+      "notReadyDesc": "Mîhengên rezervkirinê veke da ku çalak bibe, paşê bi kêmî yek xizmet (û pêşkêşkerek) çêbike. Widgeta rezervkirinê dê li ser malpera te xuya nebe heta ku tu wê nekî.",
       "dropdown": "Menuya daketî"
     },
     "pages": {
@@ -449,7 +451,41 @@
       "urlPlaceholder": "page-url",
       "urlTaken": "ئەم بەستەرە بەکارهاتووە"
     },
-    "dropdown": "Menuya daketî"
+    "dropdown": "Menuya daketî",
+    "backToDashboard": "Serûpel",
+    "templates": {
+      "title": "قاڵبەکان",
+      "choose": "قاڵبێک هەڵبژێرە",
+      "startBlank": "بە بەتاڵی دەست پێبکە",
+      "applied": "قاڵب جێبەجێکرا",
+      "switchMessage": "ئەمە ستایلی ماڵپەڕەکەت دەگۆڕێت. ناوەڕۆک و ڕەنگی براندەکەت دەمێننەوە.",
+      "undo": "گەڕانەوە",
+      "brandColor": "ڕەنگی براند",
+      "customColor": "ڕەنگی تایبەت",
+      "theme": "Tema",
+      "apply": "Bisepîne",
+      "names": {
+        "restaurant": "چێشتخانە و کافێ",
+        "salon": "سالۆن و سەرتاش",
+        "creator": "دروستکەر",
+        "shop": "فرۆشگا",
+        "professional": "پیشەیی"
+      },
+      "sections": {
+        "menu": "مینیو",
+        "reviews": "Nirxandin",
+        "booking": "Rezervkirin",
+        "videos": "ڤیدیۆکان",
+        "links": "بەستەرەکان",
+        "products": "Berhem",
+        "about": "دەربارە",
+        "contact": "Têkilî",
+        "name": "Nav",
+        "email": "E-name",
+        "message": "Peyam",
+        "gallery": "گەلەری"
+      }
+    }
   },
   "nav": {
     "profiles": "Malper",
@@ -457,6 +493,7 @@
     "settings": "Mîheng",
     "scanQr": "Scan QR",
     "bookings": "Rezervasyon",
+    "smartLinks": "Girêdanên jîr",
     "admin": "Rêvebir"
   },
   "settings": {
@@ -528,7 +565,36 @@
       "noIncoming": "No incoming requests",
       "noOutgoing": "No outgoing requests"
     },
-    "freePlan": "Free plan"
+    "freePlan": "Free plan",
+    "changeEmail": {
+      "title": "E-nameyê biguherîne",
+      "intro": "Ji kerema xwe e-name û şîfreya xwe ya nû binivîse",
+      "newEmail": "Navnîşana E-nameyê ya Nû",
+      "newEmailHint": "Ji kerema xwe e-nameya xwe ya nû binivîse",
+      "change": "Guherandin",
+      "done": "Qediya",
+      "gotIt": "Têgihiştim!",
+      "submit": "Bişîne",
+      "required": "Pêwîst e",
+      "invalidEmail": "Oops! Navnîşana e-nameyê nederbasdar e",
+      "password": "Şîfre",
+      "passwordHint": "Ji kerema xwe şîfreya xwe binivîse",
+      "awaiting": "Li benda pejirandinê",
+      "cancel": "Betalkirina guhertina e-nameyê",
+      "canceled": "Guhertina e-nameyê hate betalkirin",
+      "sent": "E-nameya pejirandinê hate şandin",
+      "sentTo": "Me girêdanek pejirandinê şand {email}. Wê bipejirîne da ku guhertina e-nameya te temam bibe.",
+      "resend": "Ji nû ve bişîne",
+      "resendIn": "Ji nû ve bişîne di {seconds} ç de",
+      "changedTitle": "E-name hate guhertin",
+      "changedDesc": "E-nameya hesabê te hate nûkirin.",
+      "invalidTitle": "Girêdan êdî ne derbasdar e",
+      "invalidDesc": "Ev girêdana pejirandinê ne derbasdar e an jixwe hatiye bikaranîn.",
+      "expiredTitle": "Dema girêdanê qediya",
+      "expiredDesc": "Dema vê girêdanê qediya. Ji kerema xwe dîsa guhertina e-nameyê bixwaze.",
+      "conflictTitle": "E-name êdî ne berdest e",
+      "conflictDesc": "Kesekî din dema daxwaza te li benda bû ev e-name tomar kir."
+    }
   },
   "qr": {
     "title": "QR çêke",
@@ -1068,5 +1134,51 @@
       }
     },
     "websiteSection": "Rêvebir"
+  },
+  "smartLinks": {
+    "refreshCover": "نوێکردنەوەی بەرگ",
+    "title": "Girêdanên jîr",
+    "subtitle": "Girêdanek çêbike ku li ser her cîhazê sepana xwecihî ya rast vedike.",
+    "create": "Girêdan çêke",
+    "edit": "Girêdan biguherîne",
+    "empty": "Hêj girêdanên jîr tune",
+    "emptyDesc": "Girêdana xwe ya jîr a yekem çêbike da ku sepanên xwecihî rasterast ji yek URLê vebin.",
+    "urlLabel": "URLya çavkanî",
+    "urlPlaceholder": "Girêdanek YouTube, Spotify, TikTok… pêve bike",
+    "nameLabel": "Nav",
+    "namePlaceholder": "Navek li vê girêdanê bike",
+    "slugLabel": "Sluga taybet",
+    "slugPlaceholder": "promo-havîn",
+    "slugAvailable": "Berdest e",
+    "slugTaken": "Berê hatiye girtin",
+    "slugChecking": "Berdestbûn tê kontrolkirin…",
+    "slugSuggestion": "{suggestion} biceribîne",
+    "typeLabel": "Cure",
+    "save": "Tomar bike",
+    "delete": "Jê bibe",
+    "deleteConfirm": "Ev girêdana jîr jê bibe? Ev nayê vegerandin.",
+    "copy": "Girêdanê kopî bike",
+    "copied": "Hat kopîkirin",
+    "open": "Veke",
+    "shareUrl": "URLya parvekirinê",
+    "clicks": "{count, plural, one {# klîk} other {# klîk}}",
+    "statsTab": "Amar",
+    "linksTab": "Girêdan",
+    "error": "Tiştek çewt çû. Ji kerema xwe dîsa biceribîne.",
+    "saved": "Hat tomarkirin",
+    "stats": {
+      "empty": "هێشتا هیچ کلیکێک لەم ماوەیەدا نییە.",
+      "totalClicks": "Tevahiya klîkan",
+      "today": "Îro",
+      "last7": "7 rojên dawî",
+      "last30": "30 rojên dawî",
+      "byPlatform": "Li gorî platformê",
+      "byLink": "Li gorî girêdanê",
+      "daily": "Klîkên rojane",
+      "days": "{days} rojên dawî"
+    },
+    "preview": {
+      "noMetadata": "Ji bo vê girêdanê pêşdîtin tune."
+    }
   }
 }

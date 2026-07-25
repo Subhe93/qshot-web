@@ -105,6 +105,16 @@ export function GoogleReviewsImportSheet({
       onClose={onClose}
     >
       <div className="space-y-3">
+        {/* Hint: how to search effectively (business name + city). */}
+        <div className="flex items-start gap-2 rounded-xl bg-primary/5 p-2.5 text-xs text-muted-foreground">
+          <Info className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          <span>
+            Type your business name together with its city or area (e.g.
+            &ldquo;Sunrise Café, Dubai&rdquo;) so Google finds the exact place
+            faster.
+          </span>
+        </div>
+
         {/* Search box */}
         <div className="flex items-center gap-2 rounded-xl border border-input bg-surface px-3">
           <Search className="size-4 shrink-0 text-muted-foreground" />

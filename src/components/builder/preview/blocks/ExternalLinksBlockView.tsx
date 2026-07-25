@@ -2,6 +2,7 @@ import type { ExternalLinkItem, ExternalLinksBlock } from "@/lib/types/blocks";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { dirOf } from "@/lib/builder/text-direction";
 import { Foldable } from "../Foldable";
+import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
 /**
  * Read-only preview for ExternalLinksBlock ("ExternalLinksModule"), faithful to
@@ -68,6 +69,7 @@ function SwipeItem({
 }) {
   const title = item.title ?? "";
   const desc = item.description ?? "";
+  const desktop = useDesktopPreview();
   return (
     // Padding(vertical: 4, horizontal: 4) around each swipe item.
     <div className="size-full px-1 py-1">
@@ -86,18 +88,29 @@ function SwipeItem({
         )}
 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 ps-3 pe-1">
+          {/* Desktop = Nuxt externalLayout/Card.vue .card-title: 16px / 500 /
+              85%, wraps (no truncate). */}
           {title && (
             <span
               dir={dirOf(title)}
-              className="truncate text-sm font-medium text-foreground/80"
+              className={
+                desktop
+                  ? "font-medium text-foreground/85"
+                  : "truncate text-sm font-medium text-foreground/80"
+              }
             >
               {title}
             </span>
           )}
+          {/* Desktop = .card-desc: 14px / 60% / clamp 3. */}
           {desc && (
             <span
               dir={dirOf(desc)}
-              className="line-clamp-3 text-xs text-foreground/60"
+              className={
+                desktop
+                  ? "line-clamp-3 text-sm text-foreground/60"
+                  : "line-clamp-3 text-xs text-foreground/60"
+              }
             >
               {desc}
             </span>
@@ -130,26 +143,44 @@ function PromoItem({
 }) {
   const title = item.title ?? "";
   const desc = item.description ?? "";
+  const desktop = useDesktopPreview();
   return (
     <div className="flex items-center gap-3.5 overflow-hidden rounded-2xl bg-foreground/[0.06] p-4 text-foreground">
       <div className="flex min-w-0 flex-1 flex-col items-start">
+        {/* Desktop = Nuxt externalLayout/Promo.vue: 18px / 700 / inherit 100%. */}
         {title && (
           <span
             dir={dirOf(title)}
-            className="line-clamp-2 text-base font-bold leading-tight text-foreground/90"
+            className={
+              desktop
+                ? "line-clamp-2 text-lg font-bold leading-tight text-foreground"
+                : "line-clamp-2 text-base font-bold leading-tight text-foreground/90"
+            }
           >
             {title}
           </span>
         )}
+        {/* Desktop = .promo-desc: 14px / 70% / clamp 3. */}
         {desc && (
           <span
             dir={dirOf(desc)}
-            className="mt-1.5 line-clamp-3 text-xs leading-snug text-foreground/70"
+            className={
+              desktop
+                ? "mt-1.5 line-clamp-3 text-sm leading-snug text-foreground/70"
+                : "mt-1.5 line-clamp-3 text-xs leading-snug text-foreground/70"
+            }
           >
             {desc}
           </span>
         )}
-        <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-foreground/[0.12] py-2 ps-3.5 pe-3.5 text-xs font-semibold text-foreground/90">
+        {/* Desktop = .promo-pill: 14px / 600 / inherit 100%. */}
+        <span
+          className={
+            desktop
+              ? "mt-3 inline-flex items-center gap-1.5 rounded-full bg-foreground/[0.12] py-2 ps-3.5 pe-3.5 text-sm font-semibold text-foreground"
+              : "mt-3 inline-flex items-center gap-1.5 rounded-full bg-foreground/[0.12] py-2 ps-3.5 pe-3.5 text-xs font-semibold text-foreground/90"
+          }
+        >
           Open
           {showArrow && <Chevron size={10} opacity={0.9} />}
         </span>
@@ -176,6 +207,20 @@ function GridCard({
 }) {
   const title = item.title ?? "";
   const desc = item.description ?? "";
+  const desktop = useDesktopPreview();
+  // Desktop — grid (fixed) mirrors externalLayout/Grid.vue: title 16px / 500 /
+  // 100%, centered; desc 14px / 100%, centered (Marquee `text-sm`). largeGrid
+  // (fill) mirrors LargeGrid.vue: title 16px / 500 / 80%; desc 14px / 60%.
+  const titleClass = desktop
+    ? imageMode === "fixed"
+      ? "block truncate text-center font-medium text-foreground"
+      : "block truncate text-start font-medium text-foreground/80"
+    : "block truncate text-start text-sm font-medium text-foreground/80";
+  const descClass = desktop
+    ? imageMode === "fixed"
+      ? "block truncate text-center text-sm text-foreground"
+      : "block truncate text-start text-sm text-foreground/60"
+    : "block truncate text-start text-xs text-foreground/60";
   return (
     // largeGrid (fill) fills the square swiper card; grid (fixed) is a 120px tile.
     <div
@@ -194,18 +239,12 @@ function GridCard({
       </div>
       <div className="mt-2">
         {title && (
-          <span
-            dir={dirOf(title)}
-            className="block truncate text-start text-sm font-medium text-foreground/80"
-          >
+          <span dir={dirOf(title)} className={titleClass}>
             {title}
           </span>
         )}
         {desc && (
-          <span
-            dir={dirOf(desc)}
-            className="block truncate text-start text-xs text-foreground/60"
-          >
+          <span dir={dirOf(desc)} className={descClass}>
             {desc}
           </span>
         )}
@@ -215,6 +254,7 @@ function GridCard({
 }
 
 export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock }) {
+  const desktop = useDesktopPreview();
   const items = (block.links ?? []).filter((it) => !it.hidden);
   const title = block.title?.trim() ?? "";
   const layout = block.layout_type ?? "list";
@@ -336,9 +376,14 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
         header={
           title ? (
             <>
+              {/* Desktop = Nuxt shared module title (text-2xl / 400 / no pad). */}
               <h2
                 dir={dirOf(title)}
-                className="px-6 text-xl font-bold text-foreground"
+                className={
+                  desktop
+                    ? `${DESKTOP_BLOCK_TITLE} text-foreground`
+                    : "px-6 text-xl font-bold text-foreground"
+                }
               >
                 {title}
               </h2>

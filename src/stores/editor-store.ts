@@ -2,12 +2,21 @@ import { create } from "zustand";
 import type { Block } from "@/lib/types/blocks";
 import type { WebsiteSettings, HeroTab } from "@/lib/types/profile";
 
+/** Blocks+settings pair used for template preview/undo (mobile snapshots both). */
+export interface EditorSnapshot {
+  blocks: Block[];
+  settings: WebsiteSettings;
+}
+
 interface EditorState {
   profileId: string | null;
   name: string;
   settings: WebsiteSettings;
   blocks: Block[];
   selectedId: string | null;
+  /** Id of the block most recently added via `addBlock` — used to auto-scroll
+   * the canvas to it. Null after `load`/`reset` (no fresh addition to focus). */
+  lastAddedId: string | null;
   /** Which hero element is being edited (opens the hero settings sheet), or null. */
   heroTab: HeroTab | null;
   /** The sub-page being edited (null = the home page). Sub-pages have no hero. */
@@ -45,17 +54,27 @@ interface EditorState {
   moveBlock: (from: number, to: number) => void;
   setName: (name: string) => void;
   updateSettings: (patch: Partial<WebsiteSettings>) => void;
+  /**
+   * Commit a template apply (or live-preview state): replaces BOTH blocks and
+   * settings at once (mobile `putWebpage` + `putSettings`).
+   */
+  applyTemplate: (blocks: Block[], settings: WebsiteSettings) => void;
+  /** Capture blocks+settings for template preview/undo restore. */
+  takeSnapshot: () => EditorSnapshot;
+  /** Restore a previously captured snapshot (template preview cancel / Undo). */
+  restoreSnapshot: (snapshot: EditorSnapshot) => void;
   markSaved: () => void;
 }
 
 const emptySettings: WebsiteSettings = {};
 
-export const useEditorStore = create<EditorState>((set) => ({
+export const useEditorStore = create<EditorState>((set, get) => ({
   profileId: null,
   name: "",
   settings: emptySettings,
   blocks: [],
   selectedId: null,
+  lastAddedId: null,
   heroTab: null,
   pageId: null,
   pageName: "",
@@ -70,6 +89,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       settings: { ...emptySettings, ...settings },
       blocks,
       selectedId: null,
+      lastAddedId: null,
       heroTab: null,
       pageId: null,
       pageName: "",
@@ -131,6 +151,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     set((s) => ({
       blocks: [...s.blocks, block],
       selectedId: block.id,
+      lastAddedId: block.id,
       dirty: true,
     })),
 
@@ -161,6 +182,14 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   updateSettings: (patch) =>
     set((s) => ({ settings: { ...s.settings, ...patch }, dirty: true })),
+
+  applyTemplate: (blocks, settings) =>
+    set({ blocks, settings, selectedId: null, heroTab: null, dirty: true }),
+
+  takeSnapshot: () => ({ blocks: get().blocks, settings: get().settings }),
+
+  restoreSnapshot: ({ blocks, settings }) =>
+    set({ blocks, settings, dirty: true }),
 
   markSaved: () => set({ dirty: false }),
 }));

@@ -6,6 +6,7 @@ import { Circle, Square, RectangleHorizontal } from "lucide-react";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { uploadImage } from "@/lib/api/media";
 import { ImageCropper } from "@/components/ui/image-cropper";
+import { croppedUploadFile } from "@/lib/builder/crop-image";
 import { ColorPickerField } from "@/components/ui/color-picker";
 import { cn } from "@/lib/utils";
 import type { ImageShape, WebsiteSettings } from "@/lib/types/profile";
@@ -155,7 +156,7 @@ export function PictureTab({
           cropShape={cropShape === "circle" ? "round" : "rect"}
           onCancel={() => setCropShape(null)}
           onCropped={async (blob) => {
-            const file = new File([blob], "picture.jpg", { type: "image/jpeg" });
+            const file = croppedUploadFile(blob, "picture");
             const uploaded = await uploadImage(file);
             if (uploaded) setPic({ image_url: uploaded, shape: cropShape });
             else setPic({ shape: cropShape });

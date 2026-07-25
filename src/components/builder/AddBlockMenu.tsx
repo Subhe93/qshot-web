@@ -54,23 +54,24 @@ export function AddBlockMenu({ onAdded }: { onAdded?: () => void }) {
 
       {/* Basic blocks — round brand-gradient icon buttons, pinned to the bottom
           of the sheet (sticky) so the common blocks stay reachable while the rich
-          list scrolls above. */}
-      <div className="sticky bottom-0 z-10 -mx-4 -mb-4 border-t border-border bg-card px-4 pb-4 pt-3">
+          list scrolls above. The upward shadow makes it read as a floating footer
+          over scrollable content — hinting there's more above. */}
+      <div className="sticky bottom-[-15px] z-10 -mx-4 -mb-4 border-t border-border bg-card px-4 pb-4 pt-3 shadow-[0_-10px_22px_-10px_rgba(0,0,0,0.22)]">
         <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           {t("basics")}
         </p>
-        <div className="flex flex-wrap gap-1">
+        <div className="grid grid-cols-5 gap-1">
           {basic.map((e) => (
             <button
               key={e.type}
               type="button"
               onClick={() => add(e.make)}
-              className="flex w-[72px] shrink-0 flex-col items-center gap-1.5 rounded-xl py-2 transition-colors hover:bg-surface"
+              className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl py-2 transition-colors hover:bg-surface"
             >
-              <span className="flex size-[52px] items-center justify-center rounded-full bg-card shadow-[0_4px_16px_rgba(0,0,0,0.10)] ring-1 ring-border/60">
+              <span className="flex size-11.5 items-center justify-center rounded-full bg-card shadow-[0_4px_16px_rgba(0,0,0,0.10)] ring-1 ring-border/60">
                 <BrandIcon icon={e.icon} size={18} />
               </span>
-              <span className="text-[11px] font-medium text-foreground/70">
+              <span className="w-full truncate text-center text-[10px] font-medium text-foreground/70">
                 {t(`blocks.${e.labelKey}`)}
               </span>
             </button>
