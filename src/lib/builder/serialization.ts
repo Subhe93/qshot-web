@@ -335,7 +335,18 @@ export function parseBlock(input: unknown): Block {
     // Blocks not yet edited in the web builder: keep their raw shape, only
     // ensure id + common defaults so they round-trip and render (Phase 3).
     default:
-      return { ...raw, ...b, type: (type || "SpacerModule") } as Block;
+      // A blank/missing type degrades to a Spacer (as mobile's fromJson does).
+      // It MUST carry `space` — the server schema requires it, and the previous
+      // fallback emitted a Spacer without one, which blocked every later save.
+      if (!type) {
+        return {
+          ...raw,
+          ...b,
+          type: "SpacerModule",
+          space: asNum(raw.space, 50),
+        } as Block;
+      }
+      return { ...raw, ...b, type } as Block;
   }
 }
 

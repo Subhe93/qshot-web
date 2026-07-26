@@ -34,6 +34,7 @@ import {
   serializeBlocks,
   serializeSettings,
 } from "@/lib/builder/serialization";
+import { findUnknownBlocks } from "@/lib/builder/validate";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { takeAiDraft, type AiDraft } from "@/lib/ai/draft-handoff";
 import { BuilderDesktop } from "./BuilderDesktop";
@@ -274,6 +275,20 @@ export function BuilderShell({
 
   // The actual save — shared by the debounced auto-save and the manual button.
   const doSave = useCallback(async () => {
+    // The server validates the whole document against website-json-schema.json
+    // and rejects it wholesale. An unsupported block type is the one violation
+    // we can still be holding (we keep unknown blocks verbatim rather than
+    // destroying them) — name it instead of firing a doomed request.
+    const unknown = findUnknownBlocks(blocks);
+    if (unknown.length) {
+      setToast(
+        t("unsupportedBlock", {
+          position: unknown[0].index + 1,
+          type: unknown[0].type,
+        }),
+      );
+      return;
+    }
     setSaving(true);
     try {
       // Admin mode: persist the whole profile via the admin `update` endpoint —

@@ -485,7 +485,8 @@
         "message": "Messaggio",
         "gallery": "Galleria"
       }
-    }
+    },
+    "unsupportedBlock": "Il blocco {position} ({type}) non è supportato in questa versione — rimuovilo per salvare."
   },
   "nav": {
     "profiles": "Sito web",

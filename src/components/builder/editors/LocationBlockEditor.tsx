@@ -294,8 +294,17 @@ function writeCoord(
   key: "lat" | "lng",
   raw: string,
 ) {
-  const parsed = raw.trim() === "" ? undefined : Number(raw);
-  const coord = parsed != null && Number.isFinite(parsed) ? parsed : raw;
+  // NEVER store a coordinate the server would reject. The schema types lat/lng
+  // as `number` AND bounds them (lat ±90, lng ±180); the old `: raw` fallback
+  // stored the raw STRING whenever the field was cleared or mistyped, failing
+  // the whole profile save. Empty/unparseable → 0 (the same "not set" sentinel
+  // a freshly-created block carries); out-of-range input is clamped.
+  const limit = key === "lat" ? 90 : 180;
+  const parsed = Number(raw.trim());
+  const coord =
+    raw.trim() !== "" && Number.isFinite(parsed)
+      ? Math.min(limit, Math.max(-limit, parsed))
+      : 0;
   const geometry = (value.geometry as Record<string, unknown>) ?? {};
   const location = (geometry.location as Record<string, unknown>) ?? {};
   setValue({

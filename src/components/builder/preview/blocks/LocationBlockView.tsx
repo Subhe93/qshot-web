@@ -258,8 +258,16 @@ function readPlace(value: Record<string, unknown>): {
 
   const geometry = value.geometry as Record<string, unknown> | undefined;
   const location = geometry?.location as Record<string, unknown> | undefined;
-  const lat = num(location?.lat) ?? num(value.lat) ?? num(value.latitude);
-  const lng = num(location?.lng) ?? num(value.lng) ?? num(value.longitude);
+  let lat = num(location?.lat) ?? num(value.lat) ?? num(value.latitude);
+  let lng = num(location?.lng) ?? num(value.lng) ?? num(value.longitude);
+  // A freshly added Location block is seeded with a schema-valid EMPTY place
+  // (0/0) because the server requires the geometry keys. Treat exactly 0/0 as
+  // "no place picked yet" so we show the placeholder pin rather than a map of
+  // Null Island.
+  if (lat === 0 && lng === 0) {
+    lat = undefined;
+    lng = undefined;
+  }
 
   return { name, address, lat, lng, rating, userRatingsTotal, placeId };
 }

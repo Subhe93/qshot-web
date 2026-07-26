@@ -7,7 +7,7 @@
 
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { BRAND_ICON_SETS, brandIconUrl } from "./brand-icons";
-import type { SocialLinkItem } from "@/lib/types/blocks";
+import type { LinkConfigurationName, SocialLinkItem } from "@/lib/types/blocks";
 
 const DARK_FILES = new Set(
   BRAND_ICON_SETS.find((s) => s.dir === "dark")?.files ?? [],
@@ -16,7 +16,14 @@ const DARK_FILES = new Set(
 export type PlatformCategory = "popular" | "social" | "contact";
 
 export interface SocialPlatform {
-  name: string; // stored as item.type
+  /**
+   * Stored verbatim as `social_links[].type`. MUST stay inside
+   * `LinkConfigurationName` — the server's website-json-schema.json validates
+   * this field against exactly those 19 values and rejects the whole profile
+   * save on anything else. Typing it here (rather than `string`) makes adding
+   * an unsupported platform a compile error instead of a runtime save failure.
+   */
+  name: LinkConfigurationName;
   label: string;
   file: string; // svg in /brand-icons/{colored,dark}
   category: PlatformCategory;
@@ -33,17 +40,12 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
   { name: "youtube", label: "YouTube", file: "youtube.svg", category: "popular", hint: "https://youtube.com/@channel" },
   { name: "twitter", label: "X (Twitter)", file: "twitter.svg", category: "popular", hint: "https://x.com/username" },
   { name: "snapchat", label: "Snapchat", file: "snapchat.svg", category: "popular", hint: "https://snapchat.com/add/username" },
-  { name: "telegram", label: "Telegram", file: "telegram.svg", category: "popular", hint: "https://t.me/username" },
   // Social
   { name: "linkedin", label: "LinkedIn", file: "linkedin.svg", category: "social", hint: "https://linkedin.com/in/username" },
   { name: "pinterest", label: "Pinterest", file: "pinterest.svg", category: "social", hint: "https://pinterest.com/username" },
   { name: "twitch", label: "Twitch", file: "twitch.svg", category: "social", hint: "https://twitch.tv/username" },
   { name: "vimeo", label: "Vimeo", file: "vimeo.svg", category: "social", hint: "https://vimeo.com/username" },
   { name: "behance", label: "Behance", file: "behance.svg", category: "social", hint: "https://behance.net/username" },
-  { name: "dribbble", label: "Dribbble", file: "dribbble.svg", category: "social", hint: "https://dribbble.com/username" },
-  { name: "github", label: "GitHub", file: "github.svg", category: "social", hint: "https://github.com/username" },
-  { name: "discord", label: "Discord", file: "discord.svg", category: "social", hint: "https://discord.gg/invite" },
-  { name: "medium", label: "Medium", file: "medium.svg", category: "social", hint: "https://medium.com/@username" },
   { name: "wechat", label: "WeChat", file: "wechat.svg", category: "social", hint: "wechat-id" },
   // Contact
   { name: "phone", label: "Phone", file: "fi-br-call.svg", category: "contact", hint: "+1234567890" },
@@ -54,7 +56,12 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
   { name: "custom", label: "Custom link", file: "link.svg", category: "contact", hint: "https://example.com", dynamic: true },
 ];
 
-const BY_NAME = new Map(SOCIAL_PLATFORMS.map((p) => [p.name, p]));
+// Keyed by plain `string`: the WRITE side is pinned to LinkConfigurationName,
+// but this lookup also serves legacy/unknown values already stored by other
+// clients — it must return undefined for them, not fail to compile.
+const BY_NAME = new Map<string, SocialPlatform>(
+  SOCIAL_PLATFORMS.map((p) => [p.name, p]),
+);
 
 export function platformByName(name?: string): SocialPlatform | undefined {
   return name ? BY_NAME.get(name) : undefined;

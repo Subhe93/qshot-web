@@ -485,7 +485,8 @@
         "message": "Meddelande",
         "gallery": "Galleri"
       }
-    }
+    },
+    "unsupportedBlock": "Block {position} ({type}) stöds inte i den här versionen — ta bort det för att spara."
   },
   "nav": {
     "profiles": "Webbplats",

@@ -159,14 +159,36 @@ export const BLOCK_CATALOG: CatalogEntry[] = [
     labelKey: "location",
     icon: faLocationDot,
     kind: "rich",
-    make: () => ({ id: nanoid(), type: "LocationModule", title: "", value: {} }),
+    // The server schema requires `value` to be a full Place (name, place_id,
+    // vicinity, geometry.location.lat/lng) — an empty `{}` makes the whole
+    // profile save fail before the user can pick anything. Seed a valid,
+    // *empty* place; 0/0 is the "not picked yet" sentinel and the renderers
+    // show the placeholder pin for it instead of a map of the Atlantic.
+    make: () => ({
+      id: nanoid(),
+      type: "LocationModule",
+      title: "",
+      value: {
+        name: "",
+        place_id: "",
+        vicinity: "",
+        geometry: { location: { lat: 0, lng: 0 } },
+      },
+    }),
   },
   {
     type: "EmbedModule",
     labelKey: "embed",
     icon: faCode,
     kind: "rich",
-    make: () => ({ id: nanoid(), type: "EmbedModule", configuration: "custom", data: {} }),
+    // `data.url` + `data.html` are required by the server schema (empty strings
+    // are valid) — an empty `{}` fails the save the moment the block is added.
+    make: () => ({
+      id: nanoid(),
+      type: "EmbedModule",
+      configuration: "custom",
+      data: { url: "", html: "" },
+    }),
   },
   {
     type: "IntroductionVideoModule",

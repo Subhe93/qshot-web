@@ -485,7 +485,8 @@
         "message": "Melding",
         "gallery": "Galleri"
       }
-    }
+    },
+    "unsupportedBlock": "Blokk {position} ({type}) støttes ikke i denne versjonen — fjern den for å lagre."
   },
   "nav": {
     "profiles": "Nettside",

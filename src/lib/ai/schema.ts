@@ -21,6 +21,7 @@
  */
 
 import { z } from "zod";
+import type { LinkConfigurationName } from "@/lib/types/blocks";
 
 export const HERO_STYLES = [
   "style1",
@@ -34,6 +35,9 @@ export const HERO_STYLES = [
 
 // Social platforms the model may map to (subset of LinkConfigurationName that
 // makes sense from a contact/description; `custom`/`website` cover the rest).
+// `satisfies` pins this to the 19 values the server's website-json-schema.json
+// accepts for `social_links[].type` — anything else makes the whole profile
+// save fail, so drift here must be a compile error.
 export const SOCIAL_PLATFORMS = [
   "instagram",
   "facebook",
@@ -42,7 +46,6 @@ export const SOCIAL_PLATFORMS = [
   "youtube",
   "twitter",
   "snapchat",
-  "telegram",
   "linkedin",
   "pinterest",
   "twitch",
@@ -53,7 +56,7 @@ export const SOCIAL_PLATFORMS = [
   "website",
   "location",
   "custom",
-] as const;
+] as const satisfies readonly LinkConfigurationName[];
 
 // Modern Google-font allowlist; transform maps it to settings.font_family.
 export const FONTS = [

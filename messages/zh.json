@@ -485,7 +485,8 @@
         "message": "消息",
         "gallery": "图库"
       }
-    }
+    },
+    "unsupportedBlock": "第 {position} 个板块（{type}）在此版本中不受支持——请删除后再保存。"
   },
   "nav": {
     "profiles": "网站",

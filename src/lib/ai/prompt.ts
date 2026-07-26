@@ -81,7 +81,7 @@ const SCHEMA_GUIDE = `Return ONLY a JSON object (no markdown, no commentary) wit
     { "kind": "buttons", "title": string, "theme": "minimal|solid|soft|outline|pill", "layout": "list|grid",
       "accent": boolean, "items": [ { "label": string, "url": string } ] },
     { "kind": "social", "layout": "grid|list|gridAlignCenter|listAlignCenter",
-      "items": [ { "platform": "instagram|facebook|whatsapp|tiktok|youtube|twitter|snapchat|telegram|linkedin|pinterest|website|phone|email|location|custom", "link": string } ] },
+      "items": [ { "platform": "instagram|facebook|whatsapp|tiktok|youtube|twitter|snapchat|linkedin|pinterest|website|phone|email|location|custom", "link": string } ] },
     // external_links doubles as IMAGE-BACKED FEATURE / SERVICE CARDS: each item is a card with a
     // title + description, and an OPTIONAL "image" ImageSpec. Use layout "largeGrid" or "promo"
     // (which show images well) when you give the items images; "grid"/"list" for plain text cards.

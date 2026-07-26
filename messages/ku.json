@@ -485,7 +485,8 @@
         "message": "Peyam",
         "gallery": "گەلەری"
       }
-    }
+    },
+    "unsupportedBlock": "Bloka {position} ({type}) di vê guhertoyê de nayê piştgirîkirin — jê rake da ku tomar bikî."
   },
   "nav": {
     "profiles": "Malper",
