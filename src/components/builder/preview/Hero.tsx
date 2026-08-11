@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type {
   WebsiteSettings,
   HeroStyle,
@@ -8,9 +7,9 @@ import type {
   HeroButton,
   CoverPhotoSize,
   HeroTab,
-  RectTuple,
 } from "@/lib/types/profile";
 import { argbToCss } from "@/lib/builder/color";
+import { RectImage } from "@/components/ui/rect-image";
 import { headerStyleDefaults } from "@/lib/builder/hero-defaults";
 import { colorValueToCss, solidArgb, lerpArgb, type ColorValue } from "@/lib/builder/color-value";
 import { cdnUrl } from "@/lib/api/qrcodes";
@@ -467,65 +466,6 @@ function Content({
   );
 }
 
-function isValidRect(rect: RectTuple): boolean {
-  return rect.length === 4 && rect[2] > rect[0] && rect[3] > rect[1];
-}
-
-/**
- * Cover image honouring the optional crop `image_rect` ([left, top, right, bottom]
- * in ABSOLUTE source pixels — mobile draws `image, rect → destRect` via
- * canvas.drawImageRect). When a valid rect is present we load the image to read
- * its natural size, then render a div whose background is sized so the cropped
- * region fills the box; otherwise a plain object-cover <img>. (Replicated inline
- * from ImagesBlockView's RectImg to avoid coupling.)
- */
-function CoverImg({ url, rect }: { url: string; rect?: RectTuple | null }) {
-  const hasRect = !!(rect && isValidRect(rect));
-  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
-
-  useEffect(() => {
-    if (!hasRect) return;
-    let active = true;
-    const image = new window.Image();
-    image.onload = () => {
-      if (active) setNat({ w: image.naturalWidth, h: image.naturalHeight });
-    };
-    image.src = url;
-    return () => {
-      active = false;
-    };
-  }, [url, hasRect]);
-
-  if (hasRect && nat && rect) {
-    const [left, top, right, bottom] = rect;
-    const cropW = right - left;
-    const cropH = bottom - top;
-    // Scale the source so the crop window fills the element, then offset to the
-    // crop origin (as a % of the leftover space).
-    const bgW = cropW > 0 ? (nat.w / cropW) * 100 : 100;
-    const bgH = cropH > 0 ? (nat.h / cropH) * 100 : 100;
-    const posX = nat.w - cropW > 0 ? (left / (nat.w - cropW)) * 100 : 0;
-    const posY = nat.h - cropH > 0 ? (top / (nat.h - cropH)) * 100 : 0;
-    return (
-      <div
-        className="absolute inset-0 size-full"
-        role="img"
-        style={{
-          backgroundImage: `url(${url})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: `${bgW}% ${bgH}%`,
-          backgroundPosition: `${posX}% ${posY}%`,
-        }}
-      />
-    );
-  }
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="" className="absolute inset-0 size-full object-cover" />
-  );
-}
-
 function Cover({
   settings,
   onEdit,
@@ -597,7 +537,11 @@ function Cover({
             className="absolute inset-0 overflow-hidden"
             style={{ opacity: imageOpacity, WebkitMaskImage: fadeMask, maskImage: fadeMask }}
           >
-            <CoverImg url={img} rect={cover?.image_rect} />
+            {/* Mobile never bakes the crop in: HeroCoverWidget paints the WHOLE
+                uploaded image through `image_rect` (drawImageRect), so resizing
+                the cover re-crops the original instead of eating more of it.
+                The opacity/mask/overlay layers stay on this wrapper. */}
+            <RectImage src={img} rect={cover?.image_rect} className="size-full" />
           </div>
         )}
         {!style7 && cover?.color != null && (
@@ -624,7 +568,14 @@ function Cover({
           : undefined,
       }}
     >
-      {img && <CoverImg url={img} rect={cover?.image_rect} />}
+      {/* Same as the desktop branch: the stored `image_rect` region of the full
+          upload fills the cover box (mobile drawImageRect). The tint below and
+          the fade mask on the parent are untouched by this. */}
+      {img && (
+        <div className="absolute inset-0">
+          <RectImage src={img} rect={cover?.image_rect} className="size-full" />
+        </div>
+      )}
       <div className="absolute inset-0" style={{ backgroundColor: overlay }} />
     </div>
   );
@@ -766,8 +717,10 @@ function ProfilePicture({ settings, onEdit }: { settings: WebsiteSettings; onEdi
         }}
       >
         {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={img} alt="" className="size-full object-cover" />
+          // Like the cover, mobile keeps the whole avatar upload and paints the
+          // `image_rect` region into the 90px frame, so re-shaping the avatar
+          // re-crops the original rather than cutting the already-cut file.
+          <RectImage src={img} rect={p?.image_rect} className="size-full" />
         ) : (
           <svg viewBox="0 0 24 24" className="size-6 text-foreground/25" fill="currentColor">
             <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.42 0-8 2.69-8 6v2h16v-2c0-3.31-3.58-6-8-6Z" />
@@ -837,9 +790,14 @@ function DesktopAvatar({ settings, onEdit }: { settings: WebsiteSettings; onEdit
       }}
     >
       {imgPath ? (
-        <div className="relative size-full">
-          <CoverImg url={cdnUrl(imgPath)} rect={p?.image_rect} />
-        </div>
+        // Nuxt falls back to the logo when there is no avatar image. The rect
+        // belongs to the avatar upload, so it only applies when that is what is
+        // being painted; the logo has no rect of its own and stays cover-fit.
+        <RectImage
+          src={cdnUrl(imgPath)}
+          rect={p?.image_url ? p.image_rect : null}
+          className="size-full"
+        />
       ) : (
         <div className="flex size-full items-center justify-center bg-white/10">
           <svg viewBox="0 0 24 24" className="size-6 text-foreground/25" fill="currentColor">

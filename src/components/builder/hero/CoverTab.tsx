@@ -6,7 +6,9 @@ import { ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { uploadImage } from "@/lib/api/media";
 import { ImageCropper } from "@/components/ui/image-cropper";
-import { croppedUploadFile } from "@/lib/builder/crop-image";
+import { RectImage } from "@/components/ui/rect-image";
+import { croppedUploadFile, resizeForUpload } from "@/lib/builder/crop-image";
+import type { RectTuple } from "@/lib/builder/image-rect";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { heroStyleFlags } from "@/lib/builder/hero-defaults";
 import { cn } from "@/lib/utils";
@@ -100,9 +102,14 @@ export function CoverTab({
         <SectionLabel>Image</SectionLabel>
         <ImageUploader
           path={cover.image_url}
-          onUploaded={(p) => setCoverImage(p)}
-          onDelete={() => setCover({ image_url: undefined })}
-          aspect={SIZE_ASPECT[cover.size ?? "horizontal"]}
+          rect={cover.image_rect}
+          onUploadedRect={(p, r) => setCoverImage(p, { image_rect: r })}
+          // copyExcludeImage() on mobile drops the rect along with the image.
+          onDelete={() => setCover({ image_url: undefined, image_rect: null })}
+          // heroPickCoverImage: `aspectRatio: coverPhoto?.size?.aspectRatio` —
+          // NO fallback. Until a size is picked the crop is free, so a square
+          // photo stays square instead of being forced into a 16:9 strip.
+          aspect={cover.size ? SIZE_ASPECT[cover.size] : null}
         />
         <GroupedCard>
           <GroupedRow
@@ -211,19 +218,20 @@ export function CoverTab({
           cropImageRect). Cancelling keeps the current size. */}
       {cropSize !== null && cover.image_url && (
         <ImageCropper
-          // Load through our same-origin proxy — the CDN has no CORS headers, so
-          // a direct CDN <img> would taint the canvas and break toBlob() export.
-          src={`/api/image-proxy?url=${encodeURIComponent(cdnUrl(cover.image_url))}`}
+          // Straight off the CDN: re-cropping only measures the image now, it
+          // never re-cuts or re-uploads it, so there is nothing for the CDN's
+          // missing CORS headers to taint and no proxy hop to make.
+          src={cdnUrl(cover.image_url)}
           title="Crop image"
           cancelLabel={tc("cancel")}
           confirmLabel="Done"
           aspect={SIZE_ASPECT[cropSize]}
           onCancel={() => setCropSize(null)}
-          onCropped={async (blob) => {
-            const file = croppedUploadFile(blob, "cover");
-            const uploaded = await uploadImage(file);
-            if (uploaded) setCoverImage(uploaded, { size: cropSize });
-            else setCover({ size: cropSize });
+          // mobile: `model.copyWith(imageRect: rect, size: value)` — the picture
+          // itself is untouched, only the window onto it moves. That is what
+          // stops each size change from eating another slice of the photo.
+          onCroppedRect={(r) => {
+            setCover({ image_rect: r, size: cropSize });
             setCropSize(null);
           }}
         />
@@ -236,38 +244,69 @@ export function CoverTab({
 
 export function ImageUploader({
   path,
+  rect,
   onUploaded,
+  onUploadedRect,
   onDelete,
   rounded = "rounded-2xl",
   aspect = 1,
   cropShape = "rect",
 }: {
   path?: string | null;
-  onUploaded: (path: string) => void;
+  /** Existing crop, shown in the thumbnail. Only meaningful with onUploadedRect. */
+  rect?: RectTuple | null;
+  onUploaded?: (path: string) => void;
+  /**
+   * Non-destructive mode (mobile's `CropResult = (Rect, XFile)`): uploads the
+   * WHOLE image and hands back the crop rectangle to store beside it. Takes
+   * precedence over `onUploaded`.
+   */
+  onUploadedRect?: (path: string, rect: RectTuple) => void;
   onDelete: () => void;
   rounded?: string;
-  /** Crop aspect ratio (width/height). Cover passes its size ratio; logo/picture 1. */
-  aspect?: number;
+  /**
+   * Locked crop ratio, or `null` for a free-form crop. The default of 1 mirrors
+   * Dart's `openSingleImageEditor({aspectRatio = CropAspectRatio(1, 1)})`; the
+   * places mobile passes null (header logo, unset cover size, replacing a
+   * gallery image) must pass `null` here too.
+   */
+  aspect?: number | null;
   cropShape?: "rect" | "round";
 }) {
   const t = useTranslations("builder");
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+  // In rect mode the cropper must measure the exact image we upload, so the
+  // stored rect is in the uploaded file's pixel space (as it is on mobile).
+  const pendingFile = useRef<File | null>(null);
 
-  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    // Crop + compress before uploading (mirrors the mobile flow; the backend
-    // rejects raw/oversized files). getCroppedBlob exports a small JPEG, or a
-    // PNG when the crop has transparency.
-    setCropSrc(URL.createObjectURL(file));
+    const picked = URL.createObjectURL(file);
+    if (!onUploadedRect) {
+      setCropSrc(picked);
+      return;
+    }
+    setBusy(true);
+    try {
+      // Downscale (never cut) exactly like mobile's Utils.compressImage, then
+      // crop against that resized image.
+      const resized = await resizeForUpload(picked, "image", file.type);
+      pendingFile.current = resized;
+      setCropSrc(URL.createObjectURL(resized));
+    } finally {
+      URL.revokeObjectURL(picked);
+      setBusy(false);
+    }
   }
 
   function closeCropper() {
     if (cropSrc) URL.revokeObjectURL(cropSrc);
     setCropSrc(null);
+    pendingFile.current = null;
   }
 
   async function onCropped(blob: Blob) {
@@ -275,7 +314,20 @@ export function ImageUploader({
     try {
       const file = croppedUploadFile(blob, "icon");
       const uploaded = await uploadImage(file);
-      if (uploaded) onUploaded(uploaded);
+      if (uploaded) onUploaded?.(uploaded);
+    } finally {
+      setBusy(false);
+      closeCropper();
+    }
+  }
+
+  async function onCroppedRect(cropped: RectTuple) {
+    const file = pendingFile.current;
+    if (!file) return;
+    setBusy(true);
+    try {
+      const uploaded = await uploadImage(file);
+      if (uploaded) onUploadedRect?.(uploaded, cropped);
     } finally {
       setBusy(false);
       closeCropper();
@@ -293,8 +345,7 @@ export function ImageUploader({
         )}
       >
         {path ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cdnUrl(path)} alt="" className="size-full object-cover" />
+          <RectImage src={cdnUrl(path)} rect={rect} className="size-full" />
         ) : (
           <ImageIcon className="size-6 text-muted-foreground" />
         )}
@@ -335,10 +386,10 @@ export function ImageUploader({
           title="Crop image"
           cancelLabel="Cancel"
           confirmLabel="Done"
-          aspect={aspect}
+          aspect={aspect ?? undefined}
           cropShape={cropShape}
           onCancel={closeCropper}
-          onCropped={onCropped}
+          {...(onUploadedRect ? { onCroppedRect } : { onCropped })}
         />
       )}
     </div>

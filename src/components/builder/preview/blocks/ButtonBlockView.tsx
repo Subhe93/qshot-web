@@ -90,12 +90,22 @@ function ButtonTile({
           arrow so the title stays centered; in grid (narrow) we never reserve
           empty slots so the title isn't squeezed. */}
       {item.icon ? (
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center">
+        // Padding lives on the SLOT (Flutter's margin 8) so the radius clips
+        // the image itself — rounding a padded <img> rounds the transparent
+        // outer box, not the picture.
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={cdnUrl(item.icon)}
             alt=""
-            className="size-full rounded-[10px] object-cover p-2"
+            // Mobile buildIcon: a pill-shaped button (radius >= 28; the pill
+            // theme stamps 100) clips its icon to a CIRCLE, square-ish
+            // otherwise.
+            className={
+              radius >= 28
+                ? "size-full rounded-full object-cover"
+                : "size-full rounded-[10px] object-cover"
+            }
           />
         </span>
       ) : !compact && showArrow ? (

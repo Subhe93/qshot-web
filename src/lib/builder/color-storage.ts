@@ -2,9 +2,15 @@
  * Recently-used colors, mirroring the mobile ColorManager (Hive) but backed by
  * localStorage. Stores up to 20 ARGB ints, newest first, and tops up with a
  * default palette when sparse (parallels Colors.primaries fallback).
+ *
+ * ACCOUNT-scoped via the local-store layer: colors are a user preference, so
+ * each logged-in account keeps its own list — the old global `qshot:
+ * recent-colors` key was shared by every account on the browser (that legacy
+ * value is adopted once by whichever account reads first, then deleted).
  */
 
-const KEY = "qshot:recent-colors";
+import { accountEntry } from "@/lib/local-store";
+
 const MAX = 20;
 const MIN = 10;
 
@@ -14,26 +20,16 @@ const DEFAULT_PALETTE = [
   0xff03a9f4, 0xff00bcd4, 0xff009688, 0xff4caf50,
 ];
 
-function read(): number[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.filter((n) => typeof n === "number") : [];
-  } catch {
-    return [];
-  }
-}
+const entry = accountEntry<number[]>({
+  name: "recent-colors",
+  fallback: [],
+  validate: (v): v is number[] =>
+    Array.isArray(v) && v.every((n) => typeof n === "number" && Number.isFinite(n)),
+  legacyKey: "qshot:recent-colors",
+});
 
-function write(colors: number[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify(colors));
-  } catch {
-    // ignore quota / privacy-mode failures
-  }
-}
+const read = (): number[] => entry.get();
+const write = (colors: number[]): void => entry.set(colors);
 
 /** Newest first; topped up with the default palette when fewer than MIN. */
 export function getRecentColors(): number[] {

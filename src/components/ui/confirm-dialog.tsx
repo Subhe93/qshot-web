@@ -16,6 +16,10 @@ const TYPE = {
  * Modal confirmation dialog mirroring the mobile ConfirmationDialog: a brand
  * gradient header with a type-colored icon + title, a centered message, and
  * outline-cancel / gradient-confirm buttons. `danger` keeps backward compat.
+ *
+ * Omit `cancelText` for an acknowledge-only dialog — the mobile
+ * ConfirmationDialog takes just a `confirmText` when there is nothing to decide,
+ * as with the "only one image" warning, which informs rather than asks.
  */
 export function ConfirmDialog({
   open,
@@ -32,7 +36,8 @@ export function ConfirmDialog({
   title: string;
   message: string;
   confirmText: string;
-  cancelText: string;
+  /** Omit for an acknowledge-only dialog (confirm button spans the row). */
+  cancelText?: string;
   danger?: boolean;
   type?: ConfirmType;
   onConfirm: () => void;
@@ -82,13 +87,15 @@ export function ConfirmDialog({
 
         {/* Actions */}
         <div className="flex gap-3 p-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 rounded-xl border border-foreground/30 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
-          >
-            {cancelText}
-          </button>
+          {cancelText && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 rounded-xl border border-foreground/30 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              {cancelText}
+            </button>
+          )}
           <button
             type="button"
             onClick={onConfirm}

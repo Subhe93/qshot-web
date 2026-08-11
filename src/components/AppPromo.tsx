@@ -4,8 +4,17 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { X, Download, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { deviceEntry } from "@/lib/local-store";
 
-const SEEN_KEY = "qshot_app_promo_seen";
+// DEVICE-scoped: "this browser already saw the promo" is about the device,
+// not about whoever is logged in. `1` in the union covers the legacy raw
+// value ("1"), adopted once from the pre-schema key and kept truthy.
+const seenEntry = deviceEntry<boolean | 1>({
+  name: "app-promo-seen",
+  fallback: false,
+  validate: (v): v is boolean | 1 => v === true || v === false || v === 1,
+  legacyKey: "qshot_app_promo_seen",
+});
 const IOS_URL =
   "https://apps.apple.com/eg/app/qshot-bio-qr-creator/id6587578534";
 const ANDROID_URL =
@@ -39,11 +48,7 @@ export function AppPromo() {
   );
   const [seen, setSeen] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
-    try {
-      return localStorage.getItem(SEEN_KEY) === "1";
-    } catch {
-      return false;
-    }
+    return Boolean(seenEntry.get());
   });
   const [popupOpen, setPopupOpen] = useState(false);
   const [barHidden, setBarHidden] = useState(false);
@@ -56,11 +61,7 @@ export function AppPromo() {
   }, [seen]);
 
   function closePopup() {
-    try {
-      localStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      /* ignore */
-    }
+    seenEntry.set(true);
     setSeen(true);
     setPopupOpen(false);
   }

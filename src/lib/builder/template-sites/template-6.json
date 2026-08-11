@@ -1,0 +1,617 @@
+{
+  "name": "template-6",
+  "info": {
+    "modules": [
+      {
+        "type": "SpacerModule",
+        "id": "20260809-0911-8538-9212-b001ada91172",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "space": 50
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "20260809-0927-8b25-a830-85bb94b17954",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"Let the light tell your story\",\"attributes\":{\"bold\":true}},{\"insert\":\"\\n\",\"attributes\":{\"align\":\"center\"}},{\"insert\":\"\\nLaser engraving and artificial wood Laser technology\"},{\"insert\":\"\\n\",\"attributes\":{\"align\":\"center\"}}]"
+      },
+      {
+        "type": "social_links",
+        "id": "20260428-1111-8d23-8917-3f2b16747b6e",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "layout_type": "layoutSlider",
+        "icon_type": "original",
+        "adaptive_icon_color": false,
+        "custom_icon_color": null,
+        "links": [
+          {
+            "id": "20260428-1115-8d29-8255-ac985aba6d45",
+            "type": "phone",
+            "icon": null,
+            "link": "+4917662377639",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260428-1115-8e45-b001-115560ccb541",
+            "type": "phone",
+            "icon": null,
+            "link": "+491788770095",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260428-1116-8811-b771-cca9b764377b",
+            "type": "whatsapp",
+            "icon": null,
+            "link": "+4917662377639",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260428-1116-8323-9661-41a103748bf3",
+            "type": "whatsapp",
+            "icon": null,
+            "link": "+491788770095",
+            "name": null,
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "ImageModule",
+        "id": "20260428-1150-8303-a538-34e369ee4784",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "layout_type": "shorts",
+        "items": [
+          {
+            "id": "20260428-1150-8619-8162-99a000f886be",
+            "url": "images/profiles66d6163f22224329039cf464__encuugn9m89.png",
+            "rect": [
+              0,
+              0,
+              1152,
+              2048
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1150-8327-9271-edcae43ea98f",
+            "url": "images/profiles66d6163f22224329039cf464__xe4aa31id6.png",
+            "rect": [
+              0,
+              0,
+              1152,
+              2048
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1150-8634-8923-30d6bd21f024",
+            "url": "images/profiles66d6163f22224329039cf464__4c5xctbrinw.png",
+            "rect": [
+              0,
+              0,
+              1152,
+              2048
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1150-8b42-b799-3be3642559b8",
+            "url": "images/profiles66d6163f22224329039cf464__8vgwnzynfus.png",
+            "rect": [
+              0.09374999999999467,
+              0,
+              479.90625,
+              853
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1151-8301-8090-060e4365c100",
+            "url": "images/profiles66d6163f22224329039cf464__jd8uyve92mh.png",
+            "rect": [
+              161.46705442054247,
+              0,
+              723.9670544205413,
+              999.999999999998
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1151-8c14-a412-21db3a8586f8",
+            "url": "images/profiles66d6163f22224329039cf464__kyb19djfajp.png",
+            "rect": [
+              22.21875000000001,
+              0,
+              499.78125,
+              849
+            ],
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "20260428-1111-8013-a612-3778e7ae2b34",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": "Introduction",
+        "align": "start",
+        "size": 22
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "20260428-1105-8408-9093-8da24c29e4c7",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"In the heart of the \"},{\"insert\":\"North Rhine\",\"attributes\":{\"bold\":true}},{\"insert\":\" in \"},{\"insert\":\"Bochum\",\"attributes\":{\"bold\":true}},{\"insert\":\", where wood whispers in the light and reveals its secrets to the laser beam, \"},{\"insert\":\"Kunsiva\",\"attributes\":{\"bold\":true}},{\"insert\":\" was born.\\n\\nHere we see no wood, but we bring the warmth of its soul to life.\\n\\nWe do not cut into it, but we weave a memory into it, from a mural that embraces your wall to a wooden shield that preserves the glory of your moments, from a radiant name that adorns the facade of your dream to a reality where time and space are complete, woven for you in light and shadow.\\n\\nWe laser engrave stories and narratives that time cannot erase.\\n\"}]"
+      },
+      {
+        "type": "ImageModule",
+        "id": "20260428-1144-8c40-a672-18e2d413ca18",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "layout_type": "cards",
+        "items": [
+          {
+            "id": "20260428-1148-8821-8807-3147b8571df9",
+            "url": "images/profiles66d6163f22224329039cf464__rzhs3egtb2a.png",
+            "rect": [
+              0,
+              0,
+              640,
+              640
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1145-8846-9643-fadbc91d448a",
+            "url": "images/profiles66d6163f22224329039cf464__b7leh1ub4fn.png",
+            "rect": [
+              0,
+              0,
+              700,
+              700
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1148-8a42-a552-32074cae2194",
+            "url": "images/profiles66d6163f22224329039cf464__jqaf8ixlndo.png",
+            "rect": [
+              289.47442075545166,
+              5.3290705182007514e-14,
+              1249.4744207554515,
+              960
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1203-8f20-b742-d867bc437e49",
+            "url": "images/profiles66d6163f22224329039cf464__242734o121r.png",
+            "rect": [
+              0,
+              426.00000000000114,
+              1279.9999999999989,
+              1706
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1149-8404-b331-f20f00209e4c",
+            "url": "images/profiles66d6163f22224329039cf464__06s8qpmj96im.png",
+            "rect": [
+              0,
+              0,
+              700,
+              700
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1203-8a40-b567-59f3dd3e2bb8",
+            "url": "images/profiles66d6163f22224329039cf464__ldoypugh8vj.png",
+            "rect": [
+              0,
+              436.99999999999994,
+              750,
+              1187
+            ],
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "20260428-1118-8b48-a532-85e790ae31f8",
+        "background_color": 4294967295,
+        "use_background_color": false,
+        "hide": false,
+        "value": "What we do?",
+        "align": "start",
+        "size": 22
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "20260428-1121-8000-8002-7803d93dbf33",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"Execution of all designs and ideas\",\"attributes\":{\"italic\":true,\"bold\":true}},{\"insert\":\"\\nInterior decoration\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Wall murals\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Icons for homes and shops\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Engraving of all kinds of personal photos on wood and acrylic\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Furnishing shops to suit every taste\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Oriental style\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Western style\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Modern style\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Making containers for storing dry food products\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Nuts\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Candy\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Chocolate\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Made from food-safe materials\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Plexiglass\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Acrylic\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Various types of treated wood\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"And furnishing shops selling oriental sweets\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Additional services\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Laser cutting\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Acrylic cutting\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}},{\"insert\":\"Leather cutting\"},{\"insert\":\"\\n\",\"attributes\":{\"list\":\"bullet\"}}]"
+      },
+      {
+        "type": "ImageModule",
+        "id": "20260428-1204-8356-9441-147aedf50361",
+        "background_color": 4294967295,
+        "use_background_color": false,
+        "hide": false,
+        "layout_type": "shorts",
+        "items": [
+          {
+            "id": "20260428-1205-8117-9190-2ed7db20b828",
+            "url": "images/profiles66d6163f22224329039cf464__6h9nyfw6u19.png",
+            "rect": [
+              22.71874999999999,
+              0,
+              590.28125,
+              1009
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1206-8046-b267-927a09294eee",
+            "url": "images/profiles66d6163f22224329039cf464__kzsibg10lq.png",
+            "rect": [
+              0,
+              0,
+              1152,
+              2048
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1205-8b30-9508-17179275cef3",
+            "url": "images/profiles66d6163f22224329039cf464__59s9904uhmt.png",
+            "rect": [
+              0,
+              10.666666666666682,
+              528,
+              949.3333333333334
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1205-8a59-a072-45ccab2c5124",
+            "url": "images/profiles66d6163f22224329039cf464__bod0viq4185.png",
+            "rect": [
+              0,
+              0,
+              1152,
+              2048
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1205-8543-a367-6ad5e0a78b98",
+            "url": "images/profiles66d6163f22224329039cf464__hedlqqvp9eu.png",
+            "rect": [
+              56.25,
+              0,
+              663.75,
+              1080
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1206-8932-b451-61df236dd155",
+            "url": "images/profiles66d6163f22224329039cf464__ro606s4zgdd.png",
+            "rect": [
+              0,
+              0,
+              1152,
+              2048
+            ],
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "20260428-1123-8a41-b627-511b67af7bd3",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": "Business address",
+        "align": "start",
+        "size": 22
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "20260428-1124-8003-b469-4c35ff3a2696",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"Germany\\nNorth Rhine-Westphalia\\n44866 Bochum\\nWeststr. 11\\n\"}]"
+      },
+      {
+        "type": "LocationModule",
+        "id": "20260428-1127-8422-8787-60cbdd79420a",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": {
+          "geometry": {
+            "location": {
+              "lat": 51.4808468,
+              "lng": 7.131399399999999
+            }
+          },
+          "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/geocode-71.png",
+          "name": "Weststraße 11",
+          "place_id": "ChIJ24bX9kznuEcR3WxbhCuPmSE",
+          "vicinity": "Weststraße 11, Wattenscheid"
+        },
+        "hide_reviews": false
+      },
+      {
+        "type": "ImageModule",
+        "id": "20260428-1152-8307-a200-466a61dad7b5",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "layout_type": "swiper",
+        "items": [
+          {
+            "id": "20260428-1152-8225-8305-3af5c1fda18a",
+            "url": "images/profiles66d6163f22224329039cf464__zi33ic78xd.png",
+            "rect": [
+              142.72138458917433,
+              0,
+              1422.7213845891717,
+              719.9999999999986
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1202-8c15-8127-ee4b67a9b9c8",
+            "url": "images/profiles66d6163f22224329039cf464__22q5xpq9z18.png",
+            "rect": [
+              0,
+              0,
+              1280,
+              720
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1202-8033-8332-5092dafd256a",
+            "url": "images/profiles66d6163f22224329039cf464__p57m3apira9.png",
+            "rect": [
+              0,
+              0,
+              1280,
+              720
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1201-8e29-9740-61847f6ea015",
+            "url": "images/profiles66d6163f22224329039cf464__to8b3bttzy.png",
+            "rect": [
+              0,
+              0,
+              1280,
+              720
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260428-1201-8942-a383-045c2b2d96dc",
+            "url": "images/profiles66d6163f22224329039cf464__xxolt7ws4k.png",
+            "rect": [
+              0,
+              0,
+              1280,
+              720
+            ],
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "social_links",
+        "id": "20260428-1130-8655-b714-c4d1a933ead3",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "layout_type": "grid",
+        "icon_type": "darkFilled",
+        "adaptive_icon_color": false,
+        "custom_icon_color": null,
+        "links": [
+          {
+            "id": "20260428-1115-8d29-8255-ac985aba6d45",
+            "type": "phone",
+            "icon": null,
+            "link": "+4917662377639",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260428-1115-8e45-b001-115560ccb541",
+            "type": "phone",
+            "icon": null,
+            "link": "+491788770095",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260428-1116-8811-b771-cca9b764377b",
+            "type": "whatsapp",
+            "icon": null,
+            "link": "+4917662377639",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260428-1116-8323-9661-41a103748bf3",
+            "type": "whatsapp",
+            "icon": null,
+            "link": "+491788770095",
+            "name": null,
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "FormModule",
+        "id": "20260428-1141-8916-8547-36bb6317658f",
+        "title": "Contact us",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "questions": [
+          {
+            "type": "text",
+            "data": {
+              "question": "Full Name",
+              "description": null,
+              "required": true,
+              "hint": "Erik William"
+            }
+          },
+          {
+            "type": "text",
+            "data": {
+              "question": "Telephone number",
+              "description": null,
+              "required": true,
+              "hint": "Your phone number"
+            }
+          },
+          {
+            "type": "paragraph",
+            "data": {
+              "question": "Your message",
+              "description": null,
+              "required": false,
+              "hint": "Enter your message"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "website_logo": "images/profiles66d6163f22224329039cf464__w36w6x5rsqa.png",
+    "website_name": "Template 6",
+    "style": "style7",
+    "logo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__ndh5nzfw5nj.png",
+      "hide": false
+    },
+    "header": {
+      "hide": false,
+      "title": {
+        "hide": false,
+        "text": "Brand Name",
+        "color": null
+      },
+      "leading_alignment": "start",
+      "foreground_color": 4278190080,
+      "background_color": 4294965488,
+      "position": "onCover",
+      "background_opacity": 0,
+      "fillSides": true
+    },
+    "profile_picture": {
+      "image_url": null,
+      "image_rect": null,
+      "hide": true,
+      "alignment": "center",
+      "shape": "circle",
+      "border_width": 0,
+      "border_color": 4294967295
+    },
+    "cover_photo": {
+      "image_url": "images/profiles66e82ba1d80321e93e437972__wiaweay2ubr.jpg",
+      "image_rect": null,
+      "hide": true,
+      "size": "square",
+      "transparency": 0,
+      "fade": false,
+      "color": null
+    },
+    "title": {
+      "hide": true,
+      "text": "",
+      "color": 4278190080
+    },
+    "text": {
+      "hide": true,
+      "text": "",
+      "color": 4278190080
+    },
+    "button1": {
+      "hide": true,
+      "text": "Contact Us",
+      "url": "https://qshot.com",
+      "foreground_color": 4294967295,
+      "background_color": 4278190080
+    },
+    "button2": {
+      "hide": true,
+      "text": "Learn More",
+      "url": "https://qshot.com",
+      "foreground_color": 4278190080,
+      "background_color": 0
+    },
+    "background": {
+      "image": null,
+      "color_value": {
+        "type": "solid",
+        "color": 4294965488
+      }
+    },
+    "name": {
+      "text": "",
+      "alignment": "center",
+      "hide": true,
+      "color": null
+    },
+    "bio": {
+      "text": "",
+      "alignment": "center",
+      "hide": true
+    },
+    "floating_button": {
+      "hide": false,
+      "values": {
+        "whatsapp": {
+          "value": "+491788770095"
+        }
+      },
+      "type": "whatsapp"
+    },
+    "font_family": null,
+    "font_color": 4280229670,
+    "card_style": {
+      "color": 4294965488
+    },
+    "can_save_contact": false,
+    "index_in_google": true
+  }
+}

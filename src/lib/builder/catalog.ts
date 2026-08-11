@@ -124,7 +124,7 @@ export const BLOCK_CATALOG: CatalogEntry[] = [
     labelKey: "externalLinks",
     icon: faUpRightFromSquare,
     kind: "rich",
-    make: () => ({ id: nanoid(), type: "ExternalLinksModule", title: "", layout_type: "list", links: [] }),
+    make: () => ({ id: nanoid(), type: "ExternalLinksModule", title: "", layout_type: "promo", links: [] }),
   },
   {
     type: "VideoLinksModule",
@@ -145,7 +145,42 @@ export const BLOCK_CATALOG: CatalogEntry[] = [
     labelKey: "socialFeed",
     icon: faHashtag,
     kind: "rich",
-    make: () => ({ id: nanoid(), type: "SocialFeedModule", title: "", configuration: "instagram", layout_type: "grid", info: {} }),
+    // `info: {}` CRASHED the mobile app. `FeedDisplayCubit`'s constructor derefs
+    // `block.info["username"]` (resp. `channel_id`) into a NON-NULLABLE String
+    // parameter outside any try/catch, so a missing key throws a TypeError while
+    // the widget is building — an error box, not a graceful "failed to load".
+    // An empty string is safe: it degrades to the cubit's catchable retry state.
+    // A block can be added and saved without ever opening the editor, so the
+    // seed itself must be mobile-parseable. `layout_type: "list"` + `posts_count: 4`
+    // mirror mobile `SocialFeedBlock.init` (grid was never its default).
+    //
+    // SEED PROVIDER — was `instagram` until 2026-08-05. Mobile commit 20941620
+    // pulled Instagram out of the new-block selector (the `business_discovery`
+    // path is being replaced by Business Login for Instagram), so it became the
+    // one provider we do NOT offer; see INSTAGRAM_FEED_ENABLED in
+    // builder/feature-flags.ts. The seed now uses the FIRST offered provider,
+    // matching mobile's `_items` order (youtube, vimeo, facebook, tiktok).
+    //
+    // `youtube` is also the safest possible seed:
+    //   • every shipped mobile build parses it (facebook/tiktok would trip the
+    //     `FeedConfiguration.values[…]!` bang and fail the whole page);
+    //   • its two dereferenced keys are written as EMPTY STRINGS, which the
+    //     cubit turns into a retryable fetch error — missing keys are what
+    //     throws;
+    //   • unlike `vimeo`, an empty value is not fatal: `VimeoFeedConfiguration
+    //     .extractId` force-unwraps its regex match on a blank link.
+    // `settings: null` mirrors `YoutubeFeedConfiguration.additionalSettings`
+    // (the base-class `null`) — only instagram/facebook carry a settings map.
+    make: () => ({
+      id: nanoid(),
+      type: "SocialFeedModule",
+      title: "",
+      configuration: "youtube",
+      layout_type: "list",
+      info: { link: "", channel_id: "" },
+      settings: null,
+      posts_count: 4,
+    }),
   },
   {
     type: "FormModule",
@@ -181,8 +216,13 @@ export const BLOCK_CATALOG: CatalogEntry[] = [
     labelKey: "embed",
     icon: faCode,
     kind: "rich",
-    // `data.url` + `data.html` are required by the server schema (empty strings
-    // are valid) — an empty `{}` fails the save the moment the block is added.
+    // `data.url` + `data.html` are required by the server schema, and the
+    // deployed 2.0.0 validator additionally refuses the empty string — but the
+    // mobile app never holds an empty Embed (its wizard fetches the oembed
+    // BEFORE the block exists), so there is no blessed placeholder to seed.
+    // The keys are therefore seeded empty (schema-shaped) and `findIncomplete-
+    // Blocks` names the block at save time until the user fills it in; the
+    // editor derives the html for custom/youtube/telegram automatically.
     make: () => ({
       id: nanoid(),
       type: "EmbedModule",
@@ -195,6 +235,9 @@ export const BLOCK_CATALOG: CatalogEntry[] = [
     labelKey: "introVideo",
     icon: faCirclePlay,
     kind: "rich",
+    // Same deal: `thumbnail_url` is required and must be non-empty on save. The
+    // editor fills it from the video frame (upload) or from the YouTube id
+    // (pasted link); `findIncompleteBlocks` guards the rest.
     make: () => ({ id: nanoid(), type: "IntroductionVideoModule", url: "", thumbnail_url: "" }),
   },
   {

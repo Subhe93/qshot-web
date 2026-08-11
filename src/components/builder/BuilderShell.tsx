@@ -18,10 +18,16 @@ import {
   Loader2,
   Check,
   Save,
+  TriangleAlert,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useEditorStore, type EditorSnapshot } from "@/stores/editor-store";
-import { getProfile, saveProfile } from "@/lib/api/profiles";
+import {
+  getProfile,
+  saveProfile,
+  decodeSchemaIssue,
+  readSchemaValidationFailure,
+} from "@/lib/api/profiles";
 import {
   getProfile as getAdminProfile,
   updateProfile as updateAdminProfile,
@@ -34,13 +40,15 @@ import {
   serializeBlocks,
   serializeSettings,
 } from "@/lib/builder/serialization";
-import { findUnknownBlocks } from "@/lib/builder/validate";
+import { findIncompleteBlocks, findUnknownBlocks } from "@/lib/builder/validate";
+import { catalogByType } from "@/lib/builder/catalog";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { takeAiDraft, type AiDraft } from "@/lib/ai/draft-handoff";
 import { BuilderDesktop } from "./BuilderDesktop";
 import type { Block } from "@/lib/types/blocks";
 import { AddBlockMenu } from "./AddBlockMenu";
 import { BuilderCanvas } from "./BuilderCanvas";
+import { UndoRedo } from "./UndoRedo";
 import { PagesPanel } from "./PagesPanel";
 import { SettingsPanel } from "./SettingsPanel";
 import { WebsiteSettingsPanel } from "./WebsiteSettingsPanel";
@@ -52,6 +60,7 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { cn } from "@/lib/utils";
 import { TEMPLATES_ENABLED } from "@/lib/builder/feature-flags";
 
+import { siteUrl } from "@/lib/site-domain";
 type Panel = "home" | "pages" | "style" | "settings";
 
 // Seed shown for a brand-new profile so the canvas is never empty. Uses the real
@@ -91,6 +100,9 @@ export function BuilderShell({
 }) {
   const t = useTranslations("builder");
   const tc = useTranslations("common");
+  // Block display names (builder.blocks.*), used to name the block a server
+  // schema error points at.
+  const tb = useTranslations("builder.blocks");
   const name = useEditorStore((s) => s.name);
   const dirty = useEditorStore((s) => s.dirty);
   const settings = useEditorStore((s) => s.settings);
@@ -113,6 +125,9 @@ export function BuilderShell({
   const [addOpen, setAddOpen] = useState(false);
   // Theme (templates) sheet + the 5s post-apply undo snapshot.
   const [themeOpen, setThemeOpen] = useState(false);
+  // True while the CURRENT sheet opening came from the auto-gate (a brand-new
+  // site), as opposed to the user opening Templates by hand.
+  const [themeIsGate, setThemeIsGate] = useState(false);
   const [templateUndo, setTemplateUndo] = useState<EditorSnapshot | null>(null);
   // Desktop (≥lg) uses the Elementor-style two-pane layout; mobile keeps this tree.
   const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -141,7 +156,11 @@ export function BuilderShell({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   // Quick "Saved" toast so the silent auto-save (and manual save) is noticeable.
-  const [toast, setToast] = useState<string | null>(null);
+  // `error` toasts carry a real (often long) server complaint, so they get a
+  // warning icon and a much longer dwell time than the 2s "Saved" flash.
+  const [toast, setToast] = useState<{ text: string; error?: boolean } | null>(
+    null,
+  );
   // A brand-new draft loads instantly; an existing profile is fetched, so show a
   // skeleton until its data lands in the store.
   const [loading, setLoading] = useState(id !== "new");
@@ -153,7 +172,7 @@ export function BuilderShell({
       ?.toLowerCase()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "") || "me";
-  const profileUrl = `https://${slug}.qshot.com`;
+  const profileUrl = siteUrl(slug);
 
   useEffect(() => {
     let active = true;
@@ -247,11 +266,11 @@ export function BuilderShell({
     };
   }, [id, load, adminName, adminProfileId]);
 
-  // Auto-open Theme gate (mobile WebsiteEditorLayout.initState): a brand-new
-  // site — main page, no blocks, never templated — starts at the Theme sheet
-  // instead of an empty builder. Dismissable via "Start Blank" (no marker is
-  // written, so it re-opens on the next visit until blocks exist or a
-  // template is applied). Runs once per builder mount, after the site loads.
+  // Auto-open Theme gate (mobile `_maybeOpenThemeGate`): a brand-new site —
+  // main page, no blocks, never templated — starts at the Theme sheet instead
+  // of an empty builder. Dismissing THIS opening writes the skipped marker
+  // (`template: { id: null }`, see onClose above) so it doesn't reappear on
+  // every visit. Runs once per builder mount, after the site loads.
   const themeGateRan = useRef(false);
   useEffect(() => {
     if (!TEMPLATES_ENABLED) return;
@@ -261,7 +280,10 @@ export function BuilderShell({
     if (s.pageId === null && s.blocks.length === 0 && s.settings.template == null) {
       // Deferred a tick (lets the builder paint first, and avoids a synchronous
       // set-state in the effect body — react-hooks/set-state-in-effect).
-      const t = setTimeout(() => setThemeOpen(true), 0);
+      const t = setTimeout(() => {
+        setThemeIsGate(true);
+        setThemeOpen(true);
+      }, 0);
       return () => clearTimeout(t);
     }
   }, [loading]);
@@ -275,18 +297,31 @@ export function BuilderShell({
 
   // The actual save — shared by the debounced auto-save and the manual button.
   const doSave = useCallback(async () => {
-    // The server validates the whole document against website-json-schema.json
-    // and rejects it wholesale. An unsupported block type is the one violation
-    // we can still be holding (we keep unknown blocks verbatim rather than
+    // The server validates the whole document (schemaVersion 2.0.0 — NOT our
+    // docs copy, see docs/for validation/DELTA-deployed-2.0.0-vs-our-copy.md)
+    // and rejects it wholesale. An unsupported block type is one violation we
+    // can still be holding (we keep unknown blocks verbatim rather than
     // destroying them) — name it instead of firing a doomed request.
     const unknown = findUnknownBlocks(blocks);
     if (unknown.length) {
-      setToast(
-        t("unsupportedBlock", {
+      setToast({
+        text: t("unsupportedBlock", {
           position: unknown[0].index + 1,
           type: unknown[0].type,
         }),
-      );
+        error: true,
+      });
+      return;
+    }
+    // Blocks the builder lets you add empty (Embed, Introduction video) but the
+    // server requires filled in. Name the block and the missing field locally
+    // rather than firing a request that can only come back as a 422.
+    const incomplete = findIncompleteBlocks(blocks);
+    if (incomplete.length) {
+      setToast({
+        text: t(incomplete[0].messageKey, { position: incomplete[0].index + 1 }),
+        error: true,
+      });
       return;
     }
     setSaving(true);
@@ -309,33 +344,78 @@ export function BuilderShell({
       markSaved();
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
-      setToast(t("saved"));
-    } catch {
-      setToast(tc("genericError"));
+      setToast({ text: t("saved") });
+    } catch (e) {
+      // A 422 carries the server's schema-validation report: exactly which
+      // pointer inside the document is wrong and why. Surface it instead of
+      // collapsing everything into "something went wrong".
+      const failure = await readSchemaValidationFailure(e);
+      if (!failure) {
+        // Anything else — offline, timeout, 401 (the client already logged the
+        // user out), a non-JSON 4xx — keeps the previous generic message.
+        console.error("[qshot] profile save failed", e);
+        setToast({ text: tc("genericError"), error: true });
+        return;
+      }
+      // The full structured report is for us; the toast can only carry one issue.
+      console.error(
+        `[qshot] save rejected by the server schema validator` +
+          ` (schemaVersion ${failure.schemaVersion ?? "?"}, target ${failure.target ?? "?"})`,
+        { summary: failure.message, errors: failure.errors, body: failure.raw },
+      );
+
+      const first = failure.errors[0];
+      const issue = first ? decodeSchemaIssue(first) : null;
+      // "links/0/icon: unknown field \"icon\" is not allowed" — pointer inside
+      // the block first, then the server's own words.
+      const reason =
+        (issue ? [issue.where, issue.message].filter(Boolean).join(": ") : "") ||
+        failure.message ||
+        tc("genericError");
+      let text: string;
+      if (issue?.blockPosition != null) {
+        const type = (blocks[issue.blockPosition - 1] as Block | undefined)?.type;
+        const labelKey = type ? catalogByType[type]?.labelKey : undefined;
+        text = t("saveRejectedBlock", {
+          position: issue.blockPosition,
+          // Prefer the block's display name; fall back to the raw type.
+          block: labelKey ? tb(labelKey) : (type ?? "?"),
+          reason,
+        });
+      } else {
+        text = t("saveRejected", { reason });
+      }
+      if (failure.errors.length > 1) {
+        text += ` ${t("saveRejectedMore", { count: failure.errors.length - 1 })}`;
+      }
+      setToast({ text, error: true });
     } finally {
       setSaving(false);
     }
-  }, [pageId, blocks, id, name, settings, markSaved, t, tc, adminName, adminProfileId]);
+  }, [pageId, blocks, id, name, settings, markSaved, t, tb, tc, adminName, adminProfileId]);
 
   // Manual save — runs immediately (markSaved clears `dirty`, which cancels any
-  // pending debounced save via the effect cleanup below).
+  // pending debounced save via the effect cleanup below). Safe even while the
+  // Theme sheet is open: template previews live in the store's previewOverlay,
+  // so a save can only ever see the real state.
   const saveNow = useCallback(() => {
     if (!saving) void doSave();
   }, [saving, doSave]);
 
-  // Debounced silent auto-save (mirrors the mobile app's auto-save). Paused
-  // while the Theme sheet is open — its live preview writes into the store
-  // but must not persist (mobile previews via a non-destructive overlay).
+  // Debounced silent auto-save (mirrors the mobile app's auto-save). No pause
+  // for the Theme sheet anymore: previews go through `previewOverlay` and never
+  // touch the saved fields — the old pause papered over the leak the overlay
+  // now closes structurally.
   useEffect(() => {
-    if (!dirty || themeOpen) return;
+    if (!dirty) return;
     const handle = setTimeout(() => void doSave(), 1500);
     return () => clearTimeout(handle);
-  }, [dirty, themeOpen, doSave]);
+  }, [dirty, doSave]);
 
-  // Auto-dismiss the toast.
+  // Auto-dismiss the toast. Errors quote the server and need reading time.
   useEffect(() => {
     if (!toast) return;
-    const h = setTimeout(() => setToast(null), 2000);
+    const h = setTimeout(() => setToast(null), toast.error ? 10000 : 2000);
     return () => clearTimeout(h);
   }, [toast]);
 
@@ -351,25 +431,41 @@ export function BuilderShell({
   // stack), then open the Theme sheet over the visible canvas.
   function openThemeSheet() {
     if (!TEMPLATES_ENABLED) return;
+    setThemeIsGate(false); // manual open — dismissing writes no marker
     select(null);
     editHero(null);
     setPanel("home");
     setThemeOpen(true);
   }
 
-  // Hosted once for both layouts: the Theme sheet (live preview + apply) and
-  // the 5s "Template Applied / Undo" toast restoring the pre-apply snapshot.
-  const themeLayer = (
+  const themeSheetProps = {
+    onClose: () => {
+      setThemeOpen(false);
+      // Mobile `_closeThemePanel`: dismissing the GATE without applying writes
+      // `TemplateRef.skipped()` — `template: { id: null }` — meaning "asked
+      // and declined", so the gate doesn't reopen on every visit to an empty
+      // site. Manual opens record nothing. The marker goes to the REAL
+      // settings (dirty → auto-save persists it).
+      if (themeIsGate) {
+        setThemeIsGate(false);
+        const s = useEditorStore.getState();
+        if (s.settings.template == null) {
+          s.updateSettings({ template: { id: null } });
+        }
+      }
+    },
+    onApplied: (snapshot: EditorSnapshot) => {
+      setThemeIsGate(false);
+      setThemeOpen(false);
+      setTemplateUndo(snapshot);
+    },
+  };
+
+  // The 5s "Template Applied / Undo" toast restoring the pre-apply snapshot —
+  // shared by both layouts. The sheet itself is hosted per layout: docked into
+  // the desktop sidebar, floating (barrier-free) on mobile.
+  const undoToast = (
     <>
-      {themeOpen && (
-        <ThemeSheet
-          onClose={() => setThemeOpen(false)}
-          onApplied={(snapshot) => {
-            setThemeOpen(false);
-            setTemplateUndo(snapshot);
-          }}
-        />
-      )}
       {templateUndo && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[110] flex justify-center px-4">
           <div className="animate-fade-in pointer-events-auto flex items-center gap-3 rounded-full bg-dark px-4 py-2 text-sm font-medium text-white shadow-lg">
@@ -402,9 +498,10 @@ export function BuilderShell({
           dirty={dirty}
           onSave={saveNow}
           onOpenTemplates={TEMPLATES_ENABLED ? openThemeSheet : undefined}
+          themeSheet={themeOpen ? <ThemeSheet docked {...themeSheetProps} /> : null}
         />
-        {themeLayer}
-        <SaveToast text={toast} />
+        {undoToast}
+        <SaveToast toast={toast} onDismiss={() => setToast(null)} />
       </>
     );
   }
@@ -452,6 +549,7 @@ export function BuilderShell({
             </>
           )}
         </div>
+        <UndoRedo suspended={themeOpen} />
         {/* Manual save (auto-save still runs; this lets the user save on demand). */}
         <button
           type="button"
@@ -513,7 +611,7 @@ export function BuilderShell({
       {/* Active panel */}
       <div className="flex-1 overflow-y-auto">
         {loading && panel === "home" && <CanvasSkeleton />}
-        {!loading && panel === "home" && <BuilderCanvas />}
+        {!loading && panel === "home" && <BuilderCanvas browseOnly={themeOpen} />}
         {panel === "style" && <WebsiteStylePanel onOpenTemplates={TEMPLATES_ENABLED ? openThemeSheet : undefined} />}
         {panel === "settings" && (
           <div className="p-4">
@@ -526,8 +624,11 @@ export function BuilderShell({
       </div>
 
       {/* Bottom nav: Home / Pages / Add / Style / Settings.
-          Hidden in preview mode so the canvas shows as the live website. */}
-      {!previewEnabled && (
+          Hidden in preview mode so the canvas shows as the live website, and
+          while the Theme sheet is open — with the barrier gone, its buttons
+          (especially the Add-Block FAB poking above the sheet) would otherwise
+          mutate the un-committed template preview. */}
+      {!previewEnabled && !themeOpen && (
       <nav className="relative flex shrink-0 items-stretch border-t border-border bg-card">
         <NavItem
           label={t("nav.home")}
@@ -599,20 +700,43 @@ export function BuilderShell({
         <NameBioSheet which={heroTab} onClose={() => editHero(null)} />
       )}
 
-      {themeLayer}
-      <SaveToast text={toast} />
+      {themeOpen && <ThemeSheet {...themeSheetProps} />}
+      {undoToast}
+      <SaveToast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   );
 }
 
-// Quick auto-dismissing "Saved" toast (bottom-center), shared by both layouts.
-export function SaveToast({ text }: { text: string | null }) {
-  if (!text) return null;
+// Quick auto-dismissing toast (bottom-center), shared by both layouts.
+// Success = the 2s "Saved" pill. Error = the server's own complaint, so it wraps
+// instead of truncating, and is dismissable (it dwells 10s).
+export function SaveToast({
+  toast,
+  onDismiss,
+}: {
+  toast: { text: string; error?: boolean } | null;
+  onDismiss?: () => void;
+}) {
+  if (!toast) return null;
+  const isError = !!toast.error;
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[70] flex justify-center px-4">
-      <div className="animate-fade-in flex items-center gap-2 rounded-full bg-dark px-4 py-2 text-sm font-medium text-white shadow-lg">
-        <Check className="size-4 text-success" />
-        {text}
+      <div
+        role={isError ? "alert" : "status"}
+        onClick={isError ? onDismiss : undefined}
+        className={cn(
+          "animate-fade-in flex items-start gap-2 px-4 py-2 text-sm font-medium text-white shadow-lg",
+          isError
+            ? "pointer-events-auto max-w-md cursor-pointer rounded-2xl bg-error text-start"
+            : "items-center rounded-full bg-dark",
+        )}
+      >
+        {isError ? (
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+        ) : (
+          <Check className="size-4 text-success" />
+        )}
+        <span className="min-w-0 wrap-break-word">{toast.text}</span>
       </div>
     </div>
   );

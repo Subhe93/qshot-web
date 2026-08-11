@@ -26,6 +26,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { useEditorStore } from "@/stores/editor-store";
 import { cn } from "@/lib/utils";
 import { BuilderCanvas } from "./BuilderCanvas";
+import { UndoRedo } from "./UndoRedo";
 import { AddBlockMenu } from "./AddBlockMenu";
 import { SettingsPanel } from "./SettingsPanel";
 import { WebsiteStylePanel } from "./WebsiteStylePanel";
@@ -53,6 +54,7 @@ export function BuilderDesktop({
   dirty,
   onSave,
   onOpenTemplates,
+  themeSheet,
 }: {
   id: string;
   profileUrl: string;
@@ -61,8 +63,15 @@ export function BuilderDesktop({
   saved: boolean;
   dirty: boolean;
   onSave: () => void;
-  /** Opens the ThemeSheet (hosted by BuilderShell, overlays the preview). */
+  /** Opens the ThemeSheet (state lives in BuilderShell). */
   onOpenTemplates?: () => void;
+  /**
+   * The docked ThemeSheet, or null when closed. Rendered INSIDE the sidebar
+   * column (same hosting as panel-host sub-views) so the preview pane stays
+   * completely uncovered and browsable; the canvas is put in browseOnly mode
+   * while it is open.
+   */
+  themeSheet?: ReactNode;
 }) {
   const t = useTranslations("builder");
   const tc = useTranslations("common");
@@ -182,6 +191,8 @@ export function BuilderDesktop({
             )}
           </div>
 
+          <UndoRedo suspended={themeSheet != null} />
+
           {/* Manual save (auto-save still runs in the background). */}
           <button
             type="button"
@@ -220,8 +231,11 @@ export function BuilderDesktop({
       </header>
 
       <div className="flex min-h-0 flex-1">
-        {/* ── LEFT edit panel ── */}
-        {!previewEnabled && (
+        {/* ── LEFT edit panel ──
+            Kept mounted while the ThemeSheet is docked in it, even in preview
+            mode — otherwise toggling preview would silently unmount an open
+            sheet (losing its un-committed live preview with no way back). */}
+        {(!previewEnabled || themeSheet != null) && (
           <aside className="flex w-[410px] shrink-0 border-e border-border bg-card">
             {/* Icon rail */}
             <div className="flex w-16 shrink-0 flex-col items-center gap-1 border-e border-border py-3">
@@ -279,6 +293,11 @@ export function BuilderDesktop({
                 ref={setPanelHost}
                 className="pointer-events-none absolute inset-0 z-30"
               />
+
+              {/* Docked ThemeSheet — above the panel-host layer (z-40 vs 30);
+                  openThemeSheet clears block/hero selection first, so no
+                  nested sheet is alive underneath it. */}
+              {themeSheet}
             </div>
           </aside>
         )}
@@ -290,7 +309,11 @@ export function BuilderDesktop({
               <Loader2 className="size-6 animate-spin" />
             </div>
           ) : (
-            <BuilderCanvas deviceWidth={widthPx} fillHeight />
+            <BuilderCanvas
+              deviceWidth={widthPx}
+              fillHeight
+              browseOnly={themeSheet != null}
+            />
           )}
         </main>
       </div>

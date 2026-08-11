@@ -17,6 +17,7 @@ import { fillDefaults } from "@/lib/builder/hero-defaults";
 import { setAiDraft } from "@/lib/ai/draft-handoff";
 import type { HeroStyle } from "@/lib/types/profile";
 
+import { SITE_DOMAIN } from "@/lib/site-domain";
 function slugify(v: string) {
   return v
     .toLowerCase()
@@ -221,7 +222,7 @@ export function CreateWebsiteWizard({ onClose }: { onClose: () => void }) {
                 }}
                 className="h-11 min-w-0 flex-1 bg-transparent px-1 text-sm font-medium outline-none"
               />
-              <span className="pe-3 text-sm text-muted-foreground">.qshot.com/</span>
+              <span className="pe-3 text-sm text-muted-foreground">.{SITE_DOMAIN}/</span>
             </div>
             <div className="mt-1.5 h-4 text-xs">
               {status === "checking" && (

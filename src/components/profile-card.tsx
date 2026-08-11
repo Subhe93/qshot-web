@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import type { Profile, ProfileSummary } from "@/lib/types/profile";
 import type { Block } from "@/lib/types/blocks";
 
+import { siteHost } from "@/lib/site-domain";
 /**
  * Website tile — mirrors the mobile home website card: a live preview at top,
  * an info row (logo + name + domain + unread badge), and an action toolbar.
@@ -65,7 +66,7 @@ export function ProfileCard({ profile }: { profile: ProfileSummary }) {
   const logo =
     s.websiteLogo || (settings?.logo as { image_url?: string })?.image_url;
   const slug = p.user_name || profile.name || "me";
-  const domain = `${slug}.qshot.com`;
+  const domain = siteHost(slug);
   const unread = p.unreadContactFormMessages ?? 0;
   // Blocks live under info.modules (mobile WebpageEntity); fall back to legacy.
   const modules =

@@ -31,6 +31,7 @@ import { ColorPickerField } from "@/components/ui/color-picker";
 import { argbToHex } from "@/lib/builder/color";
 import type { HeroStyle } from "@/lib/types/profile";
 
+import { SITE_DOMAIN } from "@/lib/site-domain";
 const DEFAULT_PRIMARY = 0xff4488ff; // brand blue
 const DEFAULT_SECONDARY = 0xffc389ff; // brand purple
 
@@ -305,7 +306,7 @@ export function AiWebsiteWizard({
             {tb("websiteUrl")}
           </label>
           <div className="flex items-center overflow-hidden rounded-xl border border-input bg-card focus-within:border-primary">
-            <span className="ps-3 text-sm text-muted-foreground">qshot.com/</span>
+            <span className="ps-3 text-sm text-muted-foreground">{SITE_DOMAIN}/</span>
             <input
               value={slug}
               dir="ltr"

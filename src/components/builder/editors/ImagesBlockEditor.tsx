@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { nanoid } from "nanoid";
 import {
@@ -41,12 +41,16 @@ import type {
 } from "@/lib/types/blocks";
 import { ImageUploader } from "@/components/builder/hero/CoverTab";
 import { ImageCropper } from "@/components/ui/image-cropper";
-import { croppedUploadFile } from "@/lib/builder/crop-image";
+import { RectImage } from "@/components/ui/rect-image";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { resizeForUpload } from "@/lib/builder/crop-image";
+import type { RectTuple } from "@/lib/builder/image-rect";
 import {
   SheetTabBar,
   GroupedCard,
   GroupedRow,
   ColorRow,
+  SheetBottomGap,
   type SheetTab,
 } from "./sheet-kit";
 import { LayoutPicker } from "./LayoutPicker";
@@ -101,9 +105,15 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
   const [tab, setTab] = useState<Tab>("sort");
   // Sequential re-crop queue after a layout change to a different aspect
   // (mobile cropImagesRect). `index` walks the items list one image at a time.
-  const [recrop, setRecrop] = useState<{ aspect: number; index: number } | null>(
-    null,
-  );
+  const [recrop, setRecrop] = useState<{
+    /** null = free crop, for the singleSizable layout. */
+    aspect: number | null;
+    index: number;
+  } | null>(null);
+  // singleSizable shows one image, so mobile refuses to switch to it while more
+  // than one is in the block (_onSave bails after the warning rather than
+  // silently keeping the first). Acknowledge-only: there is nothing to decide.
+  const [singleWarn, setSingleWarn] = useState(false);
 
   const items = block.items ?? [];
   const setBlock = (patch: Partial<ImagesBlock>) => updateBlock(block.id, patch);
@@ -124,14 +134,15 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
           items={items}
           // Mobile _addItems crops at block.layoutType.cardAspectRatio — the
           // CURRENT layout drives the crop (carousel/cards/grid 1:1, shorts
-          // 9:16, swiper/list 16:9). singleSizable has no fixed aspect (null);
-          // fall back to 16:9 (the image stays freely resizable via its rect).
-          aspect={ASPECT[block.layout_type ?? "cards"] ?? 16 / 9}
-          onAdd={(url) =>
-            setItems([...items, { id: nanoid(), url, hidden: false }])
+          // 9:16, swiper/list 16:9). singleSizable declares `null`, i.e. a FREE
+          // crop; the old `?? 16 / 9` fallback here is exactly why a "resizable"
+          // image came back as a fixed 16:9 strip.
+          aspect={ASPECT[block.layout_type ?? "cards"]}
+          onAdd={(url, rect) =>
+            setItems([...items, { id: nanoid(), url, rect, hidden: false }])
           }
-          onReplace={(id, url) =>
-            setItems(items.map((it) => (it.id === id ? { ...it, url } : it)))
+          onReplace={(id, url, rect) =>
+            setItems(items.map((it) => (it.id === id ? { ...it, url, rect } : it)))
           }
           onReorder={setItems}
           onToggleHide={(id, hidden) =>
@@ -151,15 +162,22 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
           value={block.layout_type ?? "cards"}
           onChange={(v) => {
             const current = block.layout_type ?? "cards";
-            const nextAspect = ASPECT[v];
-            const changedAspect =
-              nextAspect != null && nextAspect !== ASPECT[current];
+            if (v === "singleSizable" && items.length > 1) {
+              setSingleWarn(true);
+              return; // layout NOT applied, exactly as mobile bails out
+            }
             // Apply the new layout immediately (live preview, matching the mobile
-            // page-change preview). If the crop aspect changed and there are
-            // images, kick off a sequential re-crop starting at the first image.
+            // page-change preview), then re-crop the images to the new ratio.
+            //
+            // Mobile re-crops on ANY layout change (_onSave calls cropImagesRect
+            // whenever `original != layoutType`). We skip it when the ratio is
+            // unchanged — cards -> grid are both 1:1, so every stored rect is
+            // still valid and mobile would only be making the user redo the same
+            // crop. Switching to singleSizable DOES re-crop, freely (aspect null).
+            const changedAspect = ASPECT[v] !== ASPECT[current];
             setBlock({ layout_type: v });
             if (changedAspect && items.length > 0) {
-              setRecrop({ aspect: nextAspect, index: 0 });
+              setRecrop({ aspect: ASPECT[v], index: 0 });
             }
           }}
         />
@@ -189,34 +207,43 @@ export function ImagesBlockEditor({ block }: { block: ImagesBlock }) {
       {recrop && items[recrop.index] && (
         <ImageCropper
           key={recrop.index}
-          // Load through our same-origin proxy — the CDN has no CORS headers, so
-          // a direct CDN <img> would taint the canvas and break toBlob() export.
-          src={`/api/image-proxy?url=${encodeURIComponent(
-            cdnUrl(items[recrop.index].url),
-          )}`}
+          // Straight off the CDN: this only measures the image and stores a new
+          // rect, so there is no canvas export for the missing CORS headers to
+          // taint, and no re-upload to degrade the picture.
+          src={cdnUrl(items[recrop.index].url)}
           title={t("cropTitle")}
           cancelLabel={tc("cancel")}
           confirmLabel={t("cropConfirm")}
-          aspect={recrop.aspect}
+          aspect={recrop.aspect ?? undefined}
           onCancel={() => setRecrop(null)}
-          onCropped={async (blob) => {
+          // mobile: `items[i] = items[i].copyWith(rect: positions[i])` — the
+          // uploaded files are never touched, only their crop rectangles.
+          onCroppedRect={(r) => {
             const idx = recrop.index;
-            const file = croppedUploadFile(blob, "image");
-            const uploaded = await uploadImage(file);
-            if (uploaded) {
-              // Crop is baked into the uploaded pixels, so clear any stale rect
-              // (matches the add-image flow, which stores no rect).
-              setItems(
-                items.map((it, i) =>
-                  i === idx ? { ...it, url: uploaded, rect: null } : it,
-                ),
-              );
-            }
+            setItems(items.map((it, i) => (i === idx ? { ...it, rect: r } : it)));
             const next = idx + 1;
-            setRecrop(next < items.length ? { aspect: recrop.aspect, index: next } : null);
+            setRecrop(
+              next < items.length ? { aspect: recrop.aspect, index: next } : null,
+            );
           }}
         />
       )}
+
+      {/* "Oops! Just One Image" (mobile warning_single_image_*). */}
+      <ConfirmDialog
+        open={singleWarn}
+        type="warning"
+        title={t("singleImageTitle")}
+        message={t("singleImageWarning")}
+        confirmText={tc("ok")}
+        onConfirm={() => setSingleWarn(false)}
+        onCancel={() => setSingleWarn(false)}
+      />
+
+      {/* Mobile 68e6f688: settings sheets keep a trailing gap of the bottom
+          safe area + 24px, so the last control never sits under the iOS home
+          indicator. */}
+      <SheetBottomGap />
     </div>
   );
 }
@@ -233,10 +260,10 @@ function SortTab({
   onDelete,
 }: {
   items: ImageItem[];
-  /** Crop aspect for add/replace — the current layout's cardAspectRatio. */
-  aspect: number;
-  onAdd: (url: string) => void;
-  onReplace: (id: string, url: string) => void;
+  /** Crop aspect for adding — the current layout's cardAspectRatio, null = free. */
+  aspect: number | null;
+  onAdd: (url: string, rect: RectTuple) => void;
+  onReplace: (id: string, url: string, rect: RectTuple) => void;
   onReorder: (next: ImageItem[]) => void;
   onToggleHide: (id: string, hidden: boolean) => void;
   onDelete: (id: string) => void;
@@ -259,7 +286,7 @@ function SortTab({
           upload). The web uploader crops + uploads a single image; appended. */}
       <ImageUploader
         path={undefined}
-        onUploaded={onAdd}
+        onUploadedRect={onAdd}
         onDelete={() => {}}
         aspect={aspect}
         rounded="rounded-xl"
@@ -272,8 +299,7 @@ function SortTab({
               <SortRow
                 key={item.id}
                 item={item}
-                aspect={aspect}
-                onReplace={(url) => onReplace(item.id!, url)}
+                onReplace={(url, rect) => onReplace(item.id!, url, rect)}
                 onToggleHide={() => onToggleHide(item.id!, !item.hidden)}
                 onDelete={() => onDelete(item.id!)}
               />
@@ -287,15 +313,12 @@ function SortTab({
 
 function SortRow({
   item,
-  aspect,
   onReplace,
   onToggleHide,
   onDelete,
 }: {
   item: ImageItem;
-  /** Crop aspect (the current layout's cardAspectRatio). */
-  aspect: number;
-  onReplace: (url: string) => void;
+  onReplace: (url: string, rect: RectTuple) => void;
   onToggleHide: () => void;
   onDelete: () => void;
 }) {
@@ -304,27 +327,43 @@ function SortRow({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id! });
   const [busy, setBusy] = useState(false);
-  // Replacement goes through the same crop-at-layout-aspect step as adding
-  // (mobile replaces via the image editor too — never a raw upload).
+  // Replacing goes through the crop editor, like mobile's _putItem — but note
+  // that _putItem calls `openSingleCustomImageEditor(context, file: file)` with
+  // NO aspectRatio, so replacing is a FREE crop even when the layout has a fixed
+  // ratio. The layout's ratio is only imposed when adding or when the layout
+  // itself changes.
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const pendingFile = useRef<File | null>(null);
 
-  function onPickReplace(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onPickReplace(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setCropSrc(URL.createObjectURL(file));
+    const picked = URL.createObjectURL(file);
+    setBusy(true);
+    try {
+      const resized = await resizeForUpload(picked, "image", file.type);
+      pendingFile.current = resized;
+      setCropSrc(URL.createObjectURL(resized));
+    } finally {
+      URL.revokeObjectURL(picked);
+      setBusy(false);
+    }
   }
 
   function closeCropper() {
     if (cropSrc) URL.revokeObjectURL(cropSrc);
     setCropSrc(null);
+    pendingFile.current = null;
   }
 
-  async function onCropped(blob: Blob) {
+  async function onCroppedRect(rect: RectTuple) {
+    const file = pendingFile.current;
+    if (!file) return;
     setBusy(true);
     try {
-      const url = await uploadImage(croppedUploadFile(blob, "image"));
-      if (url) onReplace(url);
+      const url = await uploadImage(file);
+      if (url) onReplace(url, rect);
     } finally {
       setBusy(false);
       closeCropper();
@@ -358,8 +397,7 @@ function SortRow({
           backgroundColor: "rgba(255,255,255,0.2)",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cdnUrl(item.url)} alt="" className="size-full object-cover" />
+        <RectImage src={cdnUrl(item.url)} rect={item.rect} className="size-full" />
         {busy && (
           <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-[10px] font-semibold text-white">
             …
@@ -397,9 +435,8 @@ function SortRow({
           title={t("cropTitle")}
           cancelLabel={tc("cancel")}
           confirmLabel={t("cropConfirm")}
-          aspect={aspect}
           onCancel={closeCropper}
-          onCropped={onCropped}
+          onCroppedRect={onCroppedRect}
         />
       )}
     </div>

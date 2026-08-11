@@ -133,17 +133,29 @@ export interface CardStyle {
 
 /**
  * Reference to the website template a site was created from (or last
- * re-stamped with) and the brand color the user picked (mobile:
- * settings_entity.dart TemplateRef). Palette colors are baked into the
- * blocks/settings as literal values at apply time — this object is
- * editor-side memory only: it highlights the current template in the picker,
- * carries the brand color over when switching templates, and drives
- * template-aware recoloring.
+ * re-stamped with) — mobile `settings_entity.dart` TemplateRef. The template's
+ * colors/styles are BAKED into the blocks and settings as literal values at
+ * apply time, so this object is editor-side memory only: it highlights the
+ * current template in the picker and names it in the Style panel.
+ *
+ * ── CONTRACT CHANGE (assigned by the mobile/backend team) ──────────────────
+ *  ❶ `brand_color` is REMOVED. It only ever carried the template's own
+ *    authored accent (the brand-color selector was deferred to phase 2), and
+ *    every surface that needs that color derives it from the template itself
+ *    (`templateAccentColor`). Legacy documents still carry the key; it is
+ *    stripped on READ — see `parseSettings` in serialization.ts.
+ *  ❷ `id` may be NULL: a user with a custom design of their own is no longer
+ *    forced to hold a template selection. A null id means "no template
+ *    selected" and every reader must treat it exactly like an absent
+ *    `template` object.
+ *
+ * `id` is a REQUIRED key with a NULLABLE value, not an optional key: the
+ * server schema keeps `required: ["id"]`, so `{}` would be rejected — the
+ * type must make it impossible to build a TemplateRef without writing `id`.
  */
 export interface TemplateRef {
-  id: string;
-  /** ARGB32 int of the RAW user-picked brand color (not a palette color). */
-  brand_color: number;
+  /** Template id (`template-N`), or null when no template is selected. */
+  id: string | null;
 }
 
 export interface WebsiteSettings {

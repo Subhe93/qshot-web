@@ -11,6 +11,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+    "ok": "Ok",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -116,6 +117,10 @@
     "deleteBlockConfirm": "Supprimer ce bloc ? Action irréversible.",
     "careful": "Attention",
     "coverSizeWarning": "La taille de couverture sélectionnée peut masquer certains textes et boutons.",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "singleImageTitle": "Oups ! Une seule image",
+    "singleImageWarning": "Il semble que vous en ayez choisi plusieurs. Cette action fonctionne uniquement avec une seule image.",
     "confirm": "Confirmer",
     "addBlock": "Blocs",
     "save": "Save",
@@ -382,7 +387,65 @@
       "numberOfPosts": "Nombre de publications du flux",
       "showProfileOverview": "Afficher l'aperçu du profil",
       "decrease": "Diminuer",
-      "increase": "Augmenter"
+      "increase": "Augmenter",
+      "finishSignIn": "Terminez la connexion avec {platform}",
+      "finishSignInDesc": "Terminez les étapes dans votre navigateur, puis revenez à cet écran.",
+      "reopenSignIn": "Rouvrir la connexion",
+      "noConnectionReturned": "Aucune connexion n'a été renvoyée.",
+      "facebook": {
+        "title": "Page Facebook",
+        "subtitle": "Afficher les publications de votre Page",
+        "notConnected": "Non connecté",
+        "connect": "Connecter Facebook",
+        "connecting": "Connexion…",
+        "connectHint": "Connectez votre compte Meta pour afficher les publications de votre Page Facebook.",
+        "account": "Compte Meta",
+        "addAccount": "Connecter un autre compte",
+        "choosePage": "Choisir une Page",
+        "noPages": "Aucune Page Facebook trouvée pour ce compte.",
+        "disconnect": "Déconnecter",
+        "disconnectConfirm": "Déconnecter ce compte Meta ? Les flux qui l’utilisent cesseront d’afficher des publications.",
+        "unavailable": "Les flux Facebook ne sont pas disponibles pour le moment. Réessayez plus tard.",
+        "popupBlocked": "Votre navigateur a bloqué la fenêtre de connexion. Autorisez les pop-ups pour ce site puis réessayez.",
+        "noPagesDesc": "Votre compte ne gère aucune page. Créez-en une, puis reconnectez-vous.",
+        "reconnect": "Reconnecter",
+        "instagramLinked": "Instagram lié"
+      },
+      "tiktok": {
+        "title": "TikTok",
+        "subtitle": "Affichez vos propres vidéos TikTok",
+        "notConnected": "Non connecté",
+        "connect": "Connecter TikTok",
+        "connecting": "Connexion…",
+        "connectHint": "Affichez vos propres vidéos TikTok sur votre site. Connectez-vous une fois avec TikTok — nous lisons uniquement vos vidéos publiques.",
+        "addAccount": "Connecter un autre compte",
+        "chooseAccount": "Choisir un compte",
+        "noAccounts": "Aucun compte TikTok n'est encore connecté.",
+        "reconnectNeeded": "Accès révoqué — reconnexion nécessaire",
+        "disconnect": "Déconnecter",
+        "disconnectConfirm": "Déconnecter ce compte TikTok ? Les flux qui l’utilisent cesseront d’afficher des vidéos.",
+        "unavailable": "Les flux TikTok ne sont pas disponibles pour le moment. Réessayez plus tard.",
+        "popupBlocked": "Votre navigateur a bloqué la fenêtre de connexion. Autorisez les pop-ups pour ce site puis réessayez."
+      },
+      "instagram": {
+        "title": "Instagram",
+        "subtitle": "Affichez vos propres publications Instagram",
+        "notConnected": "Non connecté",
+        "connect": "Connecter Instagram",
+        "connecting": "Connexion…",
+        "connectHint": "Affichez vos publications Instagram sur votre site. Vous vous connecterez à Instagram une seule fois — nous lisons uniquement vos publications.",
+        "professionalRequired": "Nécessite un compte professionnel (Business ou Créateur). Le changement est gratuit dans l’application Instagram.",
+        "addAccount": "Connecter un autre compte",
+        "chooseAccount": "Choisir un compte",
+        "noAccounts": "Aucun compte Instagram n’est encore connecté.",
+        "reconnectNeeded": "Connexion expirée — reconnexion nécessaire",
+        "disconnect": "Déconnecter",
+        "disconnectConfirm": "Déconnecter ce compte Instagram ? Les fils qui l’utilisent cesseront d’afficher des publications.",
+        "unavailable": "Les fils Instagram ne sont pas disponibles pour le moment. Réessayez plus tard.",
+        "popupBlocked": "Votre navigateur a bloqué la fenêtre de connexion. Autorisez les pop-ups pour ce site puis réessayez.",
+        "switchToConnect": "Connectez votre compte Instagram",
+        "legacyNotice": "Ce bloc utilise encore l’ancienne méthode par profil public, qui va être retirée. Connectez votre compte pour qu’il continue de fonctionner."
+      }
     },
     "form": {
       "defaultOption": "Par défaut",
@@ -414,7 +477,9 @@
       "source": "Source",
       "aspectRatio": "Rapport d'aspect",
       "auto": "Auto",
-      "codePlaceholder": "<iframe …>"
+      "codePlaceholder": "<iframe …>",
+      "urlRequired": "Un lien est nécessaire pour enregistrer ce bloc.",
+      "codeRequired": "Le code d’intégration est nécessaire pour enregistrer ce bloc."
     },
     "introVideo": {
       "video": "Vidéo",
@@ -428,7 +493,8 @@
       "removeVideo": "Supprimer",
       "videoUploaded": "Vidéo téléversée",
       "uploadFailed": "Échec du téléversement de la vidéo. Réessayez.",
-      "orPasteUrl": "Ou collez un lien vidéo"
+      "orPasteUrl": "Ou collez un lien vidéo",
+      "thumbnailRequired": "Une miniature est obligatoire. Collez un lien YouTube pour la remplir automatiquement, ou importez une image."
     },
     "bookingBlock": {
       "bookNow": "Réserver",
@@ -459,6 +525,12 @@
       "startBlank": "Commencer vide",
       "applied": "Modèle appliqué",
       "switchMessage": "Cela restyle votre site. Votre contenu et votre couleur de marque sont conservés.",
+      "contentChoiceMessage": "Garder votre contenu actuel et ne changer que le design, ou tout remplacer par le contenu d'exemple du modèle ?",
+      "keepMyContent": "Garder mon contenu",
+      "useTemplateContent": "Utiliser le contenu du modèle",
+      "replaceContentWarning": "Vos blocs et textes actuels seront remplacés.",
+      "showTemplates": "Afficher les modèles",
+      "viewWebsite": "Voir le site",
       "undo": "Annuler",
       "brandColor": "Couleur de marque",
       "customColor": "Couleur personnalisée",
@@ -469,7 +541,14 @@
         "salon": "Salon & Barbier",
         "creator": "Créateur",
         "shop": "Boutique",
-        "professional": "Professionnel"
+        "professional": "Professionnel",
+        "template-1": "Site professionnel",
+        "template-2": "Site personnel",
+        "template-3": "Site marketing",
+        "template-4": "Site d'icônes",
+        "template-5": "Site étoile",
+        "template-6": "Site signature",
+        "template-7": "Site de services"
       },
       "sections": {
         "menu": "Menu",
@@ -484,9 +563,20 @@
         "email": "E-mail",
         "message": "Message",
         "gallery": "Galerie"
-      }
+      },
+      "loadError": "Impossible de charger les modèles."
     },
-    "unsupportedBlock": "Le bloc {position} ({type}) n’est pas pris en charge dans cette version — supprimez-le pour enregistrer."
+    "unsupportedBlock": "Le bloc {position} ({type}) n’est pas pris en charge dans cette version — supprimez-le pour enregistrer.",
+    "saveRejectedBlock": "Enregistrement impossible — bloc {position} ({block}) : {reason}",
+    "saveRejected": "Enregistrement impossible — {reason}",
+    "saveRejectedMore": "{count, plural, one {+1 autre problème} other {+# autres problèmes}}",
+    "incomplete": {
+      "videoUrl": "Bloc vidéo {position} : importez une vidéo ou collez un lien avant d’enregistrer.",
+      "videoThumbnail": "Le bloc vidéo {position} n’a pas de miniature — ajoutez-en une (ou utilisez un lien YouTube) pour enregistrer.",
+      "embedEmpty": "Le bloc d’intégration {position} est vide — ajoutez le lien ou le code pour enregistrer.",
+      "embedUrl": "Il manque le lien au bloc d’intégration {position} — ajoutez-le pour enregistrer.",
+      "embedHtml": "Il manque le code au bloc d’intégration {position} — ajoutez-le pour enregistrer."
+    }
   },
   "nav": {
     "profiles": "Site web",

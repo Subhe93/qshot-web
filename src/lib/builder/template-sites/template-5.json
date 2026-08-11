@@ -1,0 +1,303 @@
+{
+  "name": "template-5",
+  "info": {
+    "modules": [
+      {
+        "type": "HeaderModule",
+        "id": "20260803-1159-8028-9540-6dc1d047bda2",
+        "background_color": null,
+        "use_background_color": null,
+        "hide": null,
+        "value": "Palm Beach & Martin County",
+        "align": "start",
+        "size": 22
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "20260803-1159-8746-9791-d5129359d963",
+        "background_color": null,
+        "use_background_color": null,
+        "hide": null,
+        "content": "[{\"insert\":\"In-home dog training focused on real-life behavior, clear communication, and calmer homes.\"},{\"insert\":\"\\n\",\"attributes\":{\"align\":\"left\"}}]"
+      },
+      {
+        "type": "SpacerModule",
+        "id": "20260803-1208-8248-8040-4aab2c414397",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "space": 10
+      },
+      {
+        "type": "ButtonModule",
+        "id": "20260803-1159-8959-b658-60f3b84ed804",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "grid",
+        "theme": "minimal",
+        "show_arrow": false,
+        "buttons": [
+          {
+            "id": "20260803-1200-8146-9510-106093418e04",
+            "title": "Apply Now",
+            "url": "https://form.typeform.com/to/",
+            "icon": "images/profiles66d6163f22224329039cf464__m22hvrbp1f.png",
+            "hidden": false,
+            "background_color": 1302240926,
+            "use_background_color": false,
+            "border_color": null,
+            "use_border": false,
+            "text_color": 4294967295,
+            "use_text_color": false,
+            "corner_radius": 8
+          }
+        ]
+      },
+      {
+        "type": "ButtonModule",
+        "id": "20260803-1201-8735-8054-53097c3a607c",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "grid",
+        "theme": "minimal",
+        "show_arrow": false,
+        "buttons": [
+          {
+            "id": "20260803-1202-8115-9289-e61d57e4adde",
+            "title": "My Ebook",
+            "url": "https://mystore976391.mysamcart.com/-the-hyper-dog-off-switch/",
+            "icon": "images/profiles66d6163f22224329039cf464__1j468s10005.png",
+            "hidden": false,
+            "background_color": 1302240926,
+            "use_background_color": false,
+            "border_color": null,
+            "use_border": false,
+            "text_color": 4294967295,
+            "use_text_color": false,
+            "corner_radius": 8
+          }
+        ]
+      },
+      {
+        "type": "ButtonModule",
+        "id": "20260803-1204-8239-a920-c7f0743fcd05",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "grid",
+        "theme": "solid",
+        "show_arrow": false,
+        "buttons": [
+          {
+            "id": "20260803-1205-8e05-a755-5d55ebfe74c1",
+            "title": "Instagram",
+            "url": "instagram.com",
+            "icon": "images/profiles66d6163f22224329039cf464__0z721gdn5u5.png",
+            "hidden": false,
+            "background_color": 4282681599,
+            "use_background_color": false,
+            "border_color": null,
+            "use_border": false,
+            "text_color": 4294967295,
+            "use_text_color": false,
+            "corner_radius": 12
+          }
+        ]
+      },
+      {
+        "type": "ButtonModule",
+        "id": "20260803-1205-8e26-9923-249631f1d6aa",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "grid",
+        "theme": "solid",
+        "show_arrow": false,
+        "buttons": [
+          {
+            "id": "20260803-1205-8e05-a755-5d55ebfe74c1",
+            "title": "TikTok",
+            "url": "tiktok.com",
+            "icon": "images/profiles66d6163f22224329039cf464__lx8ieg2mn8k.png",
+            "hidden": false,
+            "background_color": 4282681599,
+            "use_background_color": false,
+            "border_color": null,
+            "use_border": false,
+            "text_color": 4294967295,
+            "use_text_color": false,
+            "corner_radius": 12
+          }
+        ]
+      },
+      {
+        "type": "ButtonModule",
+        "id": "20260803-1207-8c29-b444-822e22545d9a",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "grid",
+        "theme": "solid",
+        "show_arrow": false,
+        "buttons": [
+          {
+            "id": "20260803-1205-8e05-a755-5d55ebfe74c1",
+            "title": "Call",
+            "url": "tel:+1234567890",
+            "icon": "images/profiles66d6163f22224329039cf464__eow235z729.png",
+            "hidden": false,
+            "background_color": 4282681599,
+            "use_background_color": false,
+            "border_color": null,
+            "use_border": false,
+            "text_color": 4294967295,
+            "use_text_color": false,
+            "corner_radius": 12
+          }
+        ]
+      },
+      {
+        "type": "ButtonModule",
+        "id": "20260803-1208-8f17-8439-ca0d24223e28",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "grid",
+        "theme": "solid",
+        "show_arrow": false,
+        "buttons": [
+          {
+            "id": "20260803-1205-8e05-a755-5d55ebfe74c1",
+            "title": "WhatsApp",
+            "url": "tel:+1234567890",
+            "icon": "images/profiles66d6163f22224329039cf464__ocvvu2wf43e.png",
+            "hidden": false,
+            "background_color": 4282681599,
+            "use_background_color": false,
+            "border_color": null,
+            "use_border": false,
+            "text_color": 4294967295,
+            "use_text_color": false,
+            "corner_radius": 12
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "website_logo": null,
+    "website_name": "Template 6",
+    "style": "style1",
+    "logo": {
+      "image_url": null,
+      "hide": false
+    },
+    "header": {
+      "hide": false,
+      "title": {
+        "hide": false,
+        "text": "",
+        "color": null
+      },
+      "leading_alignment": "start",
+      "foreground_color": null,
+      "background_color": null,
+      "position": "onCover",
+      "background_opacity": 1,
+      "fillSides": false
+    },
+    "profile_picture": {
+      "image_url": "images/profiles66d6163f22224329039cf464__zt8og0au1lp.png",
+      "image_rect": [
+        46.49999999999999,
+        0,
+        418.5,
+        372
+      ],
+      "hide": false,
+      "alignment": "start",
+      "shape": "circle",
+      "border_width": 0,
+      "border_color": 4294967295
+    },
+    "cover_photo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__9dkegojshvb.png",
+      "image_rect": [
+        161.32943925233667,
+        1.758593271006248e-12,
+        1441.3294392523333,
+        719.9999999999999
+      ],
+      "hide": false,
+      "size": "horizontal",
+      "transparency": 0.1,
+      "fade": false,
+      "color": null
+    },
+    "title": {
+      "hide": false,
+      "text": "Write Your Main Title or Heading Text Here",
+      "color": 4294967295
+    },
+    "text": {
+      "hide": false,
+      "text": "Write Your Main Description or Small Tagline Text Here",
+      "color": 4294967295
+    },
+    "button1": {
+      "hide": false,
+      "text": "Book Now",
+      "url": "https://qshot.com",
+      "foreground_color": 4280556559,
+      "background_color": 4289644507
+    },
+    "button2": {
+      "hide": false,
+      "text": "Call us",
+      "url": "https://qshot.com",
+      "foreground_color": 4294967295,
+      "background_color": 4281621888
+    },
+    "background": {
+      "image": null,
+      "color_value": {
+        "type": "solid",
+        "color": 4291419898
+      }
+    },
+    "name": {
+      "text": "Lindsay with LVK9s",
+      "alignment": "start",
+      "hide": false,
+      "color": null
+    },
+    "bio": {
+      "text": "Lead Trainer",
+      "alignment": "start",
+      "hide": false
+    },
+    "floating_button": {
+      "hide": false,
+      "type": null
+    },
+    "font_family": null,
+    "font_color": 4280229670,
+    "card_style": null,
+    "can_save_contact": false,
+    "index_in_google": true
+  }
+}

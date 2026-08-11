@@ -11,6 +11,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+    "ok": "Ok",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -116,6 +117,10 @@
     "deleteBlockConfirm": "Eliminare questo blocco? Azione irreversibile.",
     "careful": "Attenzione",
     "coverSizeWarning": "La dimensione della copertina selezionata potrebbe nascondere alcuni testi e pulsanti.",
+    "undo": "Annulla",
+    "redo": "Ripristina",
+    "singleImageTitle": "Ops! Solo un'immagine",
+    "singleImageWarning": "Sembra che tu ne abbia selezionate più di una. Questa azione funziona solo con un'immagine alla volta.",
     "confirm": "Conferma",
     "addBlock": "Blocchi",
     "save": "Save",
@@ -382,7 +387,65 @@
       "numberOfPosts": "Numero di post del feed",
       "showProfileOverview": "Mostra panoramica del profilo",
       "decrease": "Diminuisci",
-      "increase": "Aumenta"
+      "increase": "Aumenta",
+      "finishSignIn": "Completa l'accesso con {platform}",
+      "finishSignInDesc": "Completa i passaggi nel browser, poi torna a questa schermata.",
+      "reopenSignIn": "Riapri l'accesso",
+      "noConnectionReturned": "Nessuna connessione restituita.",
+      "facebook": {
+        "title": "Pagina Facebook",
+        "subtitle": "Mostra i post della tua Pagina",
+        "notConnected": "Non collegato",
+        "connect": "Collega Facebook",
+        "connecting": "Collegamento…",
+        "connectHint": "Collega il tuo account Meta per mostrare i post della tua Pagina Facebook.",
+        "account": "Account Meta",
+        "addAccount": "Collega un altro account",
+        "choosePage": "Scegli una Pagina",
+        "noPages": "Nessuna Pagina Facebook trovata per questo account.",
+        "disconnect": "Scollega",
+        "disconnectConfirm": "Scollegare questo account Meta? I feed che lo usano smetteranno di mostrare i post.",
+        "unavailable": "I feed di Facebook non sono disponibili al momento. Riprova più tardi.",
+        "popupBlocked": "Il browser ha bloccato la finestra di accesso. Consenti i pop-up per questo sito e riprova.",
+        "noPagesDesc": "Il tuo account non gestisce alcuna pagina. Creane una, poi ricollega.",
+        "reconnect": "Riconnetti",
+        "instagramLinked": "Instagram collegato"
+      },
+      "tiktok": {
+        "title": "TikTok",
+        "subtitle": "Mostra i tuoi video di TikTok",
+        "notConnected": "Non collegato",
+        "connect": "Collega TikTok",
+        "connecting": "Collegamento…",
+        "connectHint": "Mostra i tuoi video TikTok sul tuo sito. Accedi con TikTok una volta: leggiamo solo i tuoi video pubblici.",
+        "addAccount": "Collega un altro account",
+        "chooseAccount": "Scegli un account",
+        "noAccounts": "Nessun account TikTok ancora collegato.",
+        "reconnectNeeded": "Accesso revocato — riconnessione necessaria",
+        "disconnect": "Scollega",
+        "disconnectConfirm": "Scollegare questo account TikTok? I feed che lo usano smetteranno di mostrare i video.",
+        "unavailable": "I feed di TikTok non sono disponibili al momento. Riprova più tardi.",
+        "popupBlocked": "Il browser ha bloccato la finestra di accesso. Consenti i pop-up per questo sito e riprova."
+      },
+      "instagram": {
+        "title": "Instagram",
+        "subtitle": "Mostra i tuoi post di Instagram",
+        "notConnected": "Non collegato",
+        "connect": "Collega Instagram",
+        "connecting": "Collegamento…",
+        "connectHint": "Mostra i tuoi post di Instagram sul tuo sito. Accederai a Instagram una sola volta — leggiamo soltanto i tuoi post.",
+        "professionalRequired": "Richiede un account professionale (Business o Creator). Puoi passarci gratuitamente dall’app Instagram.",
+        "addAccount": "Collega un altro account",
+        "chooseAccount": "Scegli un account",
+        "noAccounts": "Nessun account Instagram è ancora collegato.",
+        "reconnectNeeded": "Connessione scaduta — è necessario ricollegare",
+        "disconnect": "Scollega",
+        "disconnectConfirm": "Scollegare questo account Instagram? I feed che lo usano smetteranno di mostrare i post.",
+        "unavailable": "I feed di Instagram non sono disponibili in questo momento. Riprova più tardi.",
+        "popupBlocked": "Il browser ha bloccato la finestra di accesso. Consenti i pop-up per questo sito e riprova.",
+        "switchToConnect": "Collega il tuo account Instagram",
+        "legacyNotice": "Questo blocco usa ancora il vecchio metodo del profilo pubblico, che verrà dismesso. Collega il tuo account per mantenerlo funzionante."
+      }
     },
     "form": {
       "defaultOption": "Predefinito",
@@ -414,7 +477,9 @@
       "source": "Origine",
       "aspectRatio": "Proporzioni",
       "auto": "Auto",
-      "codePlaceholder": "<iframe …>"
+      "codePlaceholder": "<iframe …>",
+      "urlRequired": "Per salvare questo blocco serve un link.",
+      "codeRequired": "Per salvare questo blocco serve il codice di incorporamento."
     },
     "introVideo": {
       "video": "Video",
@@ -428,7 +493,8 @@
       "removeVideo": "Rimuovi",
       "videoUploaded": "Video caricato",
       "uploadFailed": "Caricamento del video non riuscito. Riprova.",
-      "orPasteUrl": "Oppure incolla un link video"
+      "orPasteUrl": "Oppure incolla un link video",
+      "thumbnailRequired": "La miniatura è obbligatoria. Incolla un link YouTube per compilarla automaticamente oppure carica un’immagine."
     },
     "bookingBlock": {
       "bookNow": "Prenota ora",
@@ -459,6 +525,12 @@
       "startBlank": "Inizia da zero",
       "applied": "Modello applicato",
       "switchMessage": "Questo cambia lo stile del sito. I contenuti e il colore del brand restano.",
+      "contentChoiceMessage": "Mantenere i contenuti attuali cambiando solo il design, o sostituire tutto con i contenuti di esempio del modello?",
+      "keepMyContent": "Mantieni i miei contenuti",
+      "useTemplateContent": "Usa i contenuti del modello",
+      "replaceContentWarning": "I tuoi blocchi e testi attuali verranno sostituiti.",
+      "showTemplates": "Mostra modelli",
+      "viewWebsite": "Vedi il sito",
       "undo": "Annulla",
       "brandColor": "Colore del brand",
       "customColor": "Colore personalizzato",
@@ -469,7 +541,14 @@
         "salon": "Salone & Barbiere",
         "creator": "Creator",
         "shop": "Negozio",
-        "professional": "Professionista"
+        "professional": "Professionista",
+        "template-1": "Sito aziendale",
+        "template-2": "Sito personale",
+        "template-3": "Sito di marketing",
+        "template-4": "Sito di icone",
+        "template-5": "Sito star",
+        "template-6": "Sito firma",
+        "template-7": "Sito di servizi"
       },
       "sections": {
         "menu": "Menu",
@@ -484,9 +563,20 @@
         "email": "Email",
         "message": "Messaggio",
         "gallery": "Galleria"
-      }
+      },
+      "loadError": "Impossibile caricare i modelli."
     },
-    "unsupportedBlock": "Il blocco {position} ({type}) non è supportato in questa versione — rimuovilo per salvare."
+    "unsupportedBlock": "Il blocco {position} ({type}) non è supportato in questa versione — rimuovilo per salvare.",
+    "saveRejectedBlock": "Impossibile salvare — blocco {position} ({block}): {reason}",
+    "saveRejected": "Impossibile salvare — {reason}",
+    "saveRejectedMore": "{count, plural, one {+1 altro problema} other {+# altri problemi}}",
+    "incomplete": {
+      "videoUrl": "Blocco video {position}: carica un video o incolla un link prima di salvare.",
+      "videoThumbnail": "Il blocco video {position} non ha una miniatura — aggiungine una (o usa un link YouTube) per salvare.",
+      "embedEmpty": "Il blocco di incorporamento {position} è vuoto — aggiungi il link o il codice per salvare.",
+      "embedUrl": "Al blocco di incorporamento {position} manca il link — aggiungilo per salvare.",
+      "embedHtml": "Al blocco di incorporamento {position} manca il codice — aggiungilo per salvare."
+    }
   },
   "nav": {
     "profiles": "Sito web",

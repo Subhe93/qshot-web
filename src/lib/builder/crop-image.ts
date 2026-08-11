@@ -1,4 +1,6 @@
-/** Pixel crop area from react-easy-crop. */
+import { uploadScale } from "./image-rect";
+
+/** Pixel crop area: the origin plus extent of a region of an image. */
 export interface CropArea {
   x: number;
   y: number;
@@ -75,6 +77,47 @@ function hasTransparentPixels(
   } catch {
     return false;
   }
+}
+
+/**
+ * Downscale a picked file the way mobile's `Utils.compressImage` does — scale to
+ * just cover 1280x720, never up — WITHOUT cutting anything out of it.
+ *
+ * This is the upload half of the non-destructive crop: the whole picture goes to
+ * the CDN and the crop travels beside it as a rect, so re-cropping later still
+ * has every pixel to work with. Keeping the same 1280x720 rule as mobile matters
+ * because the stored rect is in the coordinate space of the uploaded image; a
+ * different resize rule would make rects from the two clients incomparable.
+ *
+ * PNG (and anything else with alpha) stays PNG so transparent logos don't get
+ * flattened onto black, matching the `isPng` branch in `Utils.compressImage`.
+ */
+export async function resizeForUpload(
+  src: string,
+  baseName: string,
+  sourceType?: string,
+): Promise<File> {
+  const image = await loadImage(src);
+  const natW = image.naturalWidth;
+  const natH = image.naturalHeight;
+  const scale = uploadScale(natW, natH);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(natW * scale));
+  canvas.height = Math.max(1, Math.round(natH * scale));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("canvas unavailable");
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const png =
+    (sourceType?.toLowerCase().includes("png") ?? false) ||
+    hasTransparentPixels(ctx, canvas.width, canvas.height);
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("resize failed"))),
+      png ? "image/png" : "image/jpeg",
+      png ? undefined : 0.85,
+    );
+  });
+  return croppedUploadFile(blob, baseName);
 }
 
 /**

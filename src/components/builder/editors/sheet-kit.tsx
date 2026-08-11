@@ -168,6 +168,33 @@ export function ColorRow({
   );
 }
 
+/**
+ * Trailing gap for a settings-sheet body, sized to the device's bottom safe
+ * area plus 24px.
+ *
+ * Port of the resting half of mobile `68e6f688` ("auto bottom gap for settings
+ * sheets"), which replaced the editor page's permanent `0.6.sh` spacer with
+ * `MediaQuery.paddingOf(context).bottom + 24` whenever no sheet is open. On the
+ * phone layout our sheet is flush with the viewport bottom, so without this the
+ * last row sits under the iOS home indicator / browser chrome.
+ *
+ * The *other* half of that commit — growing the gap to 60% of the viewport
+ * while a sheet is open, so the block being edited can be scrolled clear of it
+ * — has no web equivalent and is deliberately NOT ported: our sheet is a modal
+ * with a backdrop that locks page scroll (`bottom-sheet.tsx`), and on desktop it
+ * mounts inside the sidebar panel, so the canvas is never partially covered by
+ * a sheet the user has to scroll around.
+ */
+export function SheetBottomGap() {
+  return (
+    <div
+      aria-hidden
+      className="shrink-0"
+      style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 24px)" }}
+    />
+  );
+}
+
 /** Small uppercase section label above a group. */
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (

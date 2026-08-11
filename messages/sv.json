@@ -11,6 +11,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+    "ok": "Ok",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -116,6 +117,10 @@
     "deleteBlockConfirm": "Ta bort det här blocket? Det går inte att ångra.",
     "careful": "Var försiktig",
     "coverSizeWarning": "Den valda omslagsstorleken kan dölja viss text och vissa knappar.",
+    "undo": "Ångra",
+    "redo": "Gör om",
+    "singleImageTitle": "Hoppsan! Bara en bild",
+    "singleImageWarning": "Det verkar som att du valde fler än en. Den här åtgärden fungerar bara med en bild.",
     "confirm": "Bekräfta",
     "addBlock": "Block",
     "save": "Save",
@@ -382,7 +387,65 @@
       "numberOfPosts": "Antal flödesinlägg",
       "showProfileOverview": "Visa profilöversikt",
       "decrease": "Minska",
-      "increase": "Öka"
+      "increase": "Öka",
+      "finishSignIn": "Slutför inloggningen med {platform}",
+      "finishSignInDesc": "Slutför stegen i webbläsaren och kom sedan tillbaka till den här skärmen.",
+      "reopenSignIn": "Öppna inloggningen igen",
+      "noConnectionReturned": "Ingen anslutning returnerades.",
+      "facebook": {
+        "title": "Facebook-sida",
+        "subtitle": "Visa inlägg från din sida",
+        "notConnected": "Inte ansluten",
+        "connect": "Anslut Facebook",
+        "connecting": "Ansluter…",
+        "connectHint": "Anslut ditt Meta-konto för att visa inlägg från din Facebook-sida.",
+        "account": "Meta-konto",
+        "addAccount": "Anslut ett annat konto",
+        "choosePage": "Välj en sida",
+        "noPages": "Inga Facebook-sidor hittades för det här kontot.",
+        "disconnect": "Koppla från",
+        "disconnectConfirm": "Koppla från det här Meta-kontot? Flöden som använder det slutar visa inlägg.",
+        "unavailable": "Facebook-flöden är inte tillgängliga just nu. Försök igen senare.",
+        "popupBlocked": "Din webbläsare blockerade inloggningsfönstret. Tillåt popup-fönster för den här webbplatsen och försök igen.",
+        "noPagesDesc": "Ditt konto hanterar ingen sida. Skapa en och anslut sedan igen.",
+        "reconnect": "Återanslut",
+        "instagramLinked": "Instagram länkat"
+      },
+      "tiktok": {
+        "title": "TikTok",
+        "subtitle": "Visa dina egna TikTok-videor",
+        "notConnected": "Inte ansluten",
+        "connect": "Anslut TikTok",
+        "connecting": "Ansluter…",
+        "connectHint": "Visa dina egna TikTok-videor på din webbplats. Du loggar in med TikTok en gång – vi läser bara dina offentliga videor.",
+        "addAccount": "Anslut ett annat konto",
+        "chooseAccount": "Välj ett konto",
+        "noAccounts": "Inget TikTok-konto är anslutet ännu.",
+        "reconnectNeeded": "Åtkomst återkallad — återanslutning krävs",
+        "disconnect": "Koppla från",
+        "disconnectConfirm": "Koppla från det här TikTok-kontot? Flöden som använder det slutar visa videor.",
+        "unavailable": "TikTok-flöden är inte tillgängliga just nu. Försök igen senare.",
+        "popupBlocked": "Din webbläsare blockerade inloggningsfönstret. Tillåt popup-fönster för den här webbplatsen och försök igen."
+      },
+      "instagram": {
+        "title": "Instagram",
+        "subtitle": "Visa dina egna inlägg från Instagram",
+        "notConnected": "Inte ansluten",
+        "connect": "Anslut Instagram",
+        "connecting": "Ansluter…",
+        "connectHint": "Visa dina egna Instagram-inlägg på din webbplats. Du loggar in med Instagram en gång — vi läser bara dina inlägg.",
+        "professionalRequired": "Kräver ett professionellt konto (Företag eller Kreatör). Du kan byta gratis i Instagram-appen.",
+        "addAccount": "Anslut ett annat konto",
+        "chooseAccount": "Välj ett konto",
+        "noAccounts": "Inget Instagram-konto är anslutet ännu.",
+        "reconnectNeeded": "Anslutningen har gått ut — anslut på nytt",
+        "disconnect": "Koppla från",
+        "disconnectConfirm": "Koppla från det här Instagram-kontot? Flöden som använder det slutar visa inlägg.",
+        "unavailable": "Instagram-flöden är inte tillgängliga just nu. Försök igen senare.",
+        "popupBlocked": "Din webbläsare blockerade inloggningsfönstret. Tillåt popup-fönster för den här webbplatsen och försök igen.",
+        "switchToConnect": "Anslut ditt Instagram-konto",
+        "legacyNotice": "Det här blocket använder fortfarande den äldre metoden med offentlig profil, som håller på att fasas ut. Anslut ditt konto så att det fortsätter fungera."
+      }
     },
     "form": {
       "defaultOption": "Standard",
@@ -414,7 +477,9 @@
       "source": "Källa",
       "aspectRatio": "Bildförhållande",
       "auto": "Auto",
-      "codePlaceholder": "<iframe …>"
+      "codePlaceholder": "<iframe …>",
+      "urlRequired": "En länk krävs för att spara det här blocket.",
+      "codeRequired": "Inbäddningskoden krävs för att spara det här blocket."
     },
     "introVideo": {
       "video": "Video",
@@ -428,7 +493,8 @@
       "removeVideo": "Ta bort",
       "videoUploaded": "Video uppladdad",
       "uploadFailed": "Det gick inte att ladda upp videon. Försök igen.",
-      "orPasteUrl": "Eller klistra in en videolänk"
+      "orPasteUrl": "Eller klistra in en videolänk",
+      "thumbnailRequired": "En miniatyrbild krävs. Klistra in en YouTube-länk så fyller vi i den, eller ladda upp en bild."
     },
     "bookingBlock": {
       "bookNow": "Boka nu",
@@ -459,6 +525,12 @@
       "startBlank": "Börja tomt",
       "applied": "Mall tillämpad",
       "switchMessage": "Detta ger din webbplats ny stil. Ditt innehåll och din varumärkesfärg behålls.",
+      "contentChoiceMessage": "Vill du behålla ditt nuvarande innehåll och bara byta design, eller ersätta allt med mallens exempelinnehåll?",
+      "keepMyContent": "Behåll mitt innehåll",
+      "useTemplateContent": "Använd mallens innehåll",
+      "replaceContentWarning": "Dina nuvarande block och texter ersätts.",
+      "showTemplates": "Visa mallar",
+      "viewWebsite": "Visa webbplats",
       "undo": "Ångra",
       "brandColor": "Varumärkesfärg",
       "customColor": "Anpassad färg",
@@ -469,7 +541,14 @@
         "salon": "Salong & Barberare",
         "creator": "Kreatör",
         "shop": "Butik",
-        "professional": "Professionell"
+        "professional": "Professionell",
+        "template-1": "Företagswebbplats",
+        "template-2": "Personlig webbplats",
+        "template-3": "Marknadsföringswebbplats",
+        "template-4": "Ikonwebbplats",
+        "template-5": "Stjärnwebbplats",
+        "template-6": "Signaturwebbplats",
+        "template-7": "Tjänstewebbplats"
       },
       "sections": {
         "menu": "Meny",
@@ -484,9 +563,20 @@
         "email": "E-post",
         "message": "Meddelande",
         "gallery": "Galleri"
-      }
+      },
+      "loadError": "Det gick inte att läsa in mallarna."
     },
-    "unsupportedBlock": "Block {position} ({type}) stöds inte i den här versionen — ta bort det för att spara."
+    "unsupportedBlock": "Block {position} ({type}) stöds inte i den här versionen — ta bort det för att spara.",
+    "saveRejectedBlock": "Kunde inte spara — block {position} ({block}): {reason}",
+    "saveRejected": "Kunde inte spara — {reason}",
+    "saveRejectedMore": "{count, plural, one {+1 problem till} other {+# problem till}}",
+    "incomplete": {
+      "videoUrl": "Videoblock {position}: ladda upp en video eller klistra in en länk innan du sparar.",
+      "videoThumbnail": "Videoblock {position} saknar miniatyrbild — lägg till en (eller använd en YouTube-länk) för att spara.",
+      "embedEmpty": "Inbäddningsblock {position} är tomt — lägg till länken eller inbäddningskoden för att spara.",
+      "embedUrl": "Inbäddningsblock {position} saknar länken — lägg till den för att spara.",
+      "embedHtml": "Inbäddningsblock {position} saknar inbäddningskoden — lägg till den för att spara."
+    }
   },
   "nav": {
     "profiles": "Webbplats",

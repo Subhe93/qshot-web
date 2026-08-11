@@ -1,0 +1,302 @@
+{
+  "name": "template-3",
+  "info": {
+    "modules": [
+      {
+        "type": "social_links",
+        "id": "20260803-0956-8143-8740-1c62a40a709c",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "layout_type": "gridAlignCenter",
+        "icon_type": "original",
+        "adaptive_icon_color": false,
+        "custom_icon_color": null,
+        "links": [
+          {
+            "id": "20260803-0957-8004-b505-d7174b1ce984",
+            "type": "facebook",
+            "icon": null,
+            "link": "facebook.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-0957-8b21-b689-a8cdce04e613",
+            "type": "instagram",
+            "icon": null,
+            "link": "instagram.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-0957-8540-8181-e9ad5e0488c0",
+            "type": "tiktok",
+            "icon": null,
+            "link": "tiktok.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-0959-8333-8395-bf51d45a09c2",
+            "type": "snapchat",
+            "icon": null,
+            "link": "snapchat.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-0958-8f24-b334-7daabfe9ff63",
+            "type": "phone",
+            "icon": null,
+            "link": "+12345678900",
+            "name": null,
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "ButtonModule",
+        "id": "20260802-1816-8217-a842-00a25ab9f806",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "list",
+        "theme": "outline",
+        "show_arrow": true,
+        "buttons": [
+          {
+            "id": "20260802-1817-8b47-a296-14cedd1809e8",
+            "title": "My Design Library",
+            "url": "www.yourlink.com",
+            "icon": "images/profiles66d6163f22224329039cf464__2spsrqpatzd.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2161760729,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          },
+          {
+            "id": "20260802-1822-8455-a366-3a85b3961b70",
+            "title": "YouTube Playlist ",
+            "url": "www.youtube.com",
+            "icon": "images/profiles66d6163f22224329039cf464__29344uhwbrk.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2161760729,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          },
+          {
+            "id": "20260802-1825-8824-9852-d003b34fdd84",
+            "title": "Spotify Channel ",
+            "url": "www.spotify.com",
+            "icon": "images/profiles66d6163f22224329039cf464__eza83a031se.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2161760729,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          },
+          {
+            "id": "20260802-1820-8b00-9812-9efb4eab714a",
+            "title": "Store Linke",
+            "url": "www.yourlink.com",
+            "icon": "images/profiles66d6163f22224329039cf464__yang82x68pr.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2195315161,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          },
+          {
+            "id": "20260802-1820-8050-8022-ee30bbed04f9",
+            "title": "Website",
+            "url": "www.yourlink.com",
+            "icon": "images/profiles66d6163f22224329039cf464__s1kx93mzi8f.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2161760729,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          },
+          {
+            "id": "20260802-1836-8a16-8803-67c8a2ed08b4",
+            "title": "Twitch Channel",
+            "url": "www.twitch.com",
+            "icon": "images/profiles66d6163f22224329039cf464__7keb3jjkrgg.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2161760729,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          },
+          {
+            "id": "20260802-1828-8a20-9661-d39b8170f1e1",
+            "title": "Download IOS App",
+            "url": "https://www.apple.com/eg/app-store/",
+            "icon": "images/profiles66d6163f22224329039cf464__fu85ld4pjee.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2161760729,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          },
+          {
+            "id": "20260802-1829-8e51-8008-2e78f961b57f",
+            "title": "Download APK App",
+            "url": "https://play.google.com/store/games?hl=en",
+            "icon": "images/profiles66d6163f22224329039cf464__xfxb1n14eqj.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2178537945,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          },
+          {
+            "id": "20260802-1839-8c40-9770-0613fb23bf55",
+            "title": "Pay with Stripe",
+            "url": "www.stripe.com",
+            "icon": "images/profiles66d6163f22224329039cf464__qbyxauldqze.png",
+            "hidden": false,
+            "background_color": 4294967295,
+            "use_background_color": true,
+            "border_color": 2178537945,
+            "use_border": true,
+            "text_color": 4278190080,
+            "use_text_color": true,
+            "corner_radius": 12
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "website_logo": null,
+    "website_name": "Template 4",
+    "style": "style1",
+    "logo": {
+      "image_url": null,
+      "hide": false
+    },
+    "header": {
+      "hide": false,
+      "title": {
+        "hide": false,
+        "text": "",
+        "color": null
+      },
+      "leading_alignment": "start",
+      "foreground_color": null,
+      "background_color": null,
+      "position": "onCover",
+      "background_opacity": 1,
+      "fillSides": false
+    },
+    "profile_picture": {
+      "image_url": "images/profiles66d6163f22224329039cf464__m3vffh4x56.png",
+      "image_rect": [
+        189.4080996884748,
+        190.40498442367846,
+        1067.6635514018665,
+        1068.66043613707
+      ],
+      "hide": false,
+      "alignment": "center",
+      "shape": "circle",
+      "border_width": 0,
+      "border_color": 4294967295
+    },
+    "cover_photo": {
+      "image_url": null,
+      "image_rect": null,
+      "hide": true,
+      "size": "horizontal",
+      "transparency": 0,
+      "fade": false,
+      "color": null
+    },
+    "title": {
+      "hide": false,
+      "text": "Write Your Main Title or Heading Text Here",
+      "color": 4294967295
+    },
+    "text": {
+      "hide": false,
+      "text": "Write Your Main Description or Small Tagline Text Here",
+      "color": 4294967295
+    },
+    "button1": {
+      "hide": false,
+      "text": "Book Now",
+      "url": "https://qshot.com",
+      "foreground_color": 4280556559,
+      "background_color": 4289644507
+    },
+    "button2": {
+      "hide": false,
+      "text": "Call us",
+      "url": "https://qshot.com",
+      "foreground_color": 4294967295,
+      "background_color": 4281621888
+    },
+    "background": {
+      "image": null,
+      "color_value": {
+        "type": "solid",
+        "color": 4294243572
+      }
+    },
+    "name": {
+      "text": "Your Name",
+      "alignment": "center",
+      "hide": false,
+      "color": null
+    },
+    "bio": {
+      "text": "Write Your Bio Here",
+      "alignment": "center",
+      "hide": false
+    },
+    "floating_button": {
+      "hide": false,
+      "values": {
+        "whatsapp": {
+          "value": "+15123467890"
+        }
+      },
+      "type": "whatsapp"
+    },
+    "font_family": null,
+    "font_color": 4280229670,
+    "card_style": null,
+    "can_save_contact": false,
+    "index_in_google": true
+  }
+}

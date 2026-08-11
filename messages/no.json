@@ -11,6 +11,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+    "ok": "Ok",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -116,6 +117,10 @@
     "deleteBlockConfirm": "Slette denne blokken? Dette kan ikke angres.",
     "careful": "Vær forsiktig",
     "coverSizeWarning": "Den valgte forsidestørrelsen kan skjule noe tekst og knapper.",
+    "undo": "Angre",
+    "redo": "Gjør om",
+    "singleImageTitle": "Oops! Bare ett bilde",
+    "singleImageWarning": "Det ser ut som du valgte mer enn ett. Denne handlingen fungerer bare med ett bilde.",
     "confirm": "Bekreft",
     "addBlock": "Blokker",
     "save": "Save",
@@ -382,7 +387,65 @@
       "numberOfPosts": "Antall innlegg i feeden",
       "showProfileOverview": "Vis profiloversikt",
       "decrease": "Reduser",
-      "increase": "Øk"
+      "increase": "Øk",
+      "finishSignIn": "Fullfør innloggingen med {platform}",
+      "finishSignInDesc": "Fullfør trinnene i nettleseren, og kom deretter tilbake til denne skjermen.",
+      "reopenSignIn": "Åpne innlogging på nytt",
+      "noConnectionReturned": "Ingen tilkobling ble returnert.",
+      "facebook": {
+        "title": "Facebook-side",
+        "subtitle": "Vis innlegg fra siden din",
+        "notConnected": "Ikke tilkoblet",
+        "connect": "Koble til Facebook",
+        "connecting": "Kobler til…",
+        "connectHint": "Koble til Meta-kontoen din for å vise innlegg fra Facebook-siden din.",
+        "account": "Meta-konto",
+        "addAccount": "Koble til en annen konto",
+        "choosePage": "Velg en side",
+        "noPages": "Fant ingen Facebook-sider for denne kontoen.",
+        "disconnect": "Koble fra",
+        "disconnectConfirm": "Koble fra denne Meta-kontoen? Feeder som bruker den slutter å vise innlegg.",
+        "unavailable": "Facebook-feeder er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
+        "popupBlocked": "Nettleseren blokkerte påloggingsvinduet. Tillat popup-vinduer for dette nettstedet og prøv igjen.",
+        "noPagesDesc": "Kontoen din administrerer ingen side. Opprett en, og koble deretter til på nytt.",
+        "reconnect": "Koble til på nytt",
+        "instagramLinked": "Instagram koblet til"
+      },
+      "tiktok": {
+        "title": "TikTok",
+        "subtitle": "Vis dine egne TikTok-videoer",
+        "notConnected": "Ikke tilkoblet",
+        "connect": "Koble til TikTok",
+        "connecting": "Kobler til…",
+        "connectHint": "Vis dine egne TikTok-videoer på nettstedet ditt. Logg inn med TikTok én gang – vi leser kun de offentlige videoene dine.",
+        "addAccount": "Koble til en annen konto",
+        "chooseAccount": "Velg en konto",
+        "noAccounts": "Ingen TikTok-konto er koblet til ennå.",
+        "reconnectNeeded": "Tilgang trukket tilbake — må kobles til på nytt",
+        "disconnect": "Koble fra",
+        "disconnectConfirm": "Koble fra denne TikTok-kontoen? Feeder som bruker den slutter å vise videoer.",
+        "unavailable": "TikTok-feeder er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
+        "popupBlocked": "Nettleseren blokkerte påloggingsvinduet. Tillat popup-vinduer for dette nettstedet og prøv igjen."
+      },
+      "instagram": {
+        "title": "Instagram",
+        "subtitle": "Vis dine egne innlegg fra Instagram",
+        "notConnected": "Ikke tilkoblet",
+        "connect": "Koble til Instagram",
+        "connecting": "Kobler til…",
+        "connectHint": "Vis dine egne Instagram-innlegg på nettstedet ditt. Du logger inn med Instagram én gang — vi leser kun innleggene dine.",
+        "professionalRequired": "Krever en profesjonell konto (Bedrift eller Skaper). Du kan bytte gratis i Instagram-appen.",
+        "addAccount": "Koble til en annen konto",
+        "chooseAccount": "Velg en konto",
+        "noAccounts": "Ingen Instagram-konto er koblet til ennå.",
+        "reconnectNeeded": "Tilkoblingen er utløpt — koble til på nytt",
+        "disconnect": "Koble fra",
+        "disconnectConfirm": "Koble fra denne Instagram-kontoen? Feeder som bruker den vil slutte å vise innlegg.",
+        "unavailable": "Instagram-feeder er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
+        "popupBlocked": "Nettleseren blokkerte påloggingsvinduet. Tillat popup-vinduer for dette nettstedet og prøv igjen.",
+        "switchToConnect": "Koble til Instagram-kontoen din",
+        "legacyNotice": "Denne blokken bruker fortsatt den gamle metoden med offentlig profil, som fases ut. Koble til kontoen din for at den skal fortsette å virke."
+      }
     },
     "form": {
       "defaultOption": "Standard",
@@ -414,7 +477,9 @@
       "source": "Kilde",
       "aspectRatio": "Sideforhold",
       "auto": "Auto",
-      "codePlaceholder": "<iframe …>"
+      "codePlaceholder": "<iframe …>",
+      "urlRequired": "En lenke er påkrevd for å lagre denne blokken.",
+      "codeRequired": "Innbyggingskoden er påkrevd for å lagre denne blokken."
     },
     "introVideo": {
       "video": "Video",
@@ -428,7 +493,8 @@
       "removeVideo": "Fjern",
       "videoUploaded": "Video lastet opp",
       "uploadFailed": "Kunne ikke laste opp videoen. Prøv igjen.",
-      "orPasteUrl": "Eller lim inn en videolenke"
+      "orPasteUrl": "Eller lim inn en videolenke",
+      "thumbnailRequired": "Et miniatyrbilde er påkrevd. Lim inn en YouTube-lenke, så fyller vi det ut — eller last opp et bilde."
     },
     "bookingBlock": {
       "bookNow": "Bestill nå",
@@ -459,6 +525,12 @@
       "startBlank": "Start tomt",
       "applied": "Mal brukt",
       "switchMessage": "Dette gir nettstedet ditt ny stil. Innholdet og merkefargen din beholdes.",
+      "contentChoiceMessage": "Behold nåværende innhold og bare endre designet, eller erstatte alt med malens eksempelinnhold?",
+      "keepMyContent": "Behold innholdet mitt",
+      "useTemplateContent": "Bruk malens innhold",
+      "replaceContentWarning": "Dine nåværende blokker og tekster blir erstattet.",
+      "showTemplates": "Vis maler",
+      "viewWebsite": "Vis nettsted",
       "undo": "Angre",
       "brandColor": "Merkefarge",
       "customColor": "Egendefinert farge",
@@ -469,7 +541,14 @@
         "salon": "Salong & frisør",
         "creator": "Skaper",
         "shop": "Butikk",
-        "professional": "Profesjonell"
+        "professional": "Profesjonell",
+        "template-1": "Bedriftsnettsted",
+        "template-2": "Personlig nettsted",
+        "template-3": "Markedsføringsnettsted",
+        "template-4": "Ikonnettsted",
+        "template-5": "Stjernenettsted",
+        "template-6": "Signaturnettsted",
+        "template-7": "Tjenestenettsted"
       },
       "sections": {
         "menu": "Meny",
@@ -484,9 +563,20 @@
         "email": "E-post",
         "message": "Melding",
         "gallery": "Galleri"
-      }
+      },
+      "loadError": "Kunne ikke laste inn malene."
     },
-    "unsupportedBlock": "Blokk {position} ({type}) støttes ikke i denne versjonen — fjern den for å lagre."
+    "unsupportedBlock": "Blokk {position} ({type}) støttes ikke i denne versjonen — fjern den for å lagre.",
+    "saveRejectedBlock": "Kunne ikke lagre — blokk {position} ({block}): {reason}",
+    "saveRejected": "Kunne ikke lagre — {reason}",
+    "saveRejectedMore": "{count, plural, one {+1 problem til} other {+# problemer til}}",
+    "incomplete": {
+      "videoUrl": "Videoblokk {position}: last opp en video eller lim inn en lenke før du lagrer.",
+      "videoThumbnail": "Videoblokk {position} mangler miniatyrbilde — legg til ett (eller bruk en YouTube-lenke) for å lagre.",
+      "embedEmpty": "Innbyggingsblokk {position} er tom — legg til lenken eller innbyggingskoden for å lagre.",
+      "embedUrl": "Innbyggingsblokk {position} mangler lenken — legg den til for å lagre.",
+      "embedHtml": "Innbyggingsblokk {position} mangler innbyggingskoden — legg den til for å lagre."
+    }
   },
   "nav": {
     "profiles": "Nettside",

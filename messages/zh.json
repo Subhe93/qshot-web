@@ -11,6 +11,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+    "ok": "好的",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -116,6 +117,10 @@
     "deleteBlockConfirm": "删除此区块？此操作无法撤销。",
     "careful": "请注意",
     "coverSizeWarning": "所选封面尺寸可能会隐藏部分文本和按钮。",
+    "undo": "撤销",
+    "redo": "重做",
+    "singleImageTitle": "哎呀！只能选择一张图片",
+    "singleImageWarning": "看起来你选择了多张图片。此操作仅适用于单张图片。",
     "confirm": "确认",
     "addBlock": "区块",
     "save": "Save",
@@ -382,7 +387,65 @@
       "numberOfPosts": "信息流帖子数量",
       "showProfileOverview": "显示个人资料概览",
       "decrease": "减少",
-      "increase": "增加"
+      "increase": "增加",
+      "finishSignIn": "完成使用 {platform} 的登录",
+      "finishSignInDesc": "在浏览器中完成这些步骤，然后返回此页面。",
+      "reopenSignIn": "重新打开登录",
+      "noConnectionReturned": "未返回任何连接。",
+      "facebook": {
+        "title": "Facebook 主页",
+        "subtitle": "展示主页的帖子",
+        "notConnected": "未连接",
+        "connect": "连接 Facebook",
+        "connecting": "连接中…",
+        "connectHint": "连接你的 Meta 账户，以展示 Facebook 主页的帖子。",
+        "account": "Meta 账户",
+        "addAccount": "连接其他账户",
+        "choosePage": "选择主页",
+        "noPages": "未找到该账户的 Facebook 主页。",
+        "disconnect": "断开连接",
+        "disconnectConfirm": "要断开此 Meta 账户吗？使用它的信息流将停止显示帖子。",
+        "unavailable": "Facebook 信息流暂时不可用，请稍后重试。",
+        "popupBlocked": "浏览器拦截了登录窗口。请允许本站弹出窗口后重试。",
+        "noPagesDesc": "您的账户未管理任何主页。请先创建一个，然后重新连接。",
+        "reconnect": "重新连接",
+        "instagramLinked": "已关联 Instagram"
+      },
+      "tiktok": {
+        "title": "TikTok",
+        "subtitle": "展示你自己的 TikTok 视频",
+        "notConnected": "未连接",
+        "connect": "连接 TikTok",
+        "connecting": "连接中…",
+        "connectHint": "在你的网站上展示你自己的 TikTok 视频。使用 TikTok 登录一次——我们只读取你的公开视频。",
+        "addAccount": "连接其他账户",
+        "chooseAccount": "选择账户",
+        "noAccounts": "尚未连接任何 TikTok 账户。",
+        "reconnectNeeded": "访问已撤销 — 需要重新连接",
+        "disconnect": "断开连接",
+        "disconnectConfirm": "要断开此 TikTok 账户吗？使用它的信息流将停止显示视频。",
+        "unavailable": "TikTok 信息流暂时不可用，请稍后重试。",
+        "popupBlocked": "浏览器拦截了登录窗口。请允许本站弹出窗口后重试。"
+      },
+      "instagram": {
+        "title": "Instagram",
+        "subtitle": "展示你自己的 Instagram 帖子",
+        "notConnected": "未连接",
+        "connect": "连接 Instagram",
+        "connecting": "连接中…",
+        "connectHint": "在你的网站上展示自己的 Instagram 帖子。你只需用 Instagram 登录一次——我们只读取你的帖子。",
+        "professionalRequired": "需要专业账号（商家或创作者）。你可以在 Instagram 应用中免费切换。",
+        "addAccount": "连接其他账户",
+        "chooseAccount": "选择账号",
+        "noAccounts": "尚未连接任何 Instagram 账号。",
+        "reconnectNeeded": "连接已过期——需要重新连接",
+        "disconnect": "断开连接",
+        "disconnectConfirm": "要断开此 Instagram 账号吗？使用它的信息流将不再显示帖子。",
+        "unavailable": "Instagram 信息流暂时不可用，请稍后再试。",
+        "popupBlocked": "浏览器拦截了登录窗口。请允许本站弹出窗口后重试。",
+        "switchToConnect": "连接你的 Instagram 账号",
+        "legacyNotice": "此模块仍在使用即将停用的旧版公开主页方式。请连接你的账号以保持其正常运行。"
+      }
     },
     "form": {
       "defaultOption": "默认",
@@ -414,7 +477,9 @@
       "source": "来源",
       "aspectRatio": "宽高比",
       "auto": "自动",
-      "codePlaceholder": "<iframe …>"
+      "codePlaceholder": "<iframe …>",
+      "urlRequired": "保存此板块需要填写链接。",
+      "codeRequired": "保存此板块需要填写嵌入代码。"
     },
     "introVideo": {
       "video": "视频",
@@ -428,7 +493,8 @@
       "removeVideo": "移除",
       "videoUploaded": "视频已上传",
       "uploadFailed": "无法上传视频，请重试。",
-      "orPasteUrl": "或粘贴视频链接"
+      "orPasteUrl": "或粘贴视频链接",
+      "thumbnailRequired": "需要缩略图。粘贴 YouTube 链接即可自动获取，或上传一张图片。"
     },
     "bookingBlock": {
       "bookNow": "立即预订",
@@ -459,6 +525,12 @@
       "startBlank": "从空白开始",
       "applied": "模板已应用",
       "switchMessage": "这将重新设计您的网站样式。您的内容和品牌颜色保持不变。",
+      "contentChoiceMessage": "保留当前内容仅更改设计，还是用模板的示例内容替换全部？",
+      "keepMyContent": "保留我的内容",
+      "useTemplateContent": "使用模板内容",
+      "replaceContentWarning": "您当前的板块和文字将被替换。",
+      "showTemplates": "显示模板",
+      "viewWebsite": "查看网站",
       "undo": "撤销",
       "brandColor": "品牌颜色",
       "customColor": "自定义颜色",
@@ -469,7 +541,14 @@
         "salon": "美发沙龙",
         "creator": "创作者",
         "shop": "商店",
-        "professional": "专业人士"
+        "professional": "专业人士",
+        "template-1": "企业网站",
+        "template-2": "个人网站",
+        "template-3": "营销网站",
+        "template-4": "图标网站",
+        "template-5": "明星网站",
+        "template-6": "签名网站",
+        "template-7": "服务网站"
       },
       "sections": {
         "menu": "菜单",
@@ -484,9 +563,20 @@
         "email": "电子邮件",
         "message": "消息",
         "gallery": "图库"
-      }
+      },
+      "loadError": "无法加载模板。"
     },
-    "unsupportedBlock": "第 {position} 个板块（{type}）在此版本中不受支持——请删除后再保存。"
+    "unsupportedBlock": "第 {position} 个板块（{type}）在此版本中不受支持——请删除后再保存。",
+    "saveRejectedBlock": "无法保存 — 第 {position} 个板块（{block}）：{reason}",
+    "saveRejected": "无法保存 — {reason}",
+    "saveRejectedMore": "{count, plural, other {另有 # 个问题}}",
+    "incomplete": {
+      "videoUrl": "第 {position} 个视频板块：请先上传视频或粘贴链接再保存。",
+      "videoThumbnail": "第 {position} 个视频板块缺少缩略图——请添加一张（或使用 YouTube 链接）后再保存。",
+      "embedEmpty": "第 {position} 个嵌入板块为空——请添加链接或嵌入代码后再保存。",
+      "embedUrl": "第 {position} 个嵌入板块缺少链接——请补充后再保存。",
+      "embedHtml": "第 {position} 个嵌入板块缺少嵌入代码——请补充后再保存。"
+    }
   },
   "nav": {
     "profiles": "网站",

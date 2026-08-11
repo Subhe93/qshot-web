@@ -1,0 +1,663 @@
+{
+  "name": "template-1",
+  "info": {
+    "modules": [
+      {
+        "id": "_-SWkugb1Fybs9oVk5a58",
+        "type": "VideoLinksModule",
+        "title": "",
+        "layout_type": "list",
+        "items": [
+          {
+            "id": "YaH0ONI-VV_7afVPWm3My",
+            "url": "https://www.youtube.com/watch?v=QusJ4fpWQwA",
+            "hidden": false
+          }
+        ],
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "foldable": false
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "Slg8kyxu2inHn4Uqismwz",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"- 120+ Brands Supported \\n- $18M+ Ad Spend Managed \\n- 4.8/5 Average Client Satisfaction \\n- 32% Average Lead Growth in 90 Days\\n\"}]"
+      },
+      {
+        "type": "SpacerModule",
+        "id": "20260720-1653-8809-a461-eb095602d213",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "space": 10
+      },
+      {
+        "type": "HeaderModule",
+        "id": "pZmOZAldyIaaU6ib7KNzc",
+        "background_color": 4280800245,
+        "use_background_color": true,
+        "hide": false,
+        "value": "Trusted by ",
+        "align": "center",
+        "size": 20
+      },
+      {
+        "type": "ImageModule",
+        "id": "m20EEX8DanmzKYlVDNeUS",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "layout_type": "carousel",
+        "items": [
+          {
+            "id": "O6dyqlGBTlVNdwympyFjB",
+            "url": "images/profiles66d6163f22224329039cf464__wb5wmoyq8rd.png",
+            "rect": [
+              0,
+              0,
+              500,
+              500
+            ],
+            "hidden": false
+          },
+          {
+            "id": "rA81Ciq-X7PB0ZJsth-5H",
+            "url": "images/profiles66d6163f22224329039cf464__aqlputxjuj7.png",
+            "rect": [
+              0,
+              0,
+              500,
+              500
+            ],
+            "hidden": false
+          },
+          {
+            "id": "ilzsNguuZqJPeKBbOxj5v",
+            "url": "images/profiles66d6163f22224329039cf464__kde2tv6itf.png",
+            "rect": [
+              0,
+              0,
+              500,
+              500
+            ],
+            "hidden": false
+          },
+          {
+            "id": "n1rey7BIhe03Vancceh9Z",
+            "url": "images/profiles66d6163f22224329039cf464__xjwwnxye83j.png",
+            "rect": [
+              0,
+              0,
+              500,
+              500
+            ],
+            "hidden": false
+          },
+          {
+            "id": "YT1ZvrojnQzEWcufUJZ2C",
+            "url": "images/profiles66d6163f22224329039cf464__di379caneh8.png",
+            "rect": [
+              0,
+              0,
+              500,
+              500
+            ],
+            "hidden": false
+          },
+          {
+            "id": "-0nwhJ6qNCY9f-7tMjqDy",
+            "url": "images/profiles66d6163f22224329039cf464__dr14y9lfzuf.png",
+            "rect": [
+              0,
+              0,
+              500,
+              500
+            ],
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "SpacerModule",
+        "id": "20260720-1653-8339-a171-948b283e91db",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "space": 10
+      },
+      {
+        "type": "HeaderModule",
+        "id": "LZ3GExJQViKGo1LYzr2uO",
+        "background_color": 4280800245,
+        "use_background_color": true,
+        "hide": false,
+        "value": "Services",
+        "align": "center",
+        "size": 20
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "5kF7h8RLc3yI2jh_8r1-D",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"Everything you need to grow online\",\"attributes\":{\"bold\":true}},{\"insert\":\"\\nFrom strategy to execution, we build marketing systems that attract, convert, and retain customers.\\n\"}]"
+      },
+      {
+        "type": "ExternalLinksModule",
+        "id": "6bRaSpVyfXUwDwdKQ2uh9",
+        "title": "",
+        "background_color": 0,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "show_arrow": true,
+        "circle_image": null,
+        "layout_type": "promo",
+        "links": [
+          {
+            "id": "6_L5MZyx40TkOqUdBmR7a",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__5jhp3y6sofs.jpg",
+            "title": "Paid Media",
+            "description": "Performance campaigns across Meta, Google, TikTok, and LinkedIn focused on scalable growth and efficient CAC.",
+            "url": "https://qshot.com/",
+            "hidden": false,
+            "icon": null
+          },
+          {
+            "id": "u8CvQExjIARcfLDGE42Hj",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__okcx3qeh1mk.jpg",
+            "title": "SEO",
+            "description": "Technical SEO, on-page optimization, and content strategies that improve visibility and drive compounding organic traffic.",
+            "url": "https://qshot.com/",
+            "hidden": false,
+            "icon": null
+          },
+          {
+            "id": "8sXtd0AeyWwaYyVOXLGhj",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__a6pyz05ppov.jpg",
+            "title": "Content Marketing",
+            "description": "Content calendars, blog production, lead magnets, and conversion-focused messaging tailored to your audience.",
+            "url": "https://qshot.com/",
+            "hidden": false,
+            "icon": null
+          },
+          {
+            "id": "AYQNsNYVNKXY49a3pQH28",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__8z5ux6pcsnr.jpg",
+            "title": "Social Media Management",
+            "description": "Monthly planning, creative production, publishing, and reporting for brands that want consistency and engagement.",
+            "url": "https://qshot.com/",
+            "hidden": false,
+            "icon": null
+          },
+          {
+            "id": "RDUsNzfj0wdkXK1qB3wkp",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__9u3p4qaz2ab.jpg",
+            "title": "Email Marketing",
+            "description": "Lifecycle flows, newsletters, campaign planning, and automation designed to improve retention and repeat purchases.",
+            "url": "https://qshot.com/",
+            "hidden": false,
+            "icon": null
+          },
+          {
+            "id": "GjaBwlMlnEwppIc1w7oIO",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__mze8oen9yep.jpg",
+            "title": "Web Design",
+            "description": "Landing pages, funnels, UX audits, and conversion improvements that turn more visitors into customers.",
+            "url": "https://qshot.com/",
+            "hidden": false,
+            "icon": null
+          }
+        ]
+      },
+      {
+        "type": "SpacerModule",
+        "id": "20260720-1655-8e31-8914-4cc364397685",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "space": 10
+      },
+      {
+        "id": "rZCcGaH05SA8iEucg2Jmq",
+        "type": "ImageModule",
+        "layout_type": "cards",
+        "items": [
+          {
+            "id": "WeukurXZ-m2zVlvHMv9xc",
+            "url": "images/profiles66d6163f22224329039cf464__uucs15vl0oo.jpg",
+            "hidden": false,
+            "rect": null
+          },
+          {
+            "id": "_KFksTeSKtTagckPE96q7",
+            "url": "images/profiles66d6163f22224329039cf464__c3zz385f2gs.jpg",
+            "hidden": false,
+            "rect": null
+          },
+          {
+            "id": "08gDWUkUDVwOlNXcHaspW",
+            "url": "images/profiles66d6163f22224329039cf464__tw6y9igrhj.jpg",
+            "hidden": false,
+            "rect": null
+          },
+          {
+            "id": "Tvi-RqWlLatSGqRkTqT25",
+            "url": "images/profiles66d6163f22224329039cf464__amndiu1l4y.jpg",
+            "hidden": false,
+            "rect": null
+          },
+          {
+            "id": "AtTaTSTCZ26hrRtSMFMMy",
+            "url": "images/profiles66d6163f22224329039cf464__spw1wj1ngt8.jpg",
+            "hidden": false,
+            "rect": null
+          },
+          {
+            "id": "OScENASYDV4yG5lqDiW0L",
+            "url": "images/profiles66d6163f22224329039cf464__0ss3u8u7773o.jpg",
+            "hidden": false,
+            "rect": null
+          }
+        ],
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null
+      },
+      {
+        "id": "FQT_BWPvtjF0QH7gLGo2x",
+        "type": "ProductsModule",
+        "title": " Pricing",
+        "layout_type": "list",
+        "items": [
+          {
+            "id": "Diz_hiLmhsNJVn7pfyHjf",
+            "title": "Launch",
+            "url": "https://qshot.com/",
+            "currency": "UAE",
+            "price": "7,500",
+            "price_after_discount": "4,500",
+            "description": "Best for early-stage brands that need a clear foundation",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__xyw5nr8zr6.jpg",
+            "hidden": false
+          },
+          {
+            "id": "cgy3TM9IQxke3bFdk4zse",
+            "title": "Growth",
+            "url": "https://qshot.com/",
+            "currency": "UAE",
+            "description": "Best for brands ready to scale acquisition and improve performance",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__ed7pa29v4q.jpg",
+            "price": "12,000",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "_TQ7naR3_e4aG-jsp-lLO",
+            "title": "Scale",
+            "url": "https://qshot.com/",
+            "currency": "",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__chgu4il1ac.jpg",
+            "price": "Custom",
+            "description": "Best for established teams that need a full-service growth partner",
+            "price_after_discount": null,
+            "hidden": false
+          }
+        ],
+        "show_arrow": true,
+        "circle_image": false,
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "foldable": false
+      },
+      {
+        "id": "ooHQVACSgBoXOuGOHIvQd",
+        "type": "SpacerModule",
+        "space": 10,
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null
+      },
+      {
+        "type": "ReviewsModule",
+        "id": "20260720-1646-8941-a692-86adf1dd4a3a",
+        "title": "Reviews",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "cards",
+        "reviews": [
+          {
+            "id": "20260720-1649-8426-b874-567ff896cde7",
+            "reviewer_name": "Ignacio Kindelán",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a-/ALV-UjXTGeiqAb6eqISLSKPcpDgX1Eolca-GXoZ3r4LAQ8mZTYVzeicpBQ=s128-c0x00000000-cc-rp-mo-ba4",
+            "rating": 5,
+            "text": "The best event in Dubai, part of the Gitex, but very focused in AI and investors.",
+            "relative_time_description": "9 months ago",
+            "hidden": false,
+            "locked": true,
+            "google_review_key": "Ignacio Kindelán_1760770241"
+          },
+          {
+            "id": "20260720-1649-8326-8874-ef2a8c32b295",
+            "reviewer_name": "jignesh darji",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a-/ALV-UjURc9YArn0J3ZfI50G7sPBWpM2IiaPBHz0ry5mHhqOeIpJMDuYAlg=s128-c0x00000000-cc-rp-mo-ba5",
+            "rating": 4,
+            "text": "Very good event for startup and seed funding. Lots of companies are participating from across the world. Definately worth visiting. Staff is helpful all across. Don't wait for cab after 5 pm.",
+            "relative_time_description": "a year ago",
+            "hidden": false,
+            "locked": true,
+            "google_review_key": "jignesh darji_1728934308"
+          },
+          {
+            "id": "20260720-1649-8c26-9874-2ff8452f2e73",
+            "reviewer_name": "Shoaib Sayyed",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a-/ALV-UjU5zL2w8RQUZR0d3C9di99IrQP4Ha643Wu7va3p4ZnjKr4CKKdEow=s128-c0x00000000-cc-rp-mo-ba5",
+            "rating": 5,
+            "text": "Amazing place to do the event. Loved the vibe here.",
+            "relative_time_description": "9 months ago",
+            "hidden": false,
+            "locked": true,
+            "google_review_key": "Shoaib Sayyed_1760947795"
+          },
+          {
+            "id": "20260720-1649-8226-b874-8ed03e7047e8",
+            "reviewer_name": "Huda Imran",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a/ACg8ocKil_dbRSO1GNUQr2QNUA7SEJtyouM6_EI08-o1vZUb6Ho92QjA=s128-c0x00000000-cc-rp-mo-ba3",
+            "rating": 5,
+            "text": "Amazing experience. Although getting there is an experience of its own, planning the trip there was fun. The views of the Harbour and SkyDive and Dubai were absolutely breathtaking.",
+            "relative_time_description": "a year ago",
+            "hidden": false,
+            "locked": true,
+            "google_review_key": "Huda Imran_1729097801"
+          },
+          {
+            "id": "20260720-1650-8f05-a226-be9d6b857e84",
+            "reviewer_name": "Akhtar Edroos",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a/ACg8ocLvEUBjOs6Ah_YgDysN7o-qM4thHPpHl-c2WPWsGkhgf3oIAqbz=s128-c0x00000000-cc-rp-mo-ba4",
+            "rating": 3,
+            "text": "Great place for investors who are looking to invest in new companies and emerging tech. Could've been organized / managed better as the parking to the venue was always either full or reserved. The event this year was massive, took a while to cover. Not possible to see it all and have meaningful conversations with the parties you're interested in, within a day. If you plan to go, keep at least 3 days aside, just for this event.",
+            "relative_time_description": "a year ago",
+            "hidden": false,
+            "locked": false,
+            "google_review_key": null
+          }
+        ],
+        "google_place_id": "ChIJ9xkIHxsVXz4R5msnOAYZcPc",
+        "google_place_url": "https://maps.google.com/?cid=17829778439262399462",
+        "google_last_fetched_at": 1784566189234,
+        "click_url": null,
+        "show_add_review_button": true,
+        "add_review_url": "https://search.google.com/local/writereview?placeid=ChIJ9xkIHxsVXz4R5msnOAYZcPc"
+      },
+      {
+        "type": "LocationModule",
+        "id": "5wzPOVQEu3gEEmhSJJWzv",
+        "title": "Our Location",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": {
+          "geometry": {
+            "location": {
+              "lat": 25.2677986,
+              "lng": 55.3046939
+            }
+          },
+          "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/lodging-71.png",
+          "name": "Dubai Northstar",
+          "place_id": "ChIJ6eDUxplDXz4RguZ6QU6SHik",
+          "vicinity": "Al Rigga"
+        },
+        "hide_reviews": true
+      },
+      {
+        "type": "SpacerModule",
+        "id": "20260720-1656-8207-9308-98147ea4669c",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "space": 10
+      },
+      {
+        "type": "FormModule",
+        "id": "20260720-1652-8c22-8858-5904a1968089",
+        "title": "Contact us:",
+        "background_color": 4278190080,
+        "use_background_color": false,
+        "hide": false,
+        "questions": [
+          {
+            "type": "text",
+            "data": {
+              "by_default": true,
+              "question": "Your Name",
+              "description": null,
+              "required": true,
+              "hint": "John Doe"
+            }
+          },
+          {
+            "type": "text",
+            "data": {
+              "by_default": true,
+              "question": "Your Email",
+              "description": null,
+              "required": true,
+              "hint": "john.doe@gmail.com"
+            }
+          },
+          {
+            "type": "paragraph",
+            "data": {
+              "by_default": true,
+              "question": "Your Message",
+              "description": null,
+              "required": true,
+              "hint": "Enter your message"
+            }
+          }
+        ]
+      },
+      {
+        "id": "h3qXSc0sDL3txQ-6FUDV5",
+        "type": "SpacerModule",
+        "space": 10,
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null
+      },
+      {
+        "id": "nfKiruxeSBPTvJZg7XNoO",
+        "type": "ButtonModule",
+        "title": "Company Links:",
+        "theme": "outline",
+        "layout_type": "grid",
+        "buttons": [
+          {
+            "id": "fGUUXSy4A96TigU83UAuj",
+            "title": "About",
+            "url": "https://qshot.com/",
+            "use_background_color": false,
+            "background_color": 1302240926,
+            "use_border": true,
+            "use_text_color": true,
+            "text_color": 4282681599,
+            "corner_radius": 12,
+            "border_color": 4282681599,
+            "icon": null,
+            "hidden": false
+          },
+          {
+            "id": "yBaGIG6jN_skmwk1BPm4T",
+            "title": "Contact",
+            "url": "https://qshot.com/",
+            "use_background_color": false,
+            "background_color": 1302240926,
+            "use_border": true,
+            "use_text_color": true,
+            "text_color": 4282681599,
+            "corner_radius": 12,
+            "border_color": 4282681599,
+            "icon": null,
+            "hidden": false
+          }
+        ],
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "foldable": false,
+        "show_arrow": null
+      },
+      {
+        "type": "social_links",
+        "id": "20260720-1656-8c56-8701-f0b2666ded78",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "layout_type": "gridAlignCenter",
+        "icon_type": "original",
+        "adaptive_icon_color": false,
+        "custom_icon_color": null,
+        "links": [
+          {
+            "id": "20260720-1658-8b05-9787-8e38e687f5f2",
+            "type": "facebook",
+            "icon": null,
+            "link": "https://www.facebook.com/1",
+            "name": "Facebook",
+            "hidden": false
+          },
+          {
+            "id": "20260720-1659-8041-9924-cc35627e55bd",
+            "type": "whatsapp",
+            "icon": null,
+            "link": "+12345678901",
+            "name": "WhatsApp",
+            "hidden": false
+          },
+          {
+            "id": "20260720-1700-8302-b508-6e8faf0a1bed",
+            "type": "phone",
+            "icon": null,
+            "link": "+12345678901",
+            "name": "Phone",
+            "hidden": false
+          },
+          {
+            "id": "20260720-1700-8d54-9268-2e507a256f90",
+            "type": "email",
+            "icon": null,
+            "link": "john@northstar.com",
+            "name": "Email",
+            "hidden": false
+          },
+          {
+            "id": "20260720-1658-8442-8122-a649f938ac19",
+            "type": "instagram",
+            "icon": null,
+            "link": "https://www.instagram.com/1",
+            "name": "Instagram",
+            "hidden": false
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "website_logo": null,
+    "website_name": "NorthStar Agency",
+    "style": "style5",
+    "logo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__txb8k5mtva.jpg",
+      "hide": false
+    },
+    "header": {
+      "hide": false,
+      "title": {
+        "hide": false,
+        "text": "Northstar Growth",
+        "color": null
+      },
+      "leading_alignment": "start",
+      "foreground_color": 4294967295,
+      "background_color": 4280800245,
+      "position": "onCover",
+      "background_opacity": 0.05,
+      "fillSides": false
+    },
+    "profile_picture": null,
+    "cover_photo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__ppsn959dot.jpg",
+      "image_rect": null,
+      "hide": false,
+      "size": "poster",
+      "transparency": 0.45,
+      "fade": true,
+      "color": 4278917193
+    },
+    "title": {
+      "hide": false,
+      "text": "Trusted by fast-growing.",
+      "color": 4294967295
+    },
+    "text": {
+      "hide": false,
+      "text": "Northstar Growth Agency helps ambitious brands grow through paid media, creative strategy, SEO, content, and conversion-focused web experiences.",
+      "color": 4294967295
+    },
+    "button1": {
+      "hide": false,
+      "text": "Book a Free Strategy Call",
+      "url": "https://qshot.com",
+      "foreground_color": 4278190080,
+      "background_color": 4280800245
+    },
+    "button2": {
+      "hide": false,
+      "text": "View Case Studies",
+      "url": "https://qshot.com",
+      "foreground_color": 4278190080,
+      "background_color": 4294967295
+    },
+    "background": {
+      "image": null,
+      "color_value": {
+        "type": "solid",
+        "color": 4278917193
+      }
+    },
+    "name": {
+      "text": "Digital Marketing Agency",
+      "alignment": "center",
+      "hide": false,
+      "color": 4280800245
+    },
+    "bio": {
+      "text": "We help brands increase qualified leads, lower acquisition costs, and turn marketing into measurable growth.",
+      "alignment": "center",
+      "hide": false
+    },
+    "floating_button": {
+      "hide": false,
+      "values": {
+        "whatsapp": {
+          "value": "+12345678901"
+        }
+      },
+      "type": "whatsapp"
+    },
+    "font_family": null,
+    "font_color": 4294967295,
+    "card_style": null,
+    "can_save_contact": false,
+    "index_in_google": true
+  }
+}

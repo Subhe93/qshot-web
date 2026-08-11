@@ -30,10 +30,27 @@ import { FloatingButtonLayer } from "./FloatingButtonLayer";
 export function BuilderCanvas({
   deviceWidth,
   fillHeight = false,
-}: { deviceWidth?: number | "full"; fillHeight?: boolean } = {}) {
+  browseOnly = false,
+}: {
+  deviceWidth?: number | "full";
+  fillHeight?: boolean;
+  /**
+   * Browse-but-don't-edit, for while the ThemeSheet live-previews a template:
+   * the CONTENT goes pointer-events-none but the scroll container itself stays
+   * interactive, so wheel/touch scrolling works while block clicks (which would
+   * open editors over the un-committed preview state) can't land.
+   */
+  browseOnly?: boolean;
+} = {}) {
   const t = useTranslations("builder");
-  const blocks = useEditorStore((s) => s.blocks);
-  const settings = useEditorStore((s) => s.settings);
+  // Template preview overlay (mobile `_pWebpage ?? _webpage`): while the Theme
+  // sheet previews, the canvas paints the overlay; the real fields — the only
+  // thing saves read — stay untouched underneath.
+  const blocks = useEditorStore((s) => s.previewOverlay?.blocks ?? s.blocks);
+  const settings = useEditorStore(
+    (s) => s.previewOverlay?.settings ?? s.settings,
+  );
+  const previewScrollSignal = useEditorStore((s) => s.previewScrollSignal);
   const onPage = useEditorStore((s) => s.pageId) !== null;
   const selectedId = useEditorStore((s) => s.selectedId);
   const lastAddedId = useEditorStore((s) => s.lastAddedId);
@@ -108,6 +125,20 @@ export function BuilderCanvas({
     });
     return () => cancelAnimationFrame(rafId);
   }, [lastAddedId]);
+
+  // When a template preview lands, the new design replaces the whole page, so
+  // wherever the user had scrolled to is meaningless — show it from the hero
+  // down (mobile d0c572db: `scrollToTop` in a post-frame callback). rAF plays
+  // the same role: the repainted page gets its new scroll extent first.
+  useEffect(() => {
+    if (previewScrollSignal === 0) return;
+    const container = scrollRef.current;
+    if (!container) return;
+    const rafId = requestAnimationFrame(() => {
+      container.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, [previewScrollSignal]);
 
   // The website's own font (mobile default Roboto) — explicit so the preview
   // never falls back to the dashboard font, and loaded so it actually renders.
@@ -265,11 +296,15 @@ export function BuilderCanvas({
           ref={setScrollRef}
           {...dragScrollBind}
           className="relative h-full overflow-y-auto"
-          onClick={preview ? undefined : () => select(null)}
+          onClick={preview || browseOnly ? undefined : () => select(null)}
         >
           <div
             dir="ltr"
-            className="builder-preview-isolate builder-preview-desktop mx-auto min-h-full w-full max-w-[58.8rem] overflow-hidden rounded-xl border border-white/10 bg-zinc-900/80 shadow-md backdrop-blur-3xl"
+            className={cn(
+              "builder-preview-isolate builder-preview-desktop mx-auto min-h-full w-full max-w-[58.8rem] overflow-hidden rounded-xl border border-white/10 bg-zinc-900/80 shadow-md backdrop-blur-3xl",
+              // Child of the scroll container, so scrolling still works.
+              browseOnly && "pointer-events-none",
+            )}
             style={{
               ...siteStyle,
               ...(bgImagePath
@@ -285,7 +320,10 @@ export function BuilderCanvas({
             {content}
           </div>
         </div>
-        <FloatingButtonLayer preview={preview} />
+        {/* Static wrapper: absolute children still anchor to the frame. */}
+        <div className={cn(browseOnly && "pointer-events-none")}>
+          <FloatingButtonLayer preview={preview} />
+        </div>
       </div>
       </DesktopPreviewContext.Provider>
     );
@@ -313,11 +351,15 @@ export function BuilderCanvas({
             fillHeight ? "flex-1" : "max-h-[80vh]",
           )}
           style={{ background: pageBg, ...siteStyle } as React.CSSProperties}
-          onClick={preview ? undefined : () => select(null)}
+          onClick={preview || browseOnly ? undefined : () => select(null)}
         >
-          {content}
+          {/* Child of the scroll container, so scrolling still works. */}
+          <div className={cn(browseOnly && "pointer-events-none")}>{content}</div>
         </div>
-        <FloatingButtonLayer preview={preview} />
+        {/* Static wrapper: absolute children still anchor to the frame. */}
+        <div className={cn(browseOnly && "pointer-events-none")}>
+          <FloatingButtonLayer preview={preview} />
+        </div>
       </div>
     </div>
   );

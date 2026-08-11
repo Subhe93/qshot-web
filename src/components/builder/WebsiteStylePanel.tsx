@@ -63,10 +63,12 @@ export function WebsiteStylePanel({
 
   return (
     <div className="mx-auto max-w-md p-4">
-      {/* Theme group — mobile website_style_layout.dart puts it above General.
-          Rendered only when the host provides an opener: BuilderShell passes
-          `undefined` while TEMPLATES_ENABLED is off (feature temporarily
-          hidden), which removes the whole group as if it didn't exist. */}
+      {/* Theme group — mobile website_style_layout.dart puts it above General
+          (its `_showTemplates` gate). Rendered only when the host provides an
+          opener: BuilderShell passes `undefined` if TEMPLATES_ENABLED is ever
+          turned off again, which removes the whole group as if it didn't
+          exist. The panel itself is opener-agnostic — other hosts may embed it
+          without a Theme row. */}
       {onOpenTemplates && (
         <>
           <p className="mb-2 px-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

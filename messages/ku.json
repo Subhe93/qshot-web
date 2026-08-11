@@ -11,6 +11,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+    "ok": "Temam",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -116,6 +117,10 @@
     "deleteBlockConfirm": "Vî blokê jê bibe? Ev nayê vegerandin.",
     "careful": "Hay jê hebe",
     "coverSizeWarning": "Mezinahiya berfa hilbijartî dibe ku hin nivîs û bişkokan veşêre.",
+    "undo": "گەڕانەوە",
+    "redo": "دووبارەکردنەوە",
+    "singleImageTitle": "Bibore! Tenha yek wêne",
+    "singleImageWarning": "Dixwaze we zêdetir ji yek wêne hilbijartiye. Ev çalakî tenê bi yek wêne dixebite.",
     "confirm": "Peyitandin",
     "addBlock": "Blok",
     "save": "Save",
@@ -382,7 +387,65 @@
       "numberOfPosts": "Hejmara şandiyên feedê",
       "showProfileOverview": "Pêşdîtina profîlê nîşan bide",
       "decrease": "Kêm bike",
-      "increase": "Zêde bike"
+      "increase": "Zêde bike",
+      "finishSignIn": "Têketina bi {platform} temam bike",
+      "finishSignInDesc": "Gavan di geroka xwe de temam bike, paşê vegere vê ekranê.",
+      "reopenSignIn": "Têketinê ji nû ve veke",
+      "noConnectionReturned": "Tu girêdan nehat vegerandin.",
+      "facebook": {
+        "title": "Rûpela Facebookê",
+        "subtitle": "Şandiyên rûpela xwe nîşan bide",
+        "notConnected": "Ne girêdayî ye",
+        "connect": "Facebookê girêde",
+        "connecting": "Tê girêdan…",
+        "connectHint": "Hesabê xwe yê Meta girêde da ku şandiyên rûpela te ya Facebookê xuya bibin.",
+        "account": "Hesabê Meta",
+        "addAccount": "Hesabekî din girêde",
+        "choosePage": "Rûpelekê hilbijêre",
+        "noPages": "Ji bo vî hesabî tu rûpela Facebookê nehat dîtin.",
+        "disconnect": "Girêdanê rake",
+        "disconnectConfirm": "Girêdana vî hesabê Meta rakî? Feedên ku wî bikar tînin dê êdî şandiyan nîşan nedin.",
+        "unavailable": "Feedên Facebookê niha ne berdest in. Ji kerema xwe paşê dîsa biceribîne.",
+        "popupBlocked": "Geroka te paceya têketinê asteng kir. Ji bo vê malperê destûrê bide pop-upan û dîsa biceribîne.",
+        "noPagesDesc": "Hesabê te tu rûpelê birêve nabe. Yekê çêke, paşê ji nû ve girêde.",
+        "reconnect": "Ji nû ve girêde",
+        "instagramLinked": "Instagram girêdayî ye"
+      },
+      "tiktok": {
+        "title": "TikTok",
+        "subtitle": "Vîdyoyên xwe yên TikTokê nîşan bide",
+        "notConnected": "Ne girêdayî ye",
+        "connect": "TikTokê girêde",
+        "connecting": "Tê girêdan…",
+        "connectHint": "Vîdyoyên xwe yên TikTokê li ser malpera xwe nîşan bide. Tu carekê bi TikTokê têkevî — em tenê vîdyoyên te yên gelemperî dixwînin.",
+        "addAccount": "Hesabekî din girêde",
+        "chooseAccount": "Hesabekî hilbijêre",
+        "noAccounts": "Hîn tu hesabê TikTokê nehatiye girêdan.",
+        "reconnectNeeded": "Gihîştin hate betalkirin — ji nû ve girêdan pêwîst e",
+        "disconnect": "Girêdanê rake",
+        "disconnectConfirm": "Girêdana vî hesabê TikTokê rakî? Feedên ku wî bikar tînin dê êdî vîdyoyan nîşan nedin.",
+        "unavailable": "Feedên TikTokê niha ne berdest in. Ji kerema xwe paşê dîsa biceribîne.",
+        "popupBlocked": "Geroka te paceya têketinê asteng kir. Ji bo vê malperê destûrê bide pop-upan û dîsa biceribîne."
+      },
+      "instagram": {
+        "title": "Instagram",
+        "subtitle": "Şandiyên xwe yên Instagramê nîşan bide",
+        "notConnected": "Ne girêdayî ye",
+        "connect": "Instagramê girêde",
+        "connecting": "Tê girêdan…",
+        "connectHint": "Şandiyên xwe yên Instagramê li ser malpera xwe nîşan bide. Tu yê carekê bi Instagramê têkevî — em tenê şandiyên te dixwînin.",
+        "professionalRequired": "Hesabekî profesyonel (Business an Creator) pêwîst e. Tu dikarî belaş di sepana Instagramê de biguherînî.",
+        "addAccount": "Hesabekî din girêde",
+        "chooseAccount": "Hesabekî hilbijêre",
+        "noAccounts": "Hîn tu hesabê Instagramê nehatiye girêdan.",
+        "reconnectNeeded": "Girêdan qediya — girêdana nû pêwîst e",
+        "disconnect": "Girêdanê rake",
+        "disconnectConfirm": "Vê hesabê Instagramê veqetînî? Feedên ku wê bi kar tînin dê êdî şandiyan nîşan nedin.",
+        "unavailable": "Feedên Instagramê niha ne berdest in. Ji kerema xwe paşê biceribîne.",
+        "popupBlocked": "Geroka te paceya têketinê asteng kir. Ji bo vê malperê destûrê bide pop-upan û dîsa biceribîne.",
+        "switchToConnect": "Hesabê xwe yê Instagramê girêde",
+        "legacyNotice": "Ev blok hîn rêbaza kevn a profîla giştî bi kar tîne, ku tê rakirin. Hesabê xwe girêde da ku bixebite."
+      }
     },
     "form": {
       "defaultOption": "Bingehîn",
@@ -414,7 +477,9 @@
       "source": "Çavkanî",
       "aspectRatio": "Rêjeya dirêjahî",
       "auto": "Otomatîk",
-      "codePlaceholder": "<iframe …>"
+      "codePlaceholder": "<iframe …>",
+      "urlRequired": "Ji bo tomarkirina vê blokê girêdanek pêwîst e.",
+      "codeRequired": "Ji bo tomarkirina vê blokê koda cibicîkirinê pêwîst e."
     },
     "introVideo": {
       "video": "Vîdyo",
@@ -428,7 +493,8 @@
       "removeVideo": "لابردن",
       "videoUploaded": "ڤیدیۆ بارکرا",
       "uploadFailed": "بارکردنی ڤیدیۆ سەرکەوتوو نەبوو. دووبارە هەوڵبدەرەوە.",
-      "orPasteUrl": "یان بەستەری ڤیدیۆ بلکێنە"
+      "orPasteUrl": "یان بەستەری ڤیدیۆ بلکێنە",
+      "thumbnailRequired": "وێنەی بچووک پێویستە. بەستەری یوتیوب بلکێنە تا خۆکارانە پڕ بکرێتەوە، یان وێنەیەک باربکە."
     },
     "bookingBlock": {
       "bookNow": "Niha Cî Veqetîne",
@@ -459,6 +525,12 @@
       "startBlank": "بە بەتاڵی دەست پێبکە",
       "applied": "قاڵب جێبەجێکرا",
       "switchMessage": "ئەمە ستایلی ماڵپەڕەکەت دەگۆڕێت. ناوەڕۆک و ڕەنگی براندەکەت دەمێننەوە.",
+      "contentChoiceMessage": "ناوەڕۆکی ئێستات بهێڵەوە و تەنها دیزاین بگۆڕە، یان هەموو شتێک بە ناوەڕۆکی نموونەیی قاڵب بگۆڕدرێت؟",
+      "keepMyContent": "ناوەڕۆکەکەم بهێڵەوە",
+      "useTemplateContent": "ناوەڕۆکی قاڵب بەکاربهێنە",
+      "replaceContentWarning": "بلۆک و دەقەکانی ئێستات دەگۆڕدرێن.",
+      "showTemplates": "قاڵبەکان پیشان بدە",
+      "viewWebsite": "بینینی ماڵپەڕ",
       "undo": "گەڕانەوە",
       "brandColor": "ڕەنگی براند",
       "customColor": "ڕەنگی تایبەت",
@@ -469,7 +541,14 @@
         "salon": "سالۆن و سەرتاش",
         "creator": "دروستکەر",
         "shop": "فرۆشگا",
-        "professional": "پیشەیی"
+        "professional": "پیشەیی",
+        "template-1": "Malpera Karsaziyê",
+        "template-2": "Malpera Kesane",
+        "template-3": "Malpera Kirrûbirrê",
+        "template-4": "Malpera Îkonan",
+        "template-5": "Malpera Stêrk",
+        "template-6": "Malpera Îmze",
+        "template-7": "Malpera Xizmetan"
       },
       "sections": {
         "menu": "مینیو",
@@ -484,9 +563,20 @@
         "email": "E-name",
         "message": "Peyam",
         "gallery": "گەلەری"
-      }
+      },
+      "loadError": "Şablon nehatin barkirin."
     },
-    "unsupportedBlock": "Bloka {position} ({type}) di vê guhertoyê de nayê piştgirîkirin — jê rake da ku tomar bikî."
+    "unsupportedBlock": "Bloka {position} ({type}) di vê guhertoyê de nayê piştgirîkirin — jê rake da ku tomar bikî.",
+    "saveRejectedBlock": "Tomarkirin biserneket — bloka {position} ({block}): {reason}",
+    "saveRejected": "Tomarkirin biserneket — {reason}",
+    "saveRejectedMore": "{count, plural, other {+# pirsgirêkên din}}",
+    "incomplete": {
+      "videoUrl": "Bloka vîdyoyê {position}: berî tomarkirinê vîdyoyekê bar bike an girêdanekê pêve bike.",
+      "videoThumbnail": "Bloka vîdyoyê {position} wêneyê biçûk tune ye — yekê lê zêde bike (an girêdaneke YouTube bi kar bîne) da ku tomar bikî.",
+      "embedEmpty": "Bloka cibicîkirinê {position} vala ye — girêdanê an koda cibicîkirinê zêde bike da ku tomar bikî.",
+      "embedUrl": "Girêdana bloka cibicîkirinê {position} kêm e — wê zêde bike da ku tomar bikî.",
+      "embedHtml": "Koda bloka cibicîkirinê {position} kêm e — wê zêde bike da ku tomar bikî."
+    }
   },
   "nav": {
     "profiles": "Malper",

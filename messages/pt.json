@@ -11,6 +11,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+    "ok": "Ok",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -116,6 +117,10 @@
     "deleteBlockConfirm": "Excluir este bloco? Esta ação não pode ser desfeita.",
     "careful": "Cuidado",
     "coverSizeWarning": "O tamanho de capa selecionado pode ocultar alguns textos e botões.",
+    "undo": "Desfazer",
+    "redo": "Refazer",
+    "singleImageTitle": "Ops! Apenas uma imagem",
+    "singleImageWarning": "Parece que você selecionou mais de uma. Esta ação funciona apenas com uma única imagem.",
     "confirm": "Confirmar",
     "addBlock": "Blocos",
     "save": "Save",
@@ -382,7 +387,65 @@
       "numberOfPosts": "Número de publicações do feed",
       "showProfileOverview": "Mostrar visão geral do perfil",
       "decrease": "Diminuir",
-      "increase": "Aumentar"
+      "increase": "Aumentar",
+      "finishSignIn": "Conclua o login com {platform}",
+      "finishSignInDesc": "Conclua as etapas no seu navegador e volte a este ecrã.",
+      "reopenSignIn": "Reabrir o login",
+      "noConnectionReturned": "Nenhuma ligação foi devolvida.",
+      "facebook": {
+        "title": "Página do Facebook",
+        "subtitle": "Mostrar publicações da sua Página",
+        "notConnected": "Não ligado",
+        "connect": "Ligar o Facebook",
+        "connecting": "A ligar…",
+        "connectHint": "Ligue a sua conta Meta para mostrar as publicações da sua Página do Facebook.",
+        "account": "Conta Meta",
+        "addAccount": "Ligar outra conta",
+        "choosePage": "Escolher uma Página",
+        "noPages": "Nenhuma Página do Facebook encontrada para esta conta.",
+        "disconnect": "Desligar",
+        "disconnectConfirm": "Desligar esta conta Meta? Os feeds que a utilizam deixarão de mostrar publicações.",
+        "unavailable": "Os feeds do Facebook não estão disponíveis de momento. Tente novamente mais tarde.",
+        "popupBlocked": "O seu navegador bloqueou a janela de início de sessão. Permita pop-ups neste site e tente novamente.",
+        "noPagesDesc": "A sua conta não gere nenhuma página. Crie uma e volte a conectar.",
+        "reconnect": "Reconectar",
+        "instagramLinked": "Instagram ligado"
+      },
+      "tiktok": {
+        "title": "TikTok",
+        "subtitle": "Mostre os seus próprios vídeos do TikTok",
+        "notConnected": "Não ligado",
+        "connect": "Conectar TikTok",
+        "connecting": "A ligar…",
+        "connectHint": "Mostre os seus próprios vídeos do TikTok no seu site. Faça login com o TikTok uma vez — lemos apenas os seus vídeos públicos.",
+        "addAccount": "Ligar outra conta",
+        "chooseAccount": "Escolher uma conta",
+        "noAccounts": "Ainda não há nenhuma conta do TikTok ligada.",
+        "reconnectNeeded": "Acesso revogado — reconexão necessária",
+        "disconnect": "Desligar",
+        "disconnectConfirm": "Desligar esta conta do TikTok? Os feeds que a utilizam deixarão de mostrar vídeos.",
+        "unavailable": "Os feeds do TikTok não estão disponíveis de momento. Tente novamente mais tarde.",
+        "popupBlocked": "O seu navegador bloqueou a janela de início de sessão. Permita pop-ups neste site e tente novamente."
+      },
+      "instagram": {
+        "title": "Instagram",
+        "subtitle": "Mostre as suas próprias publicações do Instagram",
+        "notConnected": "Não ligado",
+        "connect": "Ligar o Instagram",
+        "connecting": "A ligar…",
+        "connectHint": "Mostre as suas publicações do Instagram no seu site. Vai iniciar sessão no Instagram uma única vez — só lemos as suas publicações.",
+        "professionalRequired": "Requer uma conta profissional (Empresarial ou Criador). Pode mudar gratuitamente na aplicação do Instagram.",
+        "addAccount": "Ligar outra conta",
+        "chooseAccount": "Escolher uma conta",
+        "noAccounts": "Ainda não há nenhuma conta do Instagram ligada.",
+        "reconnectNeeded": "Ligação expirada — é necessário ligar de novo",
+        "disconnect": "Desligar",
+        "disconnectConfirm": "Desligar esta conta do Instagram? Os feeds que a usam deixarão de mostrar publicações.",
+        "unavailable": "Os feeds do Instagram não estão disponíveis neste momento. Tente novamente mais tarde.",
+        "popupBlocked": "O seu navegador bloqueou a janela de início de sessão. Permita pop-ups neste site e tente novamente.",
+        "switchToConnect": "Ligue a sua conta do Instagram",
+        "legacyNotice": "Este bloco ainda usa o método antigo de perfil público, que está a ser descontinuado. Ligue a sua conta para continuar a funcionar."
+      }
     },
     "form": {
       "defaultOption": "Padrão",
@@ -414,7 +477,9 @@
       "source": "Fonte",
       "aspectRatio": "Proporção",
       "auto": "Auto",
-      "codePlaceholder": "<iframe …>"
+      "codePlaceholder": "<iframe …>",
+      "urlRequired": "É necessária uma ligação para guardar este bloco.",
+      "codeRequired": "É necessário o código de incorporação para guardar este bloco."
     },
     "introVideo": {
       "video": "Vídeo",
@@ -428,7 +493,8 @@
       "removeVideo": "Remover",
       "videoUploaded": "Vídeo carregado",
       "uploadFailed": "Não foi possível carregar o vídeo. Tente novamente.",
-      "orPasteUrl": "Ou cole um link de vídeo"
+      "orPasteUrl": "Ou cole um link de vídeo",
+      "thumbnailRequired": "É necessária uma miniatura. Cole uma ligação do YouTube para a preenchermos automaticamente, ou carregue uma imagem."
     },
     "bookingBlock": {
       "bookNow": "Reservar agora",
@@ -459,6 +525,12 @@
       "startBlank": "Começar em branco",
       "applied": "Modelo aplicado",
       "switchMessage": "Isso muda o estilo do seu site. Seu conteúdo e cor da marca permanecem.",
+      "contentChoiceMessage": "Manter seu conteúdo atual e mudar apenas o design, ou substituir tudo pelo conteúdo de exemplo do modelo?",
+      "keepMyContent": "Manter meu conteúdo",
+      "useTemplateContent": "Usar conteúdo do modelo",
+      "replaceContentWarning": "Seus blocos e textos atuais serão substituídos.",
+      "showTemplates": "Mostrar modelos",
+      "viewWebsite": "Ver site",
       "undo": "Desfazer",
       "brandColor": "Cor da marca",
       "customColor": "Cor personalizada",
@@ -469,7 +541,14 @@
         "salon": "Salão & Barbearia",
         "creator": "Criador",
         "shop": "Loja",
-        "professional": "Profissional"
+        "professional": "Profissional",
+        "template-1": "Site empresarial",
+        "template-2": "Site pessoal",
+        "template-3": "Site de marketing",
+        "template-4": "Site de ícones",
+        "template-5": "Site estrela",
+        "template-6": "Site assinatura",
+        "template-7": "Site de serviços"
       },
       "sections": {
         "menu": "Menu",
@@ -484,9 +563,20 @@
         "email": "E-mail",
         "message": "Mensagem",
         "gallery": "Galeria"
-      }
+      },
+      "loadError": "Não foi possível carregar os modelos."
     },
-    "unsupportedBlock": "O bloco {position} ({type}) não é suportado nesta versão — remova-o para guardar."
+    "unsupportedBlock": "O bloco {position} ({type}) não é suportado nesta versão — remova-o para guardar.",
+    "saveRejectedBlock": "Não foi possível guardar — bloco {position} ({block}): {reason}",
+    "saveRejected": "Não foi possível guardar — {reason}",
+    "saveRejectedMore": "{count, plural, one {+1 outro problema} other {+# outros problemas}}",
+    "incomplete": {
+      "videoUrl": "Bloco de vídeo {position}: carregue um vídeo ou cole uma ligação antes de guardar.",
+      "videoThumbnail": "O bloco de vídeo {position} não tem miniatura — adicione uma (ou use uma ligação do YouTube) para guardar.",
+      "embedEmpty": "O bloco de incorporação {position} está vazio — adicione a ligação ou o código para guardar.",
+      "embedUrl": "Falta a ligação no bloco de incorporação {position} — adicione-a para guardar.",
+      "embedHtml": "Falta o código no bloco de incorporação {position} — adicione-o para guardar."
+    }
   },
   "nav": {
     "profiles": "Site",

@@ -66,12 +66,12 @@ const LAYOUTS: {
   label: string;
   svg: string;
 }[] = [
-  { type: "largeGrid", label: "Large grid", svg: "layout_swiper_card.svg" },
+  { type: "promo", label: "Promo", svg: "layout_swiper_card_large.svg" },
   { type: "list", label: "List", svg: "layout_list.svg" },
+  { type: "grid", label: "Grid", svg: "layout_grid.svg" },
   { type: "swiper", label: "Swiper", svg: "layout_swiper.svg" },
   { type: "swiper2", label: "Swiper 2", svg: "layout_swiper_r2.svg" },
-  { type: "grid", label: "Grid", svg: "layout_grid.svg" },
-  { type: "promo", label: "Promo", svg: "layout_swiper_card_large.svg" },
+  { type: "largeGrid", label: "Large grid", svg: "layout_swiper_card.svg" },
 ];
 
 /**
@@ -94,13 +94,16 @@ export function ExternalLinksBlockEditor({ block }: { block: ExternalLinksBlock 
 
   const editing = links.find((l) => l.id === editingId) ?? null;
 
-  // show_arrow / circle_image only apply to the card-style layouts.
+  // show_arrow applies to the card-style layouts only.
   const layout = block.layout_type ?? "list";
   const cardLayout =
     layout === "list" ||
     layout === "swiper" ||
     layout === "swiper2" ||
     layout === "promo";
+  // Grid draws a bare thumbnail rather than a card, so it takes the circle
+  // option but has no arrow to show (mobile `circleImageLayout`, 68e6f688).
+  const circleImageLayout = cardLayout || layout === "grid";
 
   const tabs: SheetTab<Tab>[] = [
     { value: "sort", label: t("tabs.sort"), Icon: ArrowUpDown },
@@ -176,7 +179,7 @@ export function ExternalLinksBlockEditor({ block }: { block: ExternalLinksBlock 
                 }
               />
             )}
-            {cardLayout && (
+            {circleImageLayout && (
               <GroupedRow
                 Icon={Circle}
                 color="#ec4899"

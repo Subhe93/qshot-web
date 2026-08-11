@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Film,
   Image as ImageIcon,
@@ -15,6 +15,10 @@ import { dirOf } from "@/lib/builder/text-direction";
 import { uploadVideo, uploadImage } from "@/lib/api/media";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import type { IntroductionVideoBlock } from "@/lib/types/blocks";
+import {
+  isDerivedThumbnail,
+  youtubeThumbnailUrl,
+} from "@/lib/builder/validate";
 import { GroupedCard, GroupedRow, SectionLabel } from "./sheet-kit";
 import { ImageUploader } from "../hero/CoverTab";
 
@@ -23,6 +27,12 @@ import { ImageUploader } from "../hero/CoverTab";
  * the user uploads a video file (a poster thumbnail is auto-captured from a
  * frame and uploaded too). A direct/YouTube URL field is kept as an alternative,
  * plus a manual thumbnail override.
+ *
+ * `thumbnail_url` is required by the server and rejected when empty, so a link
+ * pasted without a poster would make the whole profile unsavable. For YouTube
+ * links the poster is derived from the video id (`img.youtube.com/vi/<id>/…`,
+ * the same image the oembed endpoint returns); for anything else we say so
+ * inline, and `findIncompleteBlocks` blocks the save with a named message.
  */
 export function IntroductionVideoBlockEditor({
   block,
@@ -41,6 +51,24 @@ export function IntroductionVideoBlockEditor({
   // A direct uploaded file is a CDN key (no scheme); a pasted link is absolute.
   const isUploadedFile = !!block.url && !/^https?:\/\//i.test(block.url.trim());
   const videoSrc = block.url ? cdnUrl(block.url) : "";
+
+  // Auto-derive the poster from a YouTube link (once per url): a link on its own
+  // must be enough to save. A poster the user uploaded is never overwritten —
+  // only an empty one, or one we derived for a previous url. Deleting a derived
+  // poster sticks too (the url hasn't changed, so we don't re-derive).
+  const posterDerivedFor = useRef<string | null>(null);
+  useEffect(() => {
+    const url = (block.url ?? "").trim();
+    if (posterDerivedFor.current === url) return;
+    posterDerivedFor.current = url;
+    const current = (block.thumbnail_url ?? "").trim();
+    if (current && !isDerivedThumbnail(current)) return;
+    const poster = youtubeThumbnailUrl(url);
+    if (poster && poster !== current) updateBlock(block.id, { thumbnail_url: poster });
+  }, [block.id, block.url, block.thumbnail_url, updateBlock]);
+
+  const missingThumbnail =
+    !!(block.url ?? "").trim() && !(block.thumbnail_url ?? "").trim();
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -175,6 +203,9 @@ export function IntroductionVideoBlockEditor({
             />
           </div>
         </GroupedCard>
+        {missingThumbnail && (
+          <p className="px-1 text-xs text-error">{t("introVideo.thumbnailRequired")}</p>
+        )}
       </div>
     </div>
   );

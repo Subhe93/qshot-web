@@ -19,12 +19,13 @@ import type {
   ImageItem,
   SocialLinkItem,
   ExternalLinkItem,
+  ExternalLinksBlock,
   VideoLinkItem,
   VideoLinksBlock,
   ProductItem,
   ReviewItem,
 } from "@/lib/types/blocks";
-import type { WebsiteSettings } from "@/lib/types/profile";
+import type { TemplateRef, WebsiteSettings } from "@/lib/types/profile";
 import { hexToArgb } from "./color";
 import { solidArgb } from "./color-value";
 
@@ -109,12 +110,32 @@ const asStrOrNull = (v: unknown): string | null =>
   typeof v === "string" ? v : null;
 
 function parseExternalLinkItem(raw: Raw): ExternalLinkItem {
+  // `icon` is NOT in the contract. Mobile `ExternalLinkItem.toJson()` writes
+  // exactly {id, thumbnail_url, title, description, url, hidden} and the schema
+  // lists the same six; the key was a web-only invention. The deployed
+  // validator enforces `additionalProperties: false`, so emitting it made the
+  // server reject the WHOLE profile with
+  //   422 unknown field "icon" is not allowed  (/modules/N/links/M).
+  //
+  // Dropping it at PARSE time (not at serialize time, the way VideoLinkItem's
+  // web-only title/thumbnail_url are handled) because:
+  //   1. nothing in the web app reads `item.icon` for external links — no
+  //      editor sets it, no preview renders it — so it has no reason to exist
+  //      in the in-memory model at all;
+  //   2. it must also be scrubbed from data ALREADY poisoned by the previous
+  //      build, and only a parse-time strip cleans what the server sends back;
+  //   3. the model then can't leak the key through any other path that builds a
+  //      payload from blocks (page duplication, template apply, AI transform).
+  // VideoLinkItem is the opposite case: its `title` IS read by the preview
+  // (VideoLinksBlockView), so it has to stay in the model and can only be
+  // removed on the way out — see serializeBlock.
+  const rest = { ...raw };
+  delete rest.icon;
   return {
-    ...raw,
+    ...rest,
     id: asStr(raw.id) || genId(),
     title: asStr(raw.title),
     url: asStr(raw.url),
-    icon: asStrOrNull(raw.icon),
     thumbnail_url: asStrOrNull(raw.thumbnail_url),
     description: asStrOrNull(raw.description),
     hidden: asBool(raw.hidden, false),
@@ -356,10 +377,33 @@ export function parseBlocks(input: unknown): Block[] {
 }
 
 /**
- * Near-identity — the editor model already matches the JSON shape. The one
- * exception: VideoLinkItem carries web-only `title`/`thumbnail_url` (the editor
- * never sets them; the mobile contract is strictly `{id, url, hidden}`). Strip
- * them so the outgoing JSON round-trips through the mobile app without extra keys.
+ * Near-identity — the editor model already matches the JSON shape. Exceptions,
+ * both of them keys the WEB invented that the contract has no room for:
+ *
+ *  - VideoLinkItem carries web-only `title`/`thumbnail_url`. The mobile
+ *    contract is strictly `{id, url, hidden}`, but the preview genuinely reads
+ *    `item.title` (lazy YouTube oEmbed label), so the key has to live in the
+ *    model and can only be dropped on the way out.
+ *  - ExternalLinkItem must never carry `icon`. parseExternalLinkItem already
+ *    strips it, so this is a second line of defence for items that reach the
+ *    store without going through the parser (fixtures, templates, AI import).
+ *
+ * ── Residual risk (deliberately NOT addressed here) ────────────────────────
+ * The server validator (schemaVersion 2.0.0) enforces
+ * `additionalProperties: false`, so ANY key it does not know fails the entire
+ * save with 422. parseBlock spreads `...raw` and the item parsers spread the
+ * raw item, on purpose: it preserves fields the web app does not model yet so
+ * mobile-authored data survives a web edit. That passthrough can, in theory,
+ * carry an unknown key back to a validator that rejects it.
+ *
+ * We do NOT defend against that with a whitelist built from
+ * `docs/for validation/website-json-schema.json`. That file is the mobile
+ * team's hand-written documentation, NOT the deployed artifact ("2.0.0"), and
+ * it is known to lag. Filtering by a stale whitelist would silently DELETE
+ * fields the real schema accepts — turning a loud, recoverable 422 into quiet
+ * data loss. Only keys we can prove we invented are removed, one by one.
+ * If a future 422 names another field, verify it against the mobile
+ * `toJson()` first, then add it here (or stop emitting it at parse time).
  */
 export function serializeBlock(block: Block): Record<string, unknown> {
   if (block.type === "VideoLinksModule") {
@@ -374,6 +418,17 @@ export function serializeBlock(block: Block): Record<string, unknown> {
       }),
     };
   }
+  if (block.type === "ExternalLinksModule") {
+    const b = block as ExternalLinksBlock;
+    return {
+      ...b,
+      links: (b.links ?? []).map((it) => {
+        const clean = { ...it };
+        delete clean.icon;
+        return clean;
+      }),
+    };
+  }
   return block as unknown as Record<string, unknown>;
 }
 
@@ -382,18 +437,52 @@ export function serializeBlocks(blocks: Block[]): Record<string, unknown>[] {
 }
 
 /**
+ * `settings.template` (mobile TemplateRef) is now `{id: string | null}` — the
+ * contract change that REMOVED `brand_color`. It otherwise rides the settings
+ * passthrough like `card_style`: web never invents a `"template": null` on
+ * sites that never had the key (mobile fromJson treats missing and null
+ * identically), and any other key inside the object is preserved.
+ *
+ * ── Why `brand_color` is STRIPPED here, on the way IN ──────────────────────
+ * Documents saved before this change still carry it, and the settings parser
+ * is a passthrough, so it would ride back out on the next save. The deployed
+ * validator enforces `additionalProperties: false`: the moment the backend
+ * drops `brand_color` from the schema, echoing it back fails the WHOLE save
+ * with 422 — precisely the `icon` failure on ExternalLinkItem (see
+ * parseExternalLinkItem), and the same three reasons make PARSE-time the right
+ * place there and here:
+ *   1. nothing in the app reads `template.brand_color` any more — the Theme
+ *      sheet's accent dot derives the color from the template itself
+ *      (`templateAccentColor`), so the key has no reason to exist in memory;
+ *   2. the data ALREADY carrying it must be cleaned, and only a parse-time
+ *      strip cleans what the server sends back;
+ *   3. the model then cannot leak the key through any other payload path
+ *      (page duplication, template apply, AI import).
+ * This is not the "stale whitelist" filtering the block passthrough refuses:
+ * it is one key, named by the contract owners as removed, exactly like `icon`.
+ *
+ * `id` is normalized to `string | null` so a legacy object that somehow lacks
+ * one still satisfies the schema's `required: ["id"]` on the way back out.
+ */
+function parseTemplateRef(raw: unknown): TemplateRef | null | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === null || typeof raw !== "object") return null;
+  const rest = { ...(raw as Raw) };
+  delete rest.brand_color;
+  return { ...rest, id: asStrOrNull((raw as Raw).id) } as TemplateRef;
+}
+
+/**
  * Settings are largely passthrough (the type mirrors the JSON). We only ensure
  * a default style and keep every other key — including the legacy `header_text`
- * and any unknown keys — verbatim.
- *
- * `template` ({id, brand_color} | null — mobile TemplateRef) rides this
- * passthrough like `card_style`: a mobile-saved value round-trips untouched,
- * and web never invents a `"template": null` on sites that never had the key
- * (mobile fromJson treats missing and null identically).
+ * and any unknown keys — verbatim. The one exception is `settings.template`,
+ * normalized by `parseTemplateRef` above.
  */
 export function parseSettings(input: unknown): WebsiteSettings {
   const raw = (input ?? {}) as Raw;
-  return { ...(raw as WebsiteSettings) };
+  const out = { ...(raw as WebsiteSettings) };
+  if ("template" in raw) out.template = parseTemplateRef(raw.template);
+  return out;
 }
 
 export function serializeSettings(
@@ -405,6 +494,16 @@ export function serializeSettings(
   // settings contract — so don't echo it back inside `settings`.
   delete out.modules;
   delete out.verified;
+
+  // Second line of defence for the removed `template.brand_color` — the same
+  // belt-and-braces as ExternalLinkItem.icon (parse-time strip + serialize-time
+  // strip), for settings that reach the store without passing parseSettings
+  // (fixtures, AI import, a store hydrated from a raw payload).
+  if (settings.template != null && "brand_color" in settings.template) {
+    const template = { ...(settings.template as unknown as Raw) };
+    delete template.brand_color;
+    out.template = template;
+  }
 
   // Colour contract: the solid `color_value.color` MUST be an ARGB int. The
   // mobile app does `Color(json['color'])`, which throws on a legacy hex string,

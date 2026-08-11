@@ -26,7 +26,11 @@ import { cn } from "@/lib/utils";
  */
 export function FloatingButtonLayer({ preview = false }: { preview?: boolean }) {
   const t = useTranslations("builder.floatingButton");
-  const settings = useEditorStore((s) => s.settings);
+  // Render the template preview's floating button while one is overlaid; edits
+  // (setFb) still go to the real settings, but browseOnly blocks them anyway.
+  const settings = useEditorStore(
+    (s) => s.previewOverlay?.settings ?? s.settings,
+  );
   const update = useEditorStore((s) => s.updateSettings);
   const [open, setOpen] = useState(false);
 

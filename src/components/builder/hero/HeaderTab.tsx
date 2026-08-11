@@ -61,6 +61,10 @@ export function HeaderTab({
           path={logo.image_url}
           onUploaded={(p) => setLogo({ image_url: p })}
           onDelete={() => setLogo({ image_url: undefined })}
+          // heroPickLogoImage passes `aspectRatio: null`, so a wide wordmark is
+          // not squashed into a square. The logo has no `image_rect` field in
+          // the contract, so this one stays a real cut, as it is on mobile.
+          aspect={null}
         />
         <GroupedCard>
           <GroupedRow

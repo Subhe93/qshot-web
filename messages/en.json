@@ -11,6 +11,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+    "ok": "Ok",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -116,6 +117,10 @@
     "deleteBlockConfirm": "Delete this block? This can't be undone.",
     "careful": "Careful",
     "coverSizeWarning": "The selected cover size may hide some text and buttons.",
+    "undo": "Undo",
+    "redo": "Redo",
+    "singleImageTitle": "Oops! Just One Image",
+    "singleImageWarning": "Looks like you picked more than one. This action only works with a single image.",
     "confirm": "Confirm",
     "addBlock": "Blocks",
     "save": "Save",
@@ -382,7 +387,65 @@
       "numberOfPosts": "Number of feed posts",
       "showProfileOverview": "Show profile overview",
       "decrease": "Decrease",
-      "increase": "Increase"
+      "increase": "Increase",
+      "finishSignIn": "Finish signing in with {platform}",
+      "finishSignInDesc": "Complete the steps in your browser, then come back to this screen.",
+      "reopenSignIn": "Reopen sign-in",
+      "noConnectionReturned": "No connection was returned.",
+      "facebook": {
+        "title": "Facebook Page",
+        "subtitle": "Show posts from your Page",
+        "notConnected": "Not connected",
+        "connect": "Connect Facebook",
+        "connecting": "Connecting…",
+        "connectHint": "Connect your Meta account to show posts from your Facebook Page.",
+        "account": "Meta account",
+        "addAccount": "Connect another account",
+        "choosePage": "Choose a Page",
+        "noPages": "No Facebook Pages found for this account.",
+        "disconnect": "Disconnect",
+        "disconnectConfirm": "Disconnect this Meta account? Feeds using it will stop showing posts.",
+        "unavailable": "Facebook feeds aren’t available right now. Please try again later.",
+        "popupBlocked": "Your browser blocked the login window. Allow pop-ups for this site and try again.",
+        "noPagesDesc": "Your account doesn't manage a Page. Create one, then reconnect.",
+        "reconnect": "Reconnect",
+        "instagramLinked": "Instagram linked"
+      },
+      "tiktok": {
+        "title": "TikTok",
+        "subtitle": "Show your own videos from TikTok",
+        "notConnected": "Not connected",
+        "connect": "Connect TikTok",
+        "connecting": "Connecting…",
+        "connectHint": "Show your own TikTok videos on your site. You'll sign in with TikTok once — we only ever read your public videos.",
+        "addAccount": "Connect another account",
+        "chooseAccount": "Choose an account",
+        "noAccounts": "No TikTok account is connected yet.",
+        "reconnectNeeded": "Access revoked — reconnect needed",
+        "disconnect": "Disconnect",
+        "disconnectConfirm": "Disconnect this TikTok account? Feeds using it will stop showing videos.",
+        "unavailable": "TikTok feeds aren’t available right now. Please try again later.",
+        "popupBlocked": "Your browser blocked the login window. Allow pop-ups for this site and try again."
+      },
+      "instagram": {
+        "title": "Instagram",
+        "subtitle": "Show your own posts from Instagram",
+        "notConnected": "Not connected",
+        "connect": "Connect Instagram",
+        "connecting": "Connecting…",
+        "connectHint": "Show your own Instagram posts on your site. You'll sign in with Instagram once — we only ever read your posts.",
+        "professionalRequired": "Requires a professional account (Business or Creator). You can switch for free in the Instagram app.",
+        "addAccount": "Connect another account",
+        "chooseAccount": "Choose an account",
+        "noAccounts": "No Instagram account is connected yet.",
+        "reconnectNeeded": "Connection expired — reconnect needed",
+        "disconnect": "Disconnect",
+        "disconnectConfirm": "Disconnect this Instagram account? Feeds using it will stop showing posts.",
+        "unavailable": "Instagram feeds aren’t available right now. Please try again later.",
+        "popupBlocked": "Your browser blocked the login window. Allow pop-ups for this site and try again.",
+        "switchToConnect": "Connect your Instagram account",
+        "legacyNotice": "This block still uses the older public-profile method, which is being retired. Connect your account to keep it working."
+      }
     },
     "form": {
       "defaultOption": "Default",
@@ -414,7 +477,9 @@
       "source": "Source",
       "aspectRatio": "Aspect ratio",
       "auto": "Auto",
-      "codePlaceholder": "<iframe …>"
+      "codePlaceholder": "<iframe …>",
+      "urlRequired": "A link is required to save this block.",
+      "codeRequired": "The embed code is required to save this block."
     },
     "introVideo": {
       "video": "Video",
@@ -428,7 +493,8 @@
       "removeVideo": "Remove",
       "videoUploaded": "Video uploaded",
       "uploadFailed": "Couldn't upload the video. Please try again.",
-      "orPasteUrl": "Or paste a video link"
+      "orPasteUrl": "Or paste a video link",
+      "thumbnailRequired": "A thumbnail is required. Paste a YouTube link and we’ll fill it in for you, or upload an image."
     },
     "bookingBlock": {
       "bookNow": "Book Now",
@@ -459,6 +525,12 @@
       "startBlank": "Start Blank",
       "applied": "Template Applied",
       "switchMessage": "This restyles your website. Your content and brand color stay.",
+      "contentChoiceMessage": "Keep your current content and change only the design, or replace everything with the template's sample content?",
+      "keepMyContent": "Keep my content",
+      "useTemplateContent": "Use template content",
+      "replaceContentWarning": "Your current blocks and texts will be replaced.",
+      "showTemplates": "Show templates",
+      "viewWebsite": "View website",
       "undo": "Undo",
       "brandColor": "Brand Color",
       "customColor": "Custom Color",
@@ -469,7 +541,14 @@
         "salon": "Salon & Barber",
         "creator": "Creator",
         "shop": "Shop",
-        "professional": "Professional"
+        "professional": "Professional",
+        "template-1": "Business Website",
+        "template-2": "Personal Website",
+        "template-3": "Marketing Website",
+        "template-4": "Icons Website",
+        "template-5": "Star Website",
+        "template-6": "Signature Website",
+        "template-7": "Service Website"
       },
       "sections": {
         "menu": "Menu",
@@ -484,9 +563,20 @@
         "email": "Email",
         "message": "Message",
         "gallery": "Gallery"
-      }
+      },
+      "loadError": "Couldn't load templates."
     },
-    "unsupportedBlock": "Block {position} ({type}) isn’t supported in this version — remove it to save."
+    "unsupportedBlock": "Block {position} ({type}) isn’t supported in this version — remove it to save.",
+    "saveRejectedBlock": "Couldn’t save — block {position} ({block}): {reason}",
+    "saveRejected": "Couldn’t save — {reason}",
+    "saveRejectedMore": "{count, plural, =1 {+1 more problem} other {+# more problems}}",
+    "incomplete": {
+      "videoUrl": "Video block {position}: upload a video or paste a link before saving.",
+      "videoThumbnail": "Video block {position} has no thumbnail — add one (or use a YouTube link) to save.",
+      "embedEmpty": "Embed block {position} is empty — add the link or the embed code to save.",
+      "embedUrl": "Embed block {position} is missing its link — add it to save.",
+      "embedHtml": "Embed block {position} is missing its embed code — add it to save."
+    }
   },
   "nav": {
     "profiles": "Website",

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { ImagesBlock, ImageItem } from "@/lib/types/blocks";
 import { cdnUrl } from "@/lib/api/qrcodes";
+import { rectAspect } from "@/lib/builder/image-rect";
+import { RectImage } from "@/components/ui/rect-image";
 
 /**
  * Read-only preview of an ImageModule, mirroring the mobile `ImagesWidget`
@@ -76,44 +77,22 @@ function renderContent(items: ImageItem[], layout: ImagesBlock["layout_type"]) {
 
   // ── Single item: same in every layout (mobile special-cases length == 1) ──
   if (items.length === 1) {
-    const item = items[0]!;
-    const aspect = rectAspect(item.rect);
     return (
       <div className="px-4">
-        <div
-          className="overflow-hidden rounded-lg"
-          style={aspect != null ? { aspectRatio: String(aspect) } : undefined}
-        >
-          {/* With a crop rect the wrapper is aspect-sized so a bg fill needs
-              size-full; without one the <img> supplies its own natural height. */}
-          <RectImg item={item} className={aspect != null ? "size-full" : "w-full"} />
-        </div>
+        <LoneImage item={items[0]!} />
       </div>
     );
   }
 
   switch (layout) {
-    case "singleSizable": {
-      // First item only, at its natural/cropped size (mobile: CachedNetworkImage,
-      // BoxFit.cover, no fixed aspect). A crop rect renders as a background fill,
-      // which needs an aspect-sized box + size-full; otherwise the <img> gives its
-      // own height. (Without this, a rect item became a 0-height bg → invisible.)
-      const item = items[0]!;
-      const aspect = rectAspect(item.rect);
+    case "singleSizable":
+      // First item only, sized like the lone-image case (mobile: no fixed card
+      // ratio here, the picture decides its own height).
       return (
         <div className="px-6 py-[5px]">
-          <div
-            className="overflow-hidden rounded-lg"
-            style={aspect != null ? { aspectRatio: String(aspect) } : undefined}
-          >
-            <RectImg
-              item={item}
-              className={aspect != null ? "size-full" : "w-full"}
-            />
-          </div>
+          <LoneImage item={items[0]!} />
         </div>
       );
-    }
 
     case "cards":
     case "carousel": {
@@ -157,7 +136,7 @@ function renderContent(items: ImageItem[], layout: ImagesBlock["layout_type"]) {
               className="w-[200px] shrink-0 overflow-hidden rounded-[10px]"
               style={{ aspectRatio: String(9 / 16) }}
             >
-              <RectImg item={item} className="size-full" />
+              <RectImage src={cdnUrl(item.url)} rect={item.rect} className="size-full" />
             </div>
           ))}
         </div>
@@ -173,7 +152,7 @@ function renderContent(items: ImageItem[], layout: ImagesBlock["layout_type"]) {
                 className="overflow-hidden rounded-lg"
                 style={{ aspectRatio: String(16 / 9) }}
               >
-                <RectImg item={item} className="size-full" />
+                <RectImage src={cdnUrl(item.url)} rect={item.rect} className="size-full" />
               </div>
             </div>
           ))}
@@ -190,7 +169,7 @@ function renderContent(items: ImageItem[], layout: ImagesBlock["layout_type"]) {
               className="overflow-hidden rounded-lg"
               style={{ aspectRatio: "1" }}
             >
-              <RectImg item={item} className="size-full" />
+              <RectImage src={cdnUrl(item.url)} rect={item.rect} className="size-full" />
             </div>
           ))}
         </div>
@@ -212,79 +191,34 @@ function Card({ item, aspect }: { item: ImageItem; aspect: number }) {
         backgroundColor: "rgba(255,255,255,0.2)",
       }}
     >
-      <RectImg item={item} className="size-full" />
+      <RectImage src={cdnUrl(item.url)} rect={item.rect} className="size-full" />
     </div>
   );
 }
 
 /**
- * Image honouring the optional crop `rect` ([left, top, right, bottom] in source
- * pixels — mobile draws `image, rect → destRect` via canvas.drawImageRect). When
- * a rect is present we use it as a background sized so the cropped region fills
- * the box; otherwise a plain cover <img>.
+ * A lone picture (`items.length == 1`, and the `singleSizable` layout) is the one
+ * place mobile does NOT impose a card ratio: `ImagesWidget` wraps it in
+ * `AspectRatio(rect.width / rect.height)`, so the box takes the CROP's own shape
+ * and the whole crop shows without letterboxing.
+ *
+ * Items uploaded before non-destructive cropping have no rect to take a shape
+ * from — those were physically cut, so the file itself already is the crop and
+ * it keeps flowing at its natural height exactly as before.
  */
-function RectImg({ item, className }: { item: ImageItem; className?: string }) {
-  const url = cdnUrl(item.url);
-  const rect = item.rect;
-  const hasRect = !!(rect && isValidRect(rect));
-  // The mobile rect is an ABSOLUTE source-pixel sub-rectangle (drawImageRect),
-  // so we need the image's natural size to map it to a CSS background crop.
-  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
-
-  useEffect(() => {
-    if (!hasRect) return;
-    let active = true;
-    const img = new window.Image();
-    img.onload = () => {
-      if (active) setNat({ w: img.naturalWidth, h: img.naturalHeight });
-    };
-    img.src = url;
-    return () => {
-      active = false;
-    };
-  }, [url, hasRect]);
-
-  if (hasRect && nat && rect) {
-    const [left, top, right, bottom] = rect;
-    const cropW = right - left;
-    const cropH = bottom - top;
-    // Scale the source so the crop window fills the element, then offset to the
-    // crop origin (as a % of the leftover space).
-    const bgW = cropW > 0 ? (nat.w / cropW) * 100 : 100;
-    const bgH = cropH > 0 ? (nat.h / cropH) * 100 : 100;
-    const posX = nat.w - cropW > 0 ? (left / (nat.w - cropW)) * 100 : 0;
-    const posY = nat.h - cropH > 0 ? (top / (nat.h - cropH)) * 100 : 0;
+function LoneImage({ item }: { item: ImageItem }) {
+  const aspect = rectAspect(item.rect);
+  if (aspect == null) {
     return (
-      <div
-        className={className}
-        role="img"
-        style={{
-          backgroundImage: `url(${url})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: `${bgW}% ${bgH}%`,
-          backgroundPosition: `${posX}% ${posY}%`,
-        }}
-      />
+      <div className="overflow-hidden rounded-lg">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={cdnUrl(item.url)} alt="" className="w-full object-cover" />
+      </div>
     );
   }
-
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="" className={`${className ?? ""} object-cover`} />
+    <div className="overflow-hidden rounded-lg" style={{ aspectRatio: String(aspect) }}>
+      <RectImage src={cdnUrl(item.url)} rect={item.rect} className="size-full" />
+    </div>
   );
-}
-
-// rect values may be either normalized (0..1) or absolute pixels. We treat them
-// as a ratio: aspect = width / height regardless of absolute scale.
-function rectAspect(
-  rect?: [number, number, number, number] | null,
-): number | null {
-  if (!rect || !isValidRect(rect)) return null;
-  const w = rect[2] - rect[0];
-  const h = rect[3] - rect[1];
-  return h > 0 ? w / h : null;
-}
-
-function isValidRect(rect: [number, number, number, number]): boolean {
-  return rect.length === 4 && rect[2] > rect[0] && rect[3] > rect[1];
 }

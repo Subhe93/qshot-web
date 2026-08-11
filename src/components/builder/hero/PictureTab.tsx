@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Circle, Square, RectangleHorizontal } from "lucide-react";
 import { cdnUrl } from "@/lib/api/qrcodes";
-import { uploadImage } from "@/lib/api/media";
 import { ImageCropper } from "@/components/ui/image-cropper";
-import { croppedUploadFile } from "@/lib/builder/crop-image";
 import { ColorPickerField } from "@/components/ui/color-picker";
 import { cn } from "@/lib/utils";
 import type { ImageShape, WebsiteSettings } from "@/lib/types/profile";
@@ -25,6 +23,9 @@ const SHAPES = [
   { value: "rectangle" as ImageShape, Icon: RectangleHorizontal },
 ];
 
+/** mobile: `model.shape == ImageShape.rectangle ? 16 / 9 : 1.0`. */
+const shapeAspect = (shape: ImageShape) => (shape === "rectangle" ? 16 / 9 : 1);
+
 export function PictureTab({
   settings,
   update,
@@ -38,7 +39,7 @@ export function PictureTab({
     update({ profile_picture: { ...pic, ...patch } });
 
   const shape = pic.shape ?? "circle";
-  const picAspect = shape === "rectangle" ? 16 / 9 : 1;
+  const picAspect = shapeAspect(shape);
 
   // Changing the shape re-crops the existing image to the new aspect ratio
   // (mobile cropImageRect) before saving the shape — open the cropper for the
@@ -60,8 +61,9 @@ export function PictureTab({
         <SectionLabel>Image</SectionLabel>
         <ImageUploader
           path={pic.image_url}
-          onUploaded={(p) => setPic({ image_url: p })}
-          onDelete={() => setPic({ image_url: undefined })}
+          rect={pic.image_rect}
+          onUploadedRect={(p, r) => setPic({ image_url: p, image_rect: r })}
+          onDelete={() => setPic({ image_url: undefined, image_rect: null })}
           aspect={picAspect}
           cropShape={shape === "circle" ? "round" : "rect"}
           rounded={shape === "circle" ? "rounded-full" : "rounded-2xl"}
@@ -146,20 +148,19 @@ export function PictureTab({
           cropImageRect). Cancelling keeps the current shape. */}
       {cropShape !== null && pic.image_url && (
         <ImageCropper
-          // Load through our same-origin proxy — the CDN has no CORS headers, so
-          // a direct CDN <img> would taint the canvas and break toBlob() export.
-          src={`/api/image-proxy?url=${encodeURIComponent(cdnUrl(pic.image_url))}`}
+          // Re-cropping only measures the image now — no canvas export, so the
+          // CDN's missing CORS headers are irrelevant and the proxy hop is gone.
+          src={cdnUrl(pic.image_url)}
           title="Crop image"
           cancelLabel={tc("cancel")}
           confirmLabel="Done"
-          aspect={cropShape === "rectangle" ? 16 / 9 : 1}
+          aspect={shapeAspect(cropShape)}
           cropShape={cropShape === "circle" ? "round" : "rect"}
           onCancel={() => setCropShape(null)}
-          onCropped={async (blob) => {
-            const file = croppedUploadFile(blob, "picture");
-            const uploaded = await uploadImage(file);
-            if (uploaded) setPic({ image_url: uploaded, shape: cropShape });
-            else setPic({ shape: cropShape });
+          // mobile: `model.copyWith(imageRect: rect, shape: value)` — the file
+          // stays put, only the window onto it changes.
+          onCroppedRect={(r) => {
+            setPic({ image_rect: r, shape: cropShape });
             setCropShape(null);
           }}
         />

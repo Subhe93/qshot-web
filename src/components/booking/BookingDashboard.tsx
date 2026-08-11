@@ -33,6 +33,7 @@ import { ServicesPane } from "./panes/ServicesPane";
 import { AnalyticsPane } from "./panes/AnalyticsPane";
 import { ConfigPane } from "./panes/ConfigPane";
 
+import { siteHost } from "@/lib/site-domain";
 const NAV: { id: BookingSection; key: string; Icon: LucideIcon }[] = [
   { id: "home", key: "home", Icon: Home },
   { id: "calendar", key: "calendar", Icon: CalendarRange },
@@ -83,7 +84,7 @@ export function BookingDashboard({ profileId }: { profileId: string }) {
       .toLowerCase()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "") || "me";
-  const profileUrl = `${slug}.qshot.com`;
+  const profileUrl = siteHost(slug);
 
   return (
     <div className="flex h-dvh flex-col bg-background">

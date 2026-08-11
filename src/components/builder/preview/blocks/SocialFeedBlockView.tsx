@@ -21,16 +21,34 @@ import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
  *    centered 60×60 translucent-white play circle (30×30 glyph), bottom title.
  *  - Instagram (`InstagramProfile`): optional gradient-ringed profile header +
  *    stats, then a 2-column square thumbnail grid (`SliverGridDelegateWithFixedCrossAxisCount`).
+ *  - TikTok: mobile renders it through the same `VideoFeed`/`RSSContent` path
+ *    as YouTube/Vimeo, so it reuses the `RssFeed` layouts above, with an
+ *    account header from `info.username`.
  *  - Trailing divider at horizontal 20, indent/endIndent 8, foreground @ 0.2.
  *
  * `posts_count` (default 4 — mobile `postsCount` default) caps the tile count.
+ *
+ * NOTE: the preview never fetches a live feed for ANY provider — not the two
+ * link-based ones, and not the connect-flow ones (`facebook` via `meta/feed`,
+ * `tiktok` via `tiktok-integration/`), whose posts are fetched server-side and
+ * are never stored in the website JSON. Everything here is a placeholder.
+ *
+ * `instagram` is still fully rendered even though mobile `20941620` withheld it
+ * from the new-block selector (business_discovery → Business Login OAuth
+ * pivot): the value stays valid in stored documents and must keep rendering.
  */
 // Mobile FeedConfiguration.defaultTitleValue — used when no title is set.
 const DEFAULT_FEED_TITLE: Record<string, string> = {
   youtube: "YouTube Videos",
   vimeo: "Vimeo Showcase",
   instagram: "Instagram Feed",
+  facebook: "Facebook Feed",
+  // TiktokFeedConfiguration.defaultTitleValue is plain "TikTok" (not "… Feed").
+  tiktok: "TikTok",
 };
+
+const FACEBOOK_BLUE = "#1877F2";
+const TIKTOK_PINK = "#FE2C55";
 
 export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
   const desktop = useDesktopPreview();
@@ -69,6 +87,21 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
 
       {configuration === "instagram" ? (
         <InstagramFeed tiles={tiles} showProfileDetails={showProfileDetails} />
+      ) : configuration === "tiktok" ? (
+        <TikTokFeed
+          tiles={tiles}
+          layout={layout}
+          username={(block.info?.["username"] as string | undefined) ?? ""}
+          connected={!!block.info?.["connection_id"]}
+        />
+      ) : configuration === "facebook" ? (
+        <FacebookFeed
+          tiles={tiles}
+          layout={layout}
+          showProfileDetails={showProfileDetails}
+          pageName={(block.info?.["username"] as string | undefined) ?? ""}
+          connected={!!block.info?.["connection_id"] && !!block.info?.["page_id"]}
+        />
       ) : (
         <RssFeed tiles={tiles} layout={layout} />
       )}
@@ -175,6 +208,172 @@ function VideoCard({ fill = false }: { fill?: boolean }) {
             <path d="M8 5v14l11-7z" />
           </svg>
         </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── TikTok (video feed) ─────────────────────────────────────────────────────
+
+/**
+ * Placeholder render of a TikTok feed (mobile catalog 2026-08-03, commit
+ * `121470ef`). Mobile pipes TikTok through the same `VideoFeed`/`RSSContent`
+ * path as YouTube and Vimeo — cover image plus a link out to TikTok — so it
+ * honours all three `layout_type` values, and we reuse `RssFeed`/`VideoCard`
+ * verbatim rather than inventing a second video card.
+ *
+ * Like Facebook, the videos live behind a server-side connect flow
+ * (`tiktok-integration/`, keyed by `info.connection_id`) and are never stored
+ * in the website JSON. The builder preview does **not** fetch any provider's
+ * live feed, so this shows representative tiles capped by `posts_count`,
+ * preceded by an account header built from `info.username` (display only —
+ * TikTok's API scope returns the connected user's OWN videos, so the username
+ * can never point the feed at another account).
+ */
+function TikTokFeed({
+  tiles,
+  layout,
+  username,
+  connected,
+}: {
+  tiles: unknown[];
+  layout: SocialFeedBlock["layout_type"];
+  username: string;
+  connected: boolean;
+}) {
+  return (
+    <div>
+      <TikTokHeader username={username} connected={connected} />
+      <RssFeed tiles={tiles} layout={layout} />
+    </div>
+  );
+}
+
+function TikTokHeader({ username, connected }: { username: string; connected: boolean }) {
+  return (
+    <div className="flex items-center gap-2.5 px-5 pb-3">
+      <span
+        className="flex size-11 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
+        style={{ backgroundColor: TIKTOK_PINK }}
+      >
+        {(username || "T").trim().charAt(0).toUpperCase()}
+      </span>
+      <div className="min-w-0">
+        {username ? (
+          <p className="truncate text-sm font-bold text-foreground">{username}</p>
+        ) : (
+          <div className="h-4 w-28 rounded bg-foreground/20" />
+        )}
+        {connected ? (
+          <p className="text-xs text-muted-foreground">TikTok</p>
+        ) : (
+          <div className="mt-1.5 h-3 w-20 rounded bg-foreground/10" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Facebook Page (Meta feed) ───────────────────────────────────────────────
+
+/**
+ * Placeholder render of a Facebook Page feed. The real posts are fetched
+ * server-side from `meta/feed` using `info.connection_id` and are never stored
+ * in the website JSON, so — like the other providers — the builder preview
+ * shows representative post cards honouring `layout_type` and `posts_count`,
+ * preceded by the Page header when `settings.show_profile_details` is on.
+ */
+function FacebookFeed({
+  tiles,
+  layout,
+  showProfileDetails,
+  pageName,
+  connected,
+}: {
+  tiles: unknown[];
+  layout: SocialFeedBlock["layout_type"];
+  showProfileDetails: boolean;
+  pageName: string;
+  connected: boolean;
+}) {
+  const post = (key: number) => (
+    <div
+      key={key}
+      className="overflow-hidden rounded-xl"
+      style={{ border: "1px solid rgba(0,0,0,0.10)", backgroundColor: "rgba(255,255,255,0.2)" }}
+    >
+      {/* author row */}
+      <div className="flex items-center gap-2 p-2.5">
+        <span
+          className="flex size-8 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white"
+          style={{ backgroundColor: FACEBOOK_BLUE }}
+        >
+          {(pageName || "F").trim().charAt(0).toUpperCase()}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block h-3 w-24 max-w-full rounded bg-foreground/20" />
+          <span className="mt-1 block h-2 w-14 max-w-full rounded bg-foreground/10" />
+        </span>
+      </div>
+      {/* media */}
+      <div className="aspect-[4/3] w-full bg-black/10" />
+      {/* caption */}
+      <div className="space-y-1.5 p-2.5">
+        <div className="h-2.5 w-11/12 rounded bg-foreground/15" />
+        <div className="h-2.5 w-3/5 rounded bg-foreground/10" />
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      {showProfileDetails && <FacebookHeader pageName={pageName} connected={connected} />}
+
+      {layout === "grid" ? (
+        <div className="overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex items-start">
+            {tiles.map((_, i) => (
+              <div key={i} className="w-[220px] shrink-0 px-1">
+                {post(i)}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : layout === "swiper" ? (
+        <div className="flex snap-x snap-mandatory overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {tiles.map((_, i) => (
+            <div key={i} className="w-[90%] shrink-0 snap-center px-1">
+              {post(i)}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2.5 px-5">{tiles.map((_, i) => post(i))}</div>
+      )}
+    </div>
+  );
+}
+
+function FacebookHeader({ pageName, connected }: { pageName: string; connected: boolean }) {
+  return (
+    <div className="flex items-center gap-2.5 px-5 pb-3">
+      <span
+        className="flex size-11 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
+        style={{ backgroundColor: FACEBOOK_BLUE }}
+      >
+        {(pageName || "F").trim().charAt(0).toUpperCase()}
+      </span>
+      <div className="min-w-0">
+        {pageName ? (
+          <p className="truncate text-sm font-bold text-foreground">{pageName}</p>
+        ) : (
+          <div className="h-4 w-28 rounded bg-foreground/20" />
+        )}
+        {connected ? (
+          <p className="text-xs text-muted-foreground">Facebook Page</p>
+        ) : (
+          <div className="mt-1.5 h-3 w-20 rounded bg-foreground/10" />
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,468 @@
+{
+  "name": "template-2",
+  "info": {
+    "modules": [
+      {
+        "version": 1,
+        "type": "social_links",
+        "layout_type": "gridAlignCenter",
+        "icon_type": "darkFilled",
+        "links": [
+          {
+            "id": "20241111-1432-8825-9818-3ff067306630",
+            "icon": null,
+            "type": "facebook",
+            "link": "https://www.facebook.com/KarimAAOfficial",
+            "hidden": false,
+            "name": null
+          },
+          {
+            "id": "20241111-1436-8645-9511-9f07de838337",
+            "icon": null,
+            "type": "instagram",
+            "link": "https://www.instagram.com/karimabdelazizofficial/",
+            "hidden": false,
+            "name": null
+          },
+          {
+            "id": "20241111-1505-8e45-b600-f76f5d21ce5e",
+            "icon": null,
+            "type": "tiktok",
+            "link": "https://www.tiktok.com/@karimabdelaziz_official?lang=ar",
+            "hidden": false,
+            "name": null
+          },
+          {
+            "id": "20241111-1508-8456-b362-d4488b4e416c",
+            "icon": null,
+            "type": "twitter",
+            "link": "https://x.com/karimabdelaziz?lang=ar",
+            "hidden": false,
+            "name": null
+          }
+        ],
+        "id": "nPu0i6E1KsoJqO8eB63do",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "adaptive_icon_color": false,
+        "custom_icon_color": null
+      },
+      {
+        "type": "ImageModule",
+        "layout_type": "shorts",
+        "items": [
+          {
+            "url": "images/profiles66d6163f22224329039cf464__kvdmp0h2e8.jpg",
+            "hidden": false,
+            "id": "NkzZMUET9283DRLhSFRJZ",
+            "rect": null
+          },
+          {
+            "url": "images/profiles66d6163f22224329039cf464__hwkzlyhmbjw.jpg",
+            "hidden": false,
+            "id": "7zCG4g6ZTbyYU3AV6NPr_",
+            "rect": null
+          },
+          {
+            "url": "images/profiles66d6163f22224329039cf464__jpks4uattcn.jpg",
+            "hidden": false,
+            "id": "nXpVHHqnamrhmvRhW39PA",
+            "rect": null
+          },
+          {
+            "url": "images/profiles66d6163f22224329039cf464__4zugxfm9j1i.jpg",
+            "hidden": false,
+            "id": "TEPf1h-nKcHBbCO2Ycrtm",
+            "rect": null
+          },
+          {
+            "url": "images/profiles66d6163f22224329039cf464__7dmir29epg8.jpg",
+            "hidden": false,
+            "id": "GbtZwbVpLLUHBXDOuU0qg",
+            "rect": null
+          }
+        ],
+        "version": 2,
+        "id": "qE1sQDsgoM6-RlZtDWnJI",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null
+      },
+      {
+        "type": "ParagraphModule",
+        "content": "[{\"insert\":\"Karim Abdel Aziz was born in Egypt on 17-8-1975. He was raised by his father the director Mohamed Abdel Aziz who has a valuable history in the Egyptian cinema; hence the technical environment in which he grew up had a prominent role in the ease of entry and work in the field of cinematography\\n\"}]",
+        "id": "KqhVVakYGuXF4CgqZ_XLu",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null
+      },
+      {
+        "type": "ExternalLinksModule",
+        "title": "Top Movies ",
+        "foldable": false,
+        "layout_type": "largeGrid",
+        "links": [
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__u6muptdguo.jpg",
+            "url": "https://www.imdb.com/title/tt3461252/?ref_=nm_flmg_job_1_cred_t_11",
+            "title": "The Blue Elephant",
+            "description": "2014",
+            "hidden": false,
+            "id": "BDsaOFQlKuZJFg7N5NBcT",
+            "icon": null
+          },
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__gfr7vhhjub.jpg",
+            "url": "https://www.imdb.com/title/tt27873958/?ref_=tt_mv_close",
+            "title": "El Ruby House",
+            "description": "2023",
+            "hidden": false,
+            "id": "6fhBtG73UbowLeqHo8_cD",
+            "icon": null
+          },
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__94mlqd8ropd.jpg",
+            "url": "https://www.imdb.com/title/tt10935956/?ref_=nm_flmg_job_1_cred_t_4",
+            "title": "Kira & El Gin",
+            "description": "2022",
+            "hidden": false,
+            "id": "CTyqoczjzEYs9jb3J7p7s",
+            "icon": null
+          },
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__4sv22jsze4w.jpg",
+            "url": "https://www.imdb.com/title/tt10515086/?ref_=nm_flmg_job_1_cred_t_7",
+            "title": "The Blue Elephant 2",
+            "description": "2019",
+            "hidden": false,
+            "id": "grPTshuptaGNz4h9p4e_B",
+            "icon": null
+          }
+        ],
+        "id": "fV2MbnexZGaVZxhvmODLR",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "show_arrow": null,
+        "circle_image": null
+      },
+      {
+        "type": "ButtonModule",
+        "url": "https://ar.wikipedia.org/wiki/%D9%82%D8%A7%D8%A6%D9%85%D8%A9_%D8%A3%D8%B9%D9%85%D8%A7%D9%84_%D9%83%D8%B1%D9%8A%D9%85_%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%B9%D8%B2%D9%8A%D8%B2",
+        "title": "",
+        "icon": "images/profiles66dd98d898859aff0e774419__9piqt24166k.jpg",
+        "id": "Fjsb9Yk9kOPlymTH87Qzg",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "foldable": false,
+        "layout_type": "list",
+        "theme": "minimal",
+        "show_arrow": null,
+        "buttons": [
+          {
+            "title": "Movies list ",
+            "url": "https://ar.wikipedia.org/wiki/%D9%82%D8%A7%D8%A6%D9%85%D8%A9_%D8%A3%D8%B9%D9%85%D8%A7%D9%84_%D9%83%D8%B1%D9%8A%D9%85_%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%B9%D8%B2%D9%8A%D8%B2",
+            "icon": "images/profiles66dd98d898859aff0e774419__9piqt24166k.jpg",
+            "background_color": 1302240926,
+            "use_background_color": true,
+            "border_color": null,
+            "use_border": false,
+            "id": "gOZ-wurYHgwYnEBBOdAuP",
+            "hidden": false,
+            "text_color": 4294967295,
+            "use_text_color": false,
+            "corner_radius": 8
+          }
+        ]
+      },
+      {
+        "id": "Q8ucXNgxxr7-ovAO8BiRj",
+        "type": "SpacerModule",
+        "space": 10
+      },
+      {
+        "type": "ExternalLinksModule",
+        "title": "Top Series ",
+        "foldable": false,
+        "layout_type": "list",
+        "links": [
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__b6xq6urmkv.jpg",
+            "url": "https://www.imdb.com/title/tt21200366/?ref_=ext_shr_lnk",
+            "title": "The Assassins",
+            "description": "Ramdan 2024",
+            "hidden": false,
+            "id": "cTStOFCkGmkpRQkO_ZR-q",
+            "icon": null
+          },
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__9i9mv3w3ic.jpg",
+            "url": "https://www.imdb.com/title/tt8461940/?ref_=nm_flmg_job_1_cred_t_10",
+            "title": "Wesh Tany",
+            "description": "2015",
+            "hidden": false,
+            "id": "0kqyktDXy9cicg16hkbwv",
+            "icon": null
+          },
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__m76vgq3seg9.jpg",
+            "url": "https://www.imdb.com/title/tt12222224/?ref_=nm_flmg_job_1_cred_c_5",
+            "title": "The Choice 2",
+            "description": "2021",
+            "hidden": false,
+            "id": "qi9ix7acxJXnto02HdLeP",
+            "icon": null
+          }
+        ],
+        "id": "f-y-rvQXf8-RejLyz7q9k",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "show_arrow": null,
+        "circle_image": null
+      },
+      {
+        "type": "ButtonModule",
+        "url": "https://ar.wikipedia.org/wiki/%D9%83%D8%B1%D9%8A%D9%85_%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%B9%D8%B2%D9%8A%D8%B2",
+        "title": "",
+        "icon": "images/profiles66dd98d898859aff0e774419__rw86wknr96j.jpg",
+        "id": "WUN1jOoSAsfSFdwhWkND6",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "foldable": false,
+        "layout_type": "list",
+        "theme": "minimal",
+        "show_arrow": null,
+        "buttons": [
+          {
+            "title": "Series list ",
+            "url": "https://ar.wikipedia.org/wiki/%D9%83%D8%B1%D9%8A%D9%85_%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%B9%D8%B2%D9%8A%D8%B2",
+            "icon": "images/profiles66dd98d898859aff0e774419__rw86wknr96j.jpg",
+            "background_color": 1302240926,
+            "use_background_color": true,
+            "border_color": 4282681599,
+            "use_border": false,
+            "id": "3gY6S8fXmqFY88b05B6mW",
+            "hidden": false,
+            "text_color": 4282681599,
+            "use_text_color": false,
+            "corner_radius": 8
+          }
+        ]
+      },
+      {
+        "id": "n2rnke-bjIvnxPcOuA-Ez",
+        "type": "SpacerModule",
+        "space": 10
+      },
+      {
+        "type": "VideoLinksModule",
+        "title": "Trailer ",
+        "foldable": false,
+        "layout_type": "list",
+        "items": [
+          {
+            "url": "https://youtu.be/KgyMVknHz-4",
+            "hidden": false,
+            "id": "1g04eqXzeGFgRGBKcQBxy"
+          },
+          {
+            "url": "https://youtu.be/OBsm6yCYTFg",
+            "hidden": false,
+            "id": "HVjx-0r2zRM3TKITogVwM"
+          },
+          {
+            "url": "https://youtu.be/YGWntRXPv9k",
+            "hidden": false,
+            "id": "IMlNfO6kj_62ijyanrL3i"
+          },
+          {
+            "url": "https://youtu.be/DCO8fe0rOyE",
+            "hidden": false,
+            "id": "daur39Tmxrz-Faf2K7514"
+          }
+        ],
+        "id": "yUwUKb5s3FyyshWE_88ZJ",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null
+      },
+      {
+        "id": "bXLkDiovC0cuX_PvVShLE",
+        "type": "SpacerModule",
+        "space": 10
+      },
+      {
+        "type": "ExternalLinksModule",
+        "title": "Awards",
+        "foldable": false,
+        "layout_type": "grid",
+        "links": [
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__h2ovajka16b.jpg",
+            "url": "https://www.imdb.com/name/nm1243922/awards/?ref_=nm_ov_ql_2",
+            "title": "Best Actor",
+            "description": "Cairo National Festival for Egyptian Cinema",
+            "hidden": false,
+            "id": "7ZhV0nf_CQoX4g4cwvTXm",
+            "icon": null
+          },
+          {
+            "thumbnail_url": "images/profiles66dd98d898859aff0e774419__22gnj3olkiy.jpg",
+            "url": "https://www.imdb.com/name/nm1243922/awards/?ref_=nm_ov_ql_2",
+            "title": "Best Actor",
+            "description": "Joy Awards 2024",
+            "hidden": false,
+            "id": "dVMK4hyFKBRSdQ9ADdw5g",
+            "icon": null
+          }
+        ],
+        "id": "i227qg-tQFBsRJy3y7lF6",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "show_arrow": null,
+        "circle_image": null
+      },
+      {
+        "id": "cReQGDfqi4Q2EzupAxMId",
+        "type": "SpacerModule",
+        "space": 10
+      },
+      {
+        "type": "VideoLinksModule",
+        "title": "TV Interviews ",
+        "foldable": false,
+        "layout_type": "list",
+        "items": [
+          {
+            "url": "https://youtu.be/B0lX7I5iDpM",
+            "hidden": false,
+            "id": "a09-ezwQf-wngP3P9fCUl"
+          },
+          {
+            "url": "https://youtu.be/S_M9VtcGNQU",
+            "hidden": false,
+            "id": "-zAdPuJS6P9qRrCph__3m"
+          }
+        ],
+        "id": "m7U6hRu8Y5Oqe1M7ma-3_",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null
+      },
+      {
+        "id": "_aIi2Z7Ek6bXlFQE8EGZO",
+        "type": "SpacerModule",
+        "space": 10
+      },
+      {
+        "type": "ImageModule",
+        "layout_type": "grid",
+        "items": [
+          {
+            "url": "images/profiles66d6163f22224329039cf464__eibkbj65ixa.jpg",
+            "hidden": false,
+            "id": "wUb1VigHD8yAqCNkp0HMT",
+            "rect": null
+          },
+          {
+            "url": "images/profiles66d6163f22224329039cf464__7q72cweaswj.jpg",
+            "hidden": false,
+            "id": "H0tcLjcb0ZukqO8bkUU5a",
+            "rect": null
+          },
+          {
+            "url": "images/profiles66d6163f22224329039cf464__hptzlvwwtod.jpg",
+            "hidden": false,
+            "id": "r_oZTp1EgmbajMKlO1EqO",
+            "rect": null
+          },
+          {
+            "url": "images/profiles66d6163f22224329039cf464__0d8uzedptb.jpg",
+            "hidden": false,
+            "id": "ME09qBepn1sAw0XYxEKpb",
+            "rect": null
+          }
+        ],
+        "version": 2,
+        "id": "5wOldm0cQeT803ls2lsUB",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null
+      }
+    ]
+  },
+  "settings": {
+    "style": "style7",
+    "background": {
+      "color_value": {
+        "type": "solid",
+        "color": 4278190080
+      }
+    },
+    "header": {
+      "hide": true,
+      "title": {
+        "hide": false,
+        "text": ""
+      },
+      "leading_alignment": "start",
+      "position": "aboveCover",
+      "fillSides": true,
+      "background_color": 4294966003,
+      "background_opacity": 1,
+      "foreground_color": 4278190080
+    },
+    "cover_photo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__964w11mp1mj.jpg",
+      "hide": false,
+      "size": "poster",
+      "fade": false,
+      "transparency": 0.1
+    },
+    "logo": {
+      "hide": false
+    },
+    "profile_picture": null,
+    "title": {
+      "hide": true,
+      "text": "Karim Abdel Aziz",
+      "color": 4294967295
+    },
+    "text": {
+      "hide": true,
+      "text": "Egyption Actor was born on 1975",
+      "color": 4289638062
+    },
+    "button1": {
+      "hide": true,
+      "text": "Contact Us",
+      "background_color": 4293430062,
+      "foreground_color": 4294967295,
+      "url": "https://speaknet.app"
+    },
+    "button2": {
+      "hide": true,
+      "text": "Learn More",
+      "background_color": 0,
+      "foreground_color": 4278190080,
+      "url": "https://speaknet.app"
+    },
+    "font_color": 4294967295,
+    "card_style": {
+      "color": 4278190080
+    },
+    "bio": {
+      "text": "Egyption Actor was born on 1975",
+      "alignment": "center"
+    },
+    "name": {
+      "text": "Karim Abdel Aziz",
+      "alignment": "center"
+    }
+  }
+}

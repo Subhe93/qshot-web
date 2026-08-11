@@ -50,6 +50,7 @@ import {
 } from "@/lib/api/site-actions";
 import { Trash2 } from "lucide-react";
 
+import { SITE_DOMAIN, siteUrl } from "@/lib/site-domain";
 type Sheet =
   | "name"
   | "url"
@@ -109,7 +110,7 @@ export function WebsiteSettingsPanel() {
       ?.toLowerCase()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "") || "me";
-  const url = `https://${slug}.qshot.com`;
+  const url = siteUrl(slug);
   const logo = settings.logo?.image_url || settings.website_logo || undefined;
 
   async function onDelete() {
@@ -726,7 +727,7 @@ function UrlSheet({
       }
     >
       <div className="flex items-center overflow-hidden rounded-lg border border-input bg-card">
-        <span className="ps-3 text-sm text-muted-foreground">qshot.com/</span>
+        <span className="ps-3 text-sm text-muted-foreground">{SITE_DOMAIN}/</span>
         <input
           autoFocus
           value={value}

@@ -17,6 +17,7 @@ import type {
   EmbedConfiguration,
   EmbedData,
 } from "@/lib/types/blocks";
+import { deriveEmbedHtml, youtubeThumbnailUrl } from "@/lib/builder/validate";
 import {
   SheetTabBar,
   GroupedCard,
@@ -40,6 +41,16 @@ type Tab = "content" | "settings";
  * the HTML directly (the fields the mobile fetch ultimately writes into
  * EmbedData), plus an aspect-ratio control, so the preview matches the mobile
  * `EmbedBuilder` exactly.
+ *
+ * `data.url` and `data.html` are both required by the server and rejected when
+ * empty, so this editor never leaves one of them behind:
+ *   - "custom" writes the raw markup to BOTH fields, exactly like the mobile
+ *     `CustomEmbedConfiguration.fetchEmbed` (`EmbedData(url: url, html: url)`)
+ *     — the single field the user sees IS both.
+ *   - youtube/telegram get their html derived offline (`deriveEmbedHtml`),
+ *     reproducing what the mobile fetch would have stored.
+ *   - the remaining providers really need their oembed API, so the html field
+ *     stays manual and we say inline that it is required.
  */
 
 const PROVIDERS: { name: EmbedConfiguration; title: string; hint?: string }[] = [
@@ -76,6 +87,62 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
   const setData = (patch: Partial<EmbedData>) =>
     setBlock({ data: { ...data, ...patch } });
 
+  /** Extra EmbedData the mobile oembed response carries for a provider. */
+  const derivedExtras = (
+    name: EmbedConfiguration,
+    url: string,
+  ): Partial<EmbedData> =>
+    name === "youtube"
+      ? { aspectRatio: 16 / 9, thumbnailUrl: youtubeThumbnailUrl(url) }
+      : {};
+
+  /** True when `data.html` is ours to replace (empty, derived from `url`, or
+   *  still the `url === html` markup a previous "custom" selection wrote). */
+  const htmlIsDerived = (name: EmbedConfiguration, url: string) => {
+    const current = (data.html ?? "").trim();
+    if (!current) return true;
+    if (current === (data.url ?? "").trim()) return true;
+    return current === (deriveEmbedHtml(name, url) ?? "").trim();
+  };
+
+  function onUrl(next: string) {
+    const patch: Partial<EmbedData> = { url: next };
+    if (htmlIsDerived(config, data.url ?? "")) {
+      const derived = deriveEmbedHtml(config, next);
+      patch.html = derived ?? "";
+      if (derived) Object.assign(patch, derivedExtras(config, next));
+    }
+    setData(patch);
+  }
+
+  function onProvider(name: EmbedConfiguration) {
+    if (name === config) return;
+    const url = (data.url ?? "").trim();
+    const html = (data.html ?? "").trim();
+    // Switching to HTML: the markup becomes both fields (mobile parity).
+    if (name === "custom") {
+      setBlock({
+        configuration: name,
+        ...(html ? { data: { ...data, url: html, html } } : {}),
+      });
+      return;
+    }
+    const derived = htmlIsDerived(config, url) ? deriveEmbedHtml(name, url) : null;
+    setBlock({
+      configuration: name,
+      ...(derived
+        ? { data: { ...data, html: derived, ...derivedExtras(name, url) } }
+        : {}),
+    });
+  }
+
+  /** For "custom" the one field IS `url` and `html` (mobile CustomEmbedConfiguration). */
+  const onHtml = (next: string) =>
+    setData(isCustom ? { url: next, html: next } : { html: next });
+
+  const missingUrl = !isCustom && !(data.url ?? "").trim();
+  const missingHtml = !(data.html ?? "").trim();
+
   const tabs: SheetTab<Tab>[] = [
     { value: "content", label: t("embed.embed"), Icon: Code2 },
     { value: "settings", label: t("tabs.settings"), Icon: SettingsIcon },
@@ -97,7 +164,7 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
                   <button
                     key={p.name}
                     type="button"
-                    onClick={() => setBlock({ configuration: p.name })}
+                    onClick={() => onProvider(p.name)}
                     className={cn(
                       "relative flex flex-col items-center gap-1.5 rounded-xl border bg-surface px-1 py-2.5 text-[11px] font-semibold transition-colors",
                       selected
@@ -133,10 +200,15 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
                 inputMode="url"
                 value={data.url ?? ""}
                 placeholder={provider.hint}
-                onChange={(e) => setData({ url: e.target.value })}
+                onChange={(e) => onUrl(e.target.value)}
                 className="w-full rounded-xl border border-border bg-surface px-3.5 py-3 text-sm text-foreground outline-none placeholder:text-foreground/35 focus:border-primary"
                 dir={dirOf(data.url ?? "")}
               />
+              {missingUrl && (
+                <span className="block px-1 text-xs text-error">
+                  {t("embed.urlRequired")}
+                </span>
+              )}
             </label>
           )}
 
@@ -149,12 +221,17 @@ export function EmbedBlockEditor({ block }: { block: EmbedBlock }) {
             <textarea
               value={data.html ?? ""}
               placeholder={isCustom ? provider.hint : t("embed.codePlaceholder")}
-              onChange={(e) => setData({ html: e.target.value })}
+              onChange={(e) => onHtml(e.target.value)}
               rows={6}
               spellCheck={false}
               className="w-full resize-y rounded-xl border border-border bg-surface px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground outline-none placeholder:text-foreground/35 focus:border-primary"
               dir="ltr"
             />
+            {missingHtml && (
+              <span className="block px-1 text-xs text-error">
+                {t("embed.codeRequired")}
+              </span>
+            )}
           </label>
 
           {/* Aspect ratio — drives the preview's Center+AspectRatio vs dynamic. */}

@@ -5,12 +5,21 @@
  * Templates never receive the raw brand color directly — they receive a
  * palette whose text roles are guaranteed readable (WCAG contrast >= 4.5)
  * against their paired fills. All roles are BAKED into the website document
- * as literal ARGB32 ints at apply time; only the raw brand pick is persisted
- * (in `settings.template.brand_color`).
+ * as literal ARGB32 ints at apply time.
  *
  * The derivation runs in Flutter's float color domain (see flutter-color.ts)
  * and converts to ARGB32 ints only at the end, so every int matches what the
  * mobile app would serialize bit-for-bit.
+ *
+ * ⚠ DORMANT MODULE — no app code imports it (only the parity script does).
+ * Templates v2 stopped deriving colors from a brand pick, and the contract
+ * change that removed `settings.template.brand_color` removed the last place a
+ * user pick was persisted. It is KEPT, not deleted, because mobile
+ * deliberately keeps `template_palette.dart` for the phase-2 brand-color
+ * selector: this is a hand-verified bit-exact port whose golden vectors the
+ * parity script still enforces, so keeping it costs one dead module and
+ * deleting it would cost that verification when phase 2 lands. Nothing here
+ * may drift from the Dart in the meantime.
  */
 
 import {

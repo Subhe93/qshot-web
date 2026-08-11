@@ -1,0 +1,213 @@
+{
+  "name": "template-4",
+  "info": {
+    "modules": [
+      {
+        "type": "social_links",
+        "id": "20260803-1006-8a34-8264-a5759cf18026",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": null,
+        "layout_type": "grid",
+        "icon_type": "original",
+        "adaptive_icon_color": false,
+        "custom_icon_color": 4279192798,
+        "links": [
+          {
+            "id": "20260803-1007-8300-b215-1f85e493abd8",
+            "type": "facebook",
+            "icon": null,
+            "link": "www.facebook.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1007-8918-b248-f1fe7cff6139",
+            "type": "instagram",
+            "icon": null,
+            "link": "www.instagram.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1007-8c41-b065-99db05bf6041",
+            "type": "linkedin",
+            "icon": null,
+            "link": "www.linkedin.com/in/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1008-8c05-9399-a6453963e129",
+            "type": "tiktok",
+            "icon": null,
+            "link": "www.tiktok.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1008-8731-b150-2407f65870dd",
+            "type": "snapchat",
+            "icon": null,
+            "link": "www.snapchat.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1009-8a00-9068-8f4dab9c6eb4",
+            "type": "twitter",
+            "icon": null,
+            "link": "www.x.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1009-8819-a786-0ad5aa264979",
+            "type": "youtube",
+            "icon": null,
+            "link": "www.youtube.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1009-8a29-8753-f096799dc4a1",
+            "type": "whatsapp",
+            "icon": null,
+            "link": "+12345678900",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1009-8838-b237-829e061356a3",
+            "type": "phone",
+            "icon": null,
+            "link": "+12345678900",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1010-8414-8580-582e63c07603",
+            "type": "email",
+            "icon": null,
+            "link": "youremail@gmail.com",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1010-8450-8932-dcd2a71c3fd7",
+            "type": "website",
+            "icon": null,
+            "link": "yourwebsite.com",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260803-1013-8751-9156-836e3e44daf8",
+            "type": "location",
+            "icon": null,
+            "link": "www.maps.google.com/1",
+            "name": null,
+            "hidden": false
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "website_logo": null,
+    "website_name": "Template 5",
+    "style": "style1",
+    "logo": {
+      "image_url": null,
+      "hide": false
+    },
+    "header": {
+      "hide": false,
+      "title": {
+        "hide": false,
+        "text": "",
+        "color": null
+      },
+      "leading_alignment": "start",
+      "foreground_color": null,
+      "background_color": null,
+      "position": "onCover",
+      "background_opacity": 1,
+      "fillSides": false
+    },
+    "profile_picture": {
+      "image_url": null,
+      "image_rect": null,
+      "hide": true,
+      "alignment": "center",
+      "shape": "circle",
+      "border_width": 0,
+      "border_color": 4294967295
+    },
+    "cover_photo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__h5tpcg4vx6p.png",
+      "image_rect": [
+        0,
+        8.779205607476603,
+        539.9999999999999,
+        312.52920560747657
+      ],
+      "hide": false,
+      "size": "horizontal",
+      "transparency": 0.1,
+      "fade": true,
+      "color": null
+    },
+    "title": {
+      "hide": false,
+      "text": "Write Your Main Title or Heading Text Here",
+      "color": 4294967295
+    },
+    "text": {
+      "hide": false,
+      "text": "Write Your Main Description or Small Tagline Text Here",
+      "color": 4294967295
+    },
+    "button1": {
+      "hide": false,
+      "text": "Book Now",
+      "url": "https://qshot.com",
+      "foreground_color": 4280556559,
+      "background_color": 4289644507
+    },
+    "button2": {
+      "hide": false,
+      "text": "Call us",
+      "url": "https://qshot.com",
+      "foreground_color": 4294967295,
+      "background_color": 4281621888
+    },
+    "background": {
+      "image": null,
+      "color_value": {
+        "type": "solid",
+        "color": 4293322470
+      }
+    },
+    "name": {
+      "text": "Your Name",
+      "alignment": "center",
+      "hide": false,
+      "color": null
+    },
+    "bio": {
+      "text": "Write Your Bio Here",
+      "alignment": "center",
+      "hide": false
+    },
+    "floating_button": {
+      "hide": false,
+      "type": null
+    },
+    "font_family": null,
+    "font_color": 4280229670,
+    "card_style": null,
+    "can_save_contact": true,
+    "index_in_google": true
+  }
+}

@@ -201,9 +201,13 @@ function PromoItem({
 function GridCard({
   item,
   imageMode,
+  circleImage = false,
 }: {
   item: ExternalLinkItem;
   imageMode: "fixed" | "fill";
+  /** `grid` only (mobile `circleImageLayout` excludes largeGrid): round the
+   *  thumbnail and centre the labels — external_links_widget.dart, 68e6f688. */
+  circleImage?: boolean;
 }) {
   const title = item.title ?? "";
   const desc = item.description ?? "";
@@ -211,16 +215,23 @@ function GridCard({
   // Desktop — grid (fixed) mirrors externalLayout/Grid.vue: title 16px / 500 /
   // 100%, centered; desc 14px / 100%, centered (Marquee `text-sm`). largeGrid
   // (fill) mirrors LargeGrid.vue: title 16px / 500 / 80%; desc 14px / 60%.
-  const titleClass = desktop
-    ? imageMode === "fixed"
-      ? "block truncate text-center font-medium text-foreground"
-      : "block truncate text-start font-medium text-foreground/80"
-    : "block truncate text-start text-sm font-medium text-foreground/80";
-  const descClass = desktop
-    ? imageMode === "fixed"
-      ? "block truncate text-center text-sm text-foreground"
-      : "block truncate text-start text-sm text-foreground/60"
-    : "block truncate text-start text-xs text-foreground/60";
+  // A circle thumbnail centres both labels (mobile flips `textAlign` to center).
+  const align = (base: string) =>
+    circleImage ? base.replace("text-start", "text-center") : base;
+  const titleClass = align(
+    desktop
+      ? imageMode === "fixed"
+        ? "block truncate text-center font-medium text-foreground"
+        : "block truncate text-start font-medium text-foreground/80"
+      : "block truncate text-start text-sm font-medium text-foreground/80",
+  );
+  const descClass = align(
+    desktop
+      ? imageMode === "fixed"
+        ? "block truncate text-center text-sm text-foreground"
+        : "block truncate text-start text-sm text-foreground/60"
+      : "block truncate text-start text-xs text-foreground/60",
+  );
   return (
     // largeGrid (fill) fills the square swiper card; grid (fixed) is a 120px tile.
     <div
@@ -231,7 +242,8 @@ function GridCard({
     >
       <div
         className={
-          "overflow-hidden rounded-[10px] " +
+          "overflow-hidden " +
+          (circleImage ? "rounded-full " : "rounded-[10px] ") +
           (imageMode === "fill" ? "flex-1" : "h-[120px]")
         }
       >
@@ -348,7 +360,7 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
       <div className="flex items-start gap-2 overflow-x-auto px-6 pb-2.5 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item, i) => (
           <div key={item.id ?? i} className="shrink-0">
-            <GridCard item={item} imageMode="fixed" />
+            <GridCard item={item} imageMode="fixed" circleImage={circleImage} />
           </div>
         ))}
       </div>

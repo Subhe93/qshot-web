@@ -1,0 +1,282 @@
+{
+  "name": "template-7",
+  "info": {
+    "modules": [
+      {
+        "type": "ExternalLinksModule",
+        "id": "20260423-1412-8821-a131-59247733fcab",
+        "title": "Our Services",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "show_arrow": null,
+        "circle_image": null,
+        "layout_type": "list",
+        "links": [
+          {
+            "id": "20260423-1414-8b07-8822-9c2bb6530a5c",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__c6nfkf44ej.png",
+            "title": "Cleaning services",
+            "description": "MoveNest offers a full range of cleaning services, including moving house cleaning, home cleaning and office cleaning. We use environmentally friendly products and meticulous methods to ensure a sparkling clean result every time.",
+            "url": "qshot.com",
+            "hidden": false
+          },
+          {
+            "id": "20260423-1414-8c27-9200-cc8b3b78e5b3",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__0y2qdgcd4m7k.png",
+            "title": "Floating services",
+            "description": "At MoveNest, we offer a wide range of moving services, including residential moving, commercial moving and special transport. Our experienced team handles everything from packing and transport to unpacking and installation, to make your move as smooth as possible.",
+            "url": "qshot.com",
+            "hidden": false
+          },
+          {
+            "id": "20260423-1414-8245-b394-e7f0c5d2ab72",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__7vt7msijeb.png",
+            "title": "Transport",
+            "description": "MoveNest provides flexible and reliable transport services for both small and large assignments, including courier and long-distance transport. With our fleet of vehicles and experienced drivers, we ensure that your goods always arrive on time and in perfect condition.",
+            "url": "qshot.com",
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "20260424-0919-8b49-b818-bf03ab9ff144",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": "Get a free quote",
+        "align": "start",
+        "size": 22
+      },
+      {
+        "type": "EmbedModule",
+        "id": "20260424-0919-8f13-9385-1d25a5198338",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "configuration": "custom",
+        "data": {
+          "url": "<!-- Elfsight Form Builder | primeflytt.se --><script src=\"https://elfsightcdn.com/platform.js\" async></script><div class=\"elfsight-app-086c0ec8-1893-4387-9930-63aaaa4cd55f\" data-elfsight-app-lazy></div>",
+          "html": "<!-- Elfsight Form Builder | primeflytt.se --><script src=\"https://elfsightcdn.com/platform.js\" async></script><div class=\"elfsight-app-086c0ec8-1893-4387-9930-63aaaa4cd55f\" data-elfsight-app-lazy></div>",
+          "author_name": null,
+          "author_url": null,
+          "provider_name": null,
+          "provider_url": null,
+          "title": null,
+          "description": null,
+          "width": null,
+          "height": null,
+          "thumbnailUrl": null,
+          "aspectRatio": null
+        }
+      },
+      {
+        "type": "ImageModule",
+        "id": "20260424-0854-8e22-8046-40bd90e01c96",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "layout_type": "singleSizable",
+        "items": [
+          {
+            "id": "20260424-0854-8f30-a509-27fff34ecf33",
+            "url": "images/profiles66d6163f22224329039cf464__5ml2lbizhe5.png",
+            "rect": [
+              192.398753894081,
+              231.2772585669783,
+              1099.563862928349,
+              548.95015576324
+            ],
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "ImageModule",
+        "id": "20260423-1417-8435-a060-934047415175",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "layout_type": "cards",
+        "items": [
+          {
+            "id": "20260423-1435-8512-9246-32f0ea91104c",
+            "url": "images/profiles66d6163f22224329039cf464__www5avw3wge.png",
+            "rect": [
+              135.42119372596628,
+              -3.3084646133829665e-14,
+              731.421193725966,
+              595.9999999999997
+            ],
+            "hidden": false
+          },
+          {
+            "id": "20260423-1435-8d30-8496-c85abad1bfba",
+            "url": "images/profiles66d6163f22224329039cf464__p48sk62rid.png",
+            "rect": [
+              0,
+              0,
+              675.9999999999997,
+              675.9999999999997
+            ],
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "LocationModule",
+        "id": "20260424-0850-8f10-a236-491ac812907c",
+        "title": "Head office",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": {
+          "geometry": {
+            "location": {
+              "lat": 59.5193711,
+              "lng": 15.9950466
+            }
+          },
+          "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/geocode-71.png",
+          "name": "Tunadalsgatan 28E",
+          "place_id": "ChIJCQKUMY2BXkYRJGmS9ZfwnUI",
+          "vicinity": "Tunadalsgatan 28E, Köping"
+        },
+        "hide_reviews": false
+      },
+      {
+        "type": "FormModule",
+        "id": "20260423-1437-8e14-b985-588259d77b98",
+        "title": "Contact us",
+        "background_color": 4292730333,
+        "use_background_color": true,
+        "hide": false,
+        "questions": [
+          {
+            "type": "text",
+            "data": {
+              "question": "Full Name",
+              "description": null,
+              "required": true,
+              "hint": "John Doe"
+            }
+          },
+          {
+            "type": "text",
+            "data": {
+              "question": "Email address",
+              "description": null,
+              "required": true,
+              "hint": "john.doe@gmail.com"
+            }
+          },
+          {
+            "type": "paragraph",
+            "data": {
+              "question": "Your message",
+              "description": null,
+              "required": true,
+              "hint": "Your message"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "website_logo": "images/profiles66d6163f22224329039cf464__wrfmoy6eqy.png",
+    "website_name": "Template 7",
+    "style": "style2",
+    "logo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__mefrx3x21y.png",
+      "hide": false
+    },
+    "header": {
+      "hide": false,
+      "title": {
+        "hide": false,
+        "text": "MoveNest",
+        "color": null
+      },
+      "leading_alignment": "start",
+      "foreground_color": 4278190080,
+      "background_color": 4294967295,
+      "position": "onCover",
+      "background_opacity": 0,
+      "fillSides": false
+    },
+    "profile_picture": null,
+    "cover_photo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__u23e1z1thj.png",
+      "image_rect": [
+        568.4647975077881,
+        2.086275596724363e-12,
+        1182.0647975077866,
+        767
+      ],
+      "hide": false,
+      "size": "poster",
+      "transparency": 0.1,
+      "fade": false,
+      "color": null
+    },
+    "title": {
+      "hide": true,
+      "text": "Write Your Main Title or Heading Text Here",
+      "color": 4294967295
+    },
+    "text": {
+      "hide": true,
+      "text": "Write Your Main Description or Small Tagline Text Here",
+      "color": 4294967295
+    },
+    "button1": {
+      "hide": false,
+      "text": "WhatsApp",
+      "url": "tel:+1234567890",
+      "foreground_color": 4280556559,
+      "background_color": 4281062704
+    },
+    "button2": {
+      "hide": false,
+      "text": "Call us",
+      "url": "tel:+01234567890",
+      "foreground_color": 4294967295,
+      "background_color": 4281874488
+    },
+    "background": {
+      "image": null,
+      "color_value": {
+        "type": "solid",
+        "color": 4294967295
+      }
+    },
+    "name": {
+      "text": "Move all over the world",
+      "alignment": "center",
+      "hide": false,
+      "color": null
+    },
+    "bio": {
+      "text": "with the right team, every time",
+      "alignment": "center",
+      "hide": false
+    },
+    "floating_button": {
+      "hide": false,
+      "values": {
+        "whatsapp": {
+          "value": "+46738984156"
+        }
+      },
+      "type": "whatsapp"
+    },
+    "font_family": null,
+    "font_color": 4280229670,
+    "card_style": null,
+    "can_save_contact": false,
+    "index_in_google": true
+  }
+}

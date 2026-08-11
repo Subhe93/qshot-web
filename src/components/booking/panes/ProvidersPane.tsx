@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { MasterDetail, PaneHeader, EmptyState, PaneLoading } from "../shared";
 import { Switch } from "./ServicesPane";
 
+import { PROVIDER_PORTAL_HOST } from "@/lib/site-domain";
 const SLOT_GRANULARITIES = [5, 10, 15, 20, 30, 45, 60];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const COMMON_TIMEZONES = [
@@ -888,7 +889,7 @@ function ProviderAccessCode({ providerId }: { providerId: string }) {
             </div>
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs text-muted-foreground">
-                {t("providers.portalHint")}: <span className="font-medium">provider.qshot.com</span>
+                {t("providers.portalHint")}: <span className="font-medium">{PROVIDER_PORTAL_HOST}</span>
               </p>
               <Button
                 variant="outline"
@@ -912,7 +913,7 @@ function ProviderAccessCode({ providerId }: { providerId: string }) {
             <p className="text-xs text-muted-foreground">{t("providers.noCodeYet")}</p>
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs text-muted-foreground">
-                {t("providers.portalHint")}: <span className="font-medium">provider.qshot.com</span>
+                {t("providers.portalHint")}: <span className="font-medium">{PROVIDER_PORTAL_HOST}</span>
               </p>
               <Button
                 variant="gradient"

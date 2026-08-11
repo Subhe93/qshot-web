@@ -72,7 +72,203 @@ export type SocialIconType = "original" | "darkFilled";
 
 export type ImageAlignment = "start" | "center" | "end";
 
-export type FeedConfiguration = "youtube" | "vimeo" | "instagram";
+/**
+ * Link-based feed providers. These are the ONLY three present in
+ * `FeedConfiguration.values` on the mobile `dev` branch, i.e. the only values
+ * every shipped mobile build can parse.
+ *
+ * DANGER — the mobile parser is not defensive here:
+ * ```dart
+ * // block_entity.dart · SocialFeedBlock.fromJson
+ * var configuration = FeedConfiguration.values[json['configuration']]!;
+ * ```
+ * `values` is a NAME-keyed map and the `!` is a non-null assertion, so an
+ * unknown or missing `configuration` throws, and the throw escapes
+ * `BlockEntity.fromJson` — the WHOLE page fails to parse, not just this block.
+ * Every other field in that factory has a `??` fallback. Never write a
+ * `configuration` outside this union unless the target mobile build is known
+ * to know it.
+ *
+ * ⚠️ `instagram` is the odd one out: the value is link-based HISTORICALLY, but
+ * it now carries TWO different `info` shapes — see `InstagramFeedInfo` below.
+ * It stays in this union because the *configuration string* is what every
+ * shipped build parses, and that has not changed.
+ */
+export type LinkFeedConfiguration = "youtube" | "vimeo" | "instagram";
+
+/**
+ * Providers whose `info` is produced by a server-side OAuth **connect flow**
+ * instead of a link the user types. Both are unparseable by every currently
+ * released mobile build — see `LinkFeedConfiguration` above:
+ *
+ * - `facebook` — `FacebookFeedConfiguration`, mobile branch
+ *   `feature/social-feed-refactor` (catalog 2026-07-23).
+ * - `tiktok` — `TiktokFeedConfiguration`, mobile commit 121470ef on branch
+ *   `feature/template-sites` (catalog 2026-08-03). Own videos only, because
+ *   that is all TikTok's API scope (`user.info.basic`, `video.list`) returns.
+ *
+ * They stay in the union so a block created on a mobile feature build
+ * round-trips untouched, but the builder gates whether either can be *chosen*
+ * (SocialFeedBlockEditor · FACEBOOK_FEED_ENABLED / TIKTOK_FEED_ENABLED).
+ */
+export type ConnectFeedConfiguration = "facebook" | "tiktok";
+
+/** All providers the web model can represent. */
+export type FeedConfiguration = LinkFeedConfiguration | ConnectFeedConfiguration;
+
+/**
+ * Provider-specific `info` payloads. The mobile display layer indexes these
+ * keys directly and passes the result to non-nullable `String` parameters
+ * (feed_display_cubit.dart · `_youtube(block.info["channel_id"])`,
+ * `_instagram(block.info["username"])`, `VimeoFeedConfiguration.extractId(
+ * block.info["link"])`), and it does so in the `FeedDisplayCubit` CONSTRUCTOR
+ * (via `_cacheKey`), outside any try/catch. A MISSING key is therefore a hard
+ * `TypeError` that breaks the widget build; an empty string only degrades to
+ * the cubit's catchable "failed to load" state. Always write the keys.
+ */
+export interface YoutubeFeedInfo {
+  /** Channel URL as typed by the user (`youtube.com/@handle`). */
+  link: string;
+  /**
+   * Resolved channel id, used verbatim as the `channel_id` query param of
+   * `youtube.com/feeds/videos.xml`. Mobile resolves handles through
+   * `GET q-profile/youtube-channel/name?url=` before storing this; the web
+   * builder has no such call yet and stores the URL (or a `UC…` id parsed out
+   * of it), which yields a recoverable fetch error rather than a crash.
+   */
+  channel_id: string;
+}
+
+export interface VimeoFeedInfo {
+  /**
+   * Channel URL or bare id. Mobile runs
+   * `^(?:https://vimeo\.com/)?(?<id>.+)$` and force-unwraps the match, so an
+   * EMPTY link crashes it — a Vimeo feed block must never be saved blank.
+   */
+  link: string;
+}
+
+/**
+ * ── Instagram: ONE `configuration`, TWO `info` shapes ────────────────────────
+ *
+ * `configuration: "instagram"` predates the connect flow, and real saved sites
+ * carry the legacy payload. Mobile commit 20941620 retires the mechanism behind
+ * it (the public `business_discovery` lookup, one shared qshot token) in favour
+ * of **Business Login for Instagram**, a per-user OAuth connect flow with the
+ * same shape as Facebook/TikTok — but it did NOT change the configuration
+ * value: `InstagramFeedConfiguration` stays registered precisely so existing
+ * blocks keep deserializing and rendering.
+ *
+ * So `info` is a two-member union discriminated by which identifier is present:
+ *
+ *   legacy    → `{ link, username }`                        (business_discovery)
+ *   connected → `{ connection_id, ig_user_id, username }`   (Business Login)
+ *
+ * `username` is in BOTH, which is the property that makes the split safe:
+ * `FeedDisplayCubit` dereferences `info["username"]` into a NON-NULLABLE String
+ * in its constructor, outside any try/catch, so a missing key is a hard crash
+ * while an empty string is a recoverable "failed to load". Every writer of
+ * either shape therefore writes `username`, and an old build handed the new
+ * shape still resolves the SAME account through the old path for as long as
+ * that endpoint keeps serving (server-contract.md §7 keeps it alive until no
+ * live site has an `instagram` block).
+ *
+ * Why not the `instagram_connected` configuration value that
+ * `docs/plans/social-instagram-feed/plan.md` §4 sketches? Because it exists in
+ * that document only — no mobile code registers it, so on EVERY shipped build
+ * `FeedConfiguration.values["instagram_connected"]!` throws and takes down the
+ * parse of the whole page; and our copy of the server's website-JSON validator
+ * pins `socialFeedBlock.configuration` to
+ * `["youtube","vimeo","instagram","facebook"]`, which would additionally 422 the
+ * save. Writing `"instagram"` keeps the block parseable, savable and renderable
+ * everywhere today. If mobile does land `instagram_connected`, adding it is a
+ * pure additive change: this union already models the payload it would carry.
+ */
+
+/** Legacy Instagram payload — the retired public `business_discovery` path. */
+export interface InstagramLinkFeedInfo {
+  /** Profile URL as typed by the user (`instagram.com/username`). */
+  link: string;
+  /** Bare handle extracted from `link` — what mobile actually fetches with. */
+  username: string;
+}
+
+/**
+ * Business Login payload — written by `InstagramConnectSheet` from the
+ * connection record the server stores (`social_connections` with
+ * `platform = "instagram"`). The posts themselves are NEVER in the website
+ * JSON: the public renderer calls `GET instagram/feed?connection_id=…`.
+ */
+export interface InstagramConnectedFeedInfo {
+  /** `social_connections.id` — the key `instagram/feed` is loaded by. */
+  connection_id: string;
+  /**
+   * `social_connections.platform_user_id`, i.e. Instagram's `user_id`.
+   * OPTIONAL in the contract — "a redundant safety check against the
+   * connection" — exactly like TikTok's `open_id`. We still always WRITE the
+   * key, empty string included, for the reason in the block comment above.
+   */
+  ig_user_id: string;
+  /** Instagram handle — display only here, but load-bearing on old builds. */
+  username: string;
+}
+
+/** Either Instagram shape. Discriminate on `connection_id` / `link`. */
+export type InstagramFeedInfo =
+  | InstagramLinkFeedInfo
+  | InstagramConnectedFeedInfo;
+
+/**
+ * `info` payload written by the Facebook (Meta) feed configuration. Posts are
+ * NEVER stored in the website JSON — the public renderer fetches them
+ * server-side from `meta/feed` using `connection_id`.
+ */
+export interface FacebookFeedInfo {
+  /** Opaque Mongo id of the user's Meta connection — what the renderer uses. */
+  connection_id: string;
+  /** Chosen Facebook Page id. */
+  page_id: string;
+  /** Page name — display only. */
+  username: string;
+}
+
+/**
+ * `info` payload written by the TikTok feed configuration. Like Facebook it
+ * carries connection identifiers rather than a link — the videos are fetched
+ * server-side from `tiktok-integration/feed` and are never stored in the
+ * website JSON.
+ *
+ * Mirrors what mobile's `TiktokConnectCubit` builds from the deep-link return
+ * (`qshot://social/connected?connection_id=…&platform=tiktok&username=…`):
+ * ```dart
+ * info: {
+ *   "connection_id": connectionId,
+ *   "open_id": uri.queryParameters['open_id'],
+ *   "username": username,
+ * }
+ * ```
+ */
+export interface TiktokFeedInfo {
+  /** Opaque server id of the user's TikTok connection — what the renderer uses. */
+  connection_id: string;
+  /**
+   * TikTok's user id. OPTIONAL in the contract (a redundant server-side check
+   * against the connection) — mobile passes it as `String? openId` and the data
+   * source drops it from the query when empty. We still always WRITE the key,
+   * empty string included, for the same reason as every other `info` key.
+   */
+  open_id: string;
+  /** TikTok display name — display only. */
+  username: string;
+}
+
+/** Union of the per-provider `info` shapes above. */
+export type SocialFeedInfo =
+  | YoutubeFeedInfo
+  | VimeoFeedInfo
+  | InstagramFeedInfo
+  | FacebookFeedInfo
+  | TiktokFeedInfo;
 
 export type EmbedConfiguration =
   | "custom"
@@ -151,11 +347,16 @@ export interface SocialLinkItem {
   hidden?: boolean;
 }
 
+// NOTE: there is deliberately NO `icon` here. Mobile `ExternalLinkItem.toJson()`
+// writes exactly these six keys, the server schema lists the same six, and the
+// deployed validator enforces `additionalProperties: false` — emitting `icon`
+// produced `422 unknown field "icon" is not allowed` and killed the whole save.
+// (`SocialLinkItem.icon` and `ButtonItem.icon` ARE in the contract; only the
+// external-link one was our invention.) See serialization.ts:parseExternalLinkItem.
 export interface ExternalLinkItem {
   id?: string;
   title?: string;
   url?: string;
-  icon?: string | null;
   thumbnail_url?: string | null;
   description?: string | null;
   hidden?: boolean;
@@ -328,8 +529,16 @@ export interface ButtonBlock extends NamedBlock {
 export interface SocialFeedBlock extends NamedBlock {
   type: "SocialFeedModule";
   configuration: FeedConfiguration;
+  /** Mobile `fromJson` falls back to `list` for an unknown/absent value. */
   layout_type: SocialFeedLayoutType;
+  /**
+   * Provider-specific payload — see `SocialFeedInfo`. Typed loosely because
+   * unknown keys written by a newer mobile build must round-trip untouched,
+   * but the builder always keeps the current provider's required keys present
+   * as strings (a missing key crashes the mobile FeedDisplayCubit).
+   */
   info: Record<string, unknown>;
+  /** `{ show_profile_details: boolean }` for instagram/facebook, else null. */
   settings?: Record<string, unknown> | null;
   posts_count?: number;
 }

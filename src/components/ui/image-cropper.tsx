@@ -1,15 +1,39 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Cropper, { type Area } from "react-easy-crop";
-import { Loader2, ZoomIn } from "lucide-react";
+import ReactCrop, {
+  centerCrop,
+  makeAspectCrop,
+  type PercentCrop,
+} from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
+import { Loader2 } from "lucide-react";
 import { getCroppedBlob } from "@/lib/builder/crop-image";
+import {
+  rectFromPercentCrop,
+  rectToArea,
+  type RectTuple,
+} from "@/lib/builder/image-rect";
 
 /**
- * Full-screen 1:1 image cropper modal, mirroring the mobile ImageCropper: a
- * draggable/zoomable square crop over the picked image, then exports a
- * compressed blob via onCropped.
+ * Crop modal mirroring the mobile `CustomImageCropper`: the whole picked image
+ * is shown with a draggable, resizable crop box over it — no zoom slider, since
+ * mobile's `crop_image` has none either.
+ *
+ * `aspect` is deliberately OPTIONAL. Leaving it out gives a free-form box, which
+ * is what mobile does wherever `CropController(aspectRatio: null)` is used (an
+ * unset cover size, the header logo, replacing a gallery image, the
+ * `singleSizable` layout). The old cropper forced a ratio in all of those places,
+ * which is how a square photo came back as a 16:9 strip.
+ *
+ * Exactly one result callback must be given:
+ *   - `onCroppedRect` — the mobile-parity path. Hands back the crop rectangle in
+ *     the image's own pixels; the caller uploads the FULL image and stores the
+ *     rect beside it, so the crop stays reversible.
+ *   - `onCropped` — the destructive path, for the fields mobile also cuts for
+ *     real (`openSingleImageEditor`: logo, product, review, link, button icon).
+ *     Hands back a blob of just the cropped region.
  */
 export function ImageCropper({
   src,
@@ -18,7 +42,8 @@ export function ImageCropper({
   confirmLabel,
   onCancel,
   onCropped,
-  aspect = 1,
+  onCroppedRect,
+  aspect,
   cropShape = "rect",
 }: {
   src: string;
@@ -26,22 +51,47 @@ export function ImageCropper({
   cancelLabel: string;
   confirmLabel: string;
   onCancel: () => void;
-  onCropped: (blob: Blob) => void | Promise<void>;
+  onCropped?: (blob: Blob) => void | Promise<void>;
+  onCroppedRect?: (rect: RectTuple) => void | Promise<void>;
+  /** Locked ratio, or omitted for a free-form crop. */
   aspect?: number;
   cropShape?: "rect" | "round";
 }) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [area, setArea] = useState<Area | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [crop, setCrop] = useState<PercentCrop | undefined>(undefined);
   const [busy, setBusy] = useState(false);
 
-  const onCropComplete = useCallback((_a: Area, px: Area) => setArea(px), []);
+  // Start with the biggest box that fits: the whole image when free, else the
+  // largest centred `aspect` rectangle — the same starting state as mobile.
+  const onImageLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const { width, height } = e.currentTarget;
+      setCrop(
+        aspect
+          ? centerCrop(
+              makeAspectCrop({ unit: "%", width: 100 }, aspect, width, height),
+              width,
+              height,
+            )
+          : { unit: "%", x: 0, y: 0, width: 100, height: 100 },
+      );
+    },
+    [aspect],
+  );
 
   async function confirm() {
-    if (!area || busy) return;
+    const image = imgRef.current;
+    if (!crop || !image || busy) return;
+    if (crop.width <= 0 || crop.height <= 0) return;
     setBusy(true);
     try {
-      await onCropped(await getCroppedBlob(src, area));
+      const rect = rectFromPercentCrop(
+        crop,
+        image.naturalWidth,
+        image.naturalHeight,
+      );
+      if (onCroppedRect) await onCroppedRect(rect);
+      else if (onCropped) await onCropped(await getCroppedBlob(src, rectToArea(rect)));
     } finally {
       setBusy(false);
     }
@@ -53,32 +103,28 @@ export function ImageCropper({
         <div className="px-5 pb-3 pt-4 text-center text-base font-bold text-foreground">
           {title}
         </div>
-        <div className="relative h-72 bg-black">
-          <Cropper
-            image={src}
+        <div className="flex max-h-[60vh] items-center justify-center overflow-hidden bg-black">
+          <ReactCrop
             crop={crop}
-            zoom={zoom}
+            onChange={(_px, percent) => setCrop(percent)}
             aspect={aspect}
-            cropShape={cropShape}
-            showGrid
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onCropComplete={onCropComplete}
-          />
+            circularCrop={cropShape === "round"}
+            keepSelection
+            ruleOfThirds
+            minWidth={16}
+            minHeight={16}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imgRef}
+              src={src}
+              alt=""
+              onLoad={onImageLoad}
+              className="max-h-[60vh] w-auto select-none"
+            />
+          </ReactCrop>
         </div>
         <div className="space-y-4 p-4">
-          <div className="flex items-center gap-2">
-            <ZoomIn className="size-4 text-muted-foreground" />
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.01}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-full accent-primary"
-            />
-          </div>
           <div className="flex gap-3">
             <button
               type="button"
