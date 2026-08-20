@@ -107,6 +107,51 @@ export function PictureTab({
         </div>
       </div>
 
+      {/* Picture size — mobile `_buildPictureSize` (e1e74d42): two options,
+          drawn TO SCALE against each other (real 90/140 ÷ 5 → 18/28px, widened
+          16:9 for the rectangle shape) so the difference is visible before
+          applying. Absent = small, exactly how legacy sites render. */}
+      <div className="space-y-2">
+        <SectionLabel>Picture size</SectionLabel>
+        <div className="flex items-center justify-end gap-6 rounded-xl bg-surface px-4 py-2.5">
+          {(["small", "large"] as const).map((option) => {
+            const selected = (pic.size ?? "small") === option;
+            const h = option === "large" ? 28 : 18;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setPic({ size: option })}
+                aria-pressed={selected}
+                className="flex items-center gap-1.5 rounded-lg px-1 py-1"
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    shape === "circle" ? "rounded-full" : "rounded-[4px]",
+                    selected ? "bg-primary" : "bg-foreground/25",
+                  )}
+                  style={{
+                    height: h,
+                    width: shape === "rectangle" ? h * (16 / 9) : h,
+                  }}
+                />
+                <span
+                  className={cn(
+                    "text-xs",
+                    selected
+                      ? "font-bold text-primary"
+                      : "font-normal text-foreground/70",
+                  )}
+                >
+                  {option === "small" ? "Small" : "Large"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Alignment */}
       <div className="space-y-2">
         <SectionLabel>Alignment</SectionLabel>

@@ -696,9 +696,12 @@ function ProfilePicture({ settings, onEdit }: { settings: WebsiteSettings; onEdi
   // Mobile shows nothing in read-only/live when there's no image.
   if (!img && !onEdit) return null;
   const fg = foregroundArgb(settings);
-  // kAvatarSize=90; rectangle width = 90 * 16/9 (=160), else 90. circle → full radius, else 12.
+  // Mobile ImageSize (e1e74d42): height small=90 (kAvatarSize, the legacy
+  // default for absent/null/unknown) / large=140; rectangle width = height *
+  // 16/9, else square. circle → full radius, else 12.
   const shape = p?.shape ?? "circle";
-  const width = shape === "rectangle" ? 90 * (16 / 9) : 90;
+  const diameter = p?.size === "large" ? 140 : 90;
+  const width = shape === "rectangle" ? diameter * (16 / 9) : diameter;
   const radius = shape === "circle" ? "9999px" : "12px";
   return (
     <div className={`flex flex-col px-4 ${imgAlignItems(p?.alignment)}`}>
@@ -707,7 +710,7 @@ function ProfilePicture({ settings, onEdit }: { settings: WebsiteSettings; onEdi
         className={`flex items-center justify-center overflow-hidden ${onEdit ? "pointer-events-auto cursor-pointer hover:ring-2 hover:ring-primary/60" : ""} ${p?.hide === true ? "opacity-40" : ""}`}
         style={{
           width,
-          height: 90,
+          height: diameter,
           borderRadius: radius,
           borderStyle: "solid",
           borderWidth: p?.border_width ?? 0,
@@ -783,9 +786,16 @@ function DesktopAvatar({ settings, onEdit }: { settings: WebsiteSettings; onEdit
       } ${p?.hide === true ? "opacity-40" : ""}`}
       style={{
         ...pos,
-        // md:size-44 = 176px; rectangle md:w-96 aspect-[16/9] = 384x216.
-        width: shape === "rectangle" ? 384 : 176,
-        height: shape === "rectangle" ? 216 : 176,
+        // Nuxt md sizes — small: size-44 (176) / rectangle w-96 (384x216);
+        // large scales both by mobile's 140/90 ratio (see ProfilePicture.vue).
+        width:
+          shape === "rectangle"
+            ? p?.size === "large" ? 597 : 384
+            : p?.size === "large" ? 274 : 176,
+        height:
+          shape === "rectangle"
+            ? p?.size === "large" ? 336 : 216
+            : p?.size === "large" ? 274 : 176,
         border,
       }}
     >

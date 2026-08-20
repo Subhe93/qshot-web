@@ -73,12 +73,22 @@ export interface Header {
   fillSides?: boolean | null;
 }
 
+/**
+ * Rendered hero avatar size — mobile `ImageSize` (shared_entity.dart,
+ * e1e74d42): the avatar's HEIGHT is small=90 / large=140 logical px, and a
+ * `rectangle` shape widens it 16:9 from that height. Absent, null or unknown
+ * all render as `small` (exactly how every pre-feature site looked), and the
+ * mobile parser maps unknown values back to small rather than throwing.
+ */
+export type ProfilePictureSize = "small" | "large";
+
 export interface ProfilePicture {
   image_url?: string | null;
   image_rect?: RectTuple | null;
   hide?: boolean | null;
   alignment?: ImageAlignment | null;
   shape?: ImageShape | null;
+  size?: ProfilePictureSize | null;
   border_width?: number | null;
   border_color?: ArgbColor | null;
 }

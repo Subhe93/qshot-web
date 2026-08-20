@@ -493,7 +493,22 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
   )
     ? block.configuration
     : "youtube";
-  const hasLayout = HAS_LAYOUT[configuration];
+  // PENDING provider switch: picking a connect platform (facebook / tiktok /
+  // instagram_connected) first shows that platform's SETTINGS — title, source
+  // row reading "Not connected", posts count, profile toggle — without writing
+  // anything to the block. Only the source row's tap opens the connect sheet,
+  // and only a SUCCESSFUL connect stamps the block (the mobile invariant: an
+  // unconnected connect-provider block is unrepresentable). Re-picking the
+  // block's real provider, or closing the editor, simply drops the pending
+  // state. `effective` is what the UI renders; `configuration` is what the
+  // block IS.
+  const [pendingProvider, setPendingProvider] =
+    useState<StoredFeedConfiguration | null>(null);
+  // The profile toggle's value while pending (nothing on the block to hold
+  // it); applied by the stamp. Mobile's additionalSettings default: true.
+  const [pendingShowProfile, setPendingShowProfile] = useState(true);
+  const effective = pendingProvider ?? configuration;
+  const hasLayout = HAS_LAYOUT[effective];
 
   const [tab, setTab] = useState<Tab>(hasLayout ? "layout" : "general");
   const [pageSheet, setPageSheet] = useState(false);
@@ -584,11 +599,16 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
   const instagramConnected = !!instagramInfo.connection_id;
 
   function setConfiguration(next: StoredFeedConfiguration) {
-    // Re-picking the current provider must be inert. Without this, an Instagram
-    // block would compare its own family against the family a FRESH Instagram
-    // block would get and, with the flag on, "cross" from link to connected —
-    // wiping a saved legacy block's `info` on a stray tap.
-    if (next === configuration) return;
+    // Re-picking the current provider must be inert — and it also cancels a
+    // pending switch (the user backing out of an unconnected platform).
+    // Without the inert-guard, an Instagram block would compare its own family
+    // against the family a FRESH Instagram block would get and, with the flag
+    // on, "cross" from link to connected — wiping a saved legacy block's
+    // `info` on a stray tap.
+    if (next === configuration) {
+      setPendingProvider(null);
+      return;
+    }
     // Instagram + Facebook carry a settings map with show_profile_details
     // (mobile additionalSettings); the RSS providers carry none.
     const nextSettings = HAS_PROFILE_SETTINGS[next]
@@ -607,32 +627,32 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
     // family, so the stored connection survives the value flip.
     const crossesFamily = infoFamily(next, {}) !== infoFamily(configuration, info);
     const nextInfo = normalizeInfo(next, crossesFamily ? {} : info);
-    // Mobile `block_selector_sheet` parity: a connect-flow block is BORN from
-    // a completed connect — an unconnected facebook/tiktok/instagram_connected
-    // block is unrepresentable on mobile and must stay unrepresentable here.
-    // Stamping materialised-EMPTY ids let auto-save ship `connection_id: ""`
-    // to the server (seen live 2026-08-19: the whole save 422'd on the
-    // validator, and even once the enum learns the value, an empty connection
-    // renders nothing). So picking a connect provider without a usable
-    // connection opens its sheet instead; the sheet's success handler
-    // (`setFacebookInfo` / `setTiktokInfo` / `setInstagramInfo`) performs this
-    // stamp, and cancelling leaves the block on its previous provider — the
-    // exact shape of mobile's create flow. A pre-split connected `"instagram"`
-    // block picking `instagram_connected` still stamps directly: its family is
-    // preserved, so `nextInfo` carries the stored connection.
+    // Mobile parity invariant: a connect-flow block is BORN from a completed
+    // connect — an unconnected facebook/tiktok/instagram_connected block is
+    // unrepresentable on mobile and must stay unrepresentable here. Stamping
+    // materialised-EMPTY ids let auto-save ship `connection_id: ""` to the
+    // server (seen live 2026-08-19: the whole save 422'd on the validator, and
+    // even once the enum learns the value, an empty connection renders
+    // nothing). So picking a connect provider without a usable connection goes
+    // PENDING: the platform's settings show, with the source row reading "Not
+    // connected" — tapping it opens the connect sheet, whose success handler
+    // (`setFacebookInfo` / `setTiktokInfo` / `setInstagramInfo`) performs the
+    // stamp. Cancelling leaves the block on its previous provider. A pre-split
+    // connected `"instagram"` block picking `instagram_connected` still stamps
+    // directly: its family is preserved, so `nextInfo` carries the stored
+    // connection.
     const nid = nextInfo as Record<string, unknown>;
-    if (next === "facebook" && !(str(nid.connection_id) && str(nid.page_id))) {
-      setPageSheet(true);
+    if (
+      (next === "facebook" && !(str(nid.connection_id) && str(nid.page_id))) ||
+      (next === "tiktok" && !str(nid.connection_id)) ||
+      (next === "instagram_connected" && !str(nid.connection_id))
+    ) {
+      setPendingProvider(next);
+      setPendingShowProfile(true); // mobile additionalSettings default
+      setTab("general");
       return;
     }
-    if (next === "tiktok" && !str(nid.connection_id)) {
-      setTiktokSheet(true);
-      return;
-    }
-    if (next === "instagram_connected" && !str(nid.connection_id)) {
-      setInstagramSheet(true);
-      return;
-    }
+    setPendingProvider(null);
     // Mobile stamps `configuration.defaultTitleValue` when the block is
     // created; do the same while the title is still untouched.
     const title = (block.title ?? "").trim();
@@ -666,12 +686,18 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
         page_id: value.page_id,
         username: value.username,
       },
-      settings: { ...(settings ?? {}), show_profile_details: showProfile ?? true },
+      settings: {
+        ...(settings ?? {}),
+        // While the switch was pending the toggle's value lived in local
+        // state (the block wasn't facebook yet to hold it).
+        show_profile_details: pendingProvider ? pendingShowProfile : showProfile,
+      },
       title:
         title === "" || DEFAULT_TITLES.includes(title)
           ? PROVIDERS.facebook.defaultTitle
           : block.title,
     });
+    setPendingProvider(null);
   }
 
   /**
@@ -694,6 +720,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
           ? PROVIDERS.tiktok.defaultTitle
           : block.title,
     });
+    setPendingProvider(null);
   }
 
   /**
@@ -717,12 +744,16 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
         ig_user_id: value.ig_user_id,
         username: value.username,
       },
-      settings: { ...(settings ?? {}), show_profile_details: showProfile },
+      settings: {
+        ...(settings ?? {}),
+        show_profile_details: pendingProvider ? pendingShowProfile : showProfile,
+      },
       title:
         title === "" || DEFAULT_TITLES.includes(title)
           ? PROVIDERS.instagram_connected.defaultTitle
           : block.title,
     });
+    setPendingProvider(null);
   }
 
   // Debounced server resolution of a YouTube handle URL → channel id, mobile
@@ -825,7 +856,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
             onClick={() => setConfiguration(p)}
             className={cn(
               "flex-1 rounded-[10px] py-2 text-[13px] font-semibold transition-colors",
-              configuration === p ? "bg-card text-foreground shadow-sm" : "text-foreground/45",
+              effective === p ? "bg-card text-foreground shadow-sm" : "text-foreground/45",
             )}
           >
             {/* Brand casing, not `capitalize` — that renders "Tiktok". */}
@@ -856,7 +887,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
               type="text"
               value={block.title ?? ""}
               onChange={(e) => setBlock({ title: e.target.value })}
-              placeholder={PROVIDERS[configuration].label}
+              placeholder={PROVIDERS[effective].label}
               dir="auto"
               className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary"
             />
@@ -869,7 +900,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
               blocks already carrying the connected `info` shape — `igMode`
               comes from the block's own `info`, never from the flag). */}
           <GroupedCard>
-            {configuration === "facebook" ? (
+            {effective === "facebook" ? (
               <GroupedRow
                 customIcon={
                   // eslint-disable-next-line @next/next/no-img-element
@@ -897,7 +928,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                 }
                 onClick={() => setPageSheet(true)}
               />
-            ) : configuration === "tiktok" ? (
+            ) : effective === "tiktok" ? (
               <GroupedRow
                 customIcon={
                   // eslint-disable-next-line @next/next/no-img-element
@@ -925,7 +956,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                 }
                 onClick={() => setTiktokSheet(true)}
               />
-            ) : usesInstagramConnect ? (
+            ) : effective === "instagram_connected" || usesInstagramConnect ? (
               <GroupedRow
                 customIcon={
                   // eslint-disable-next-line @next/next/no-img-element
@@ -958,14 +989,14 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
             ) : (
               <GroupedRow
                 Icon={LinkIcon}
-                color={PROVIDERS[configuration].color}
-                title={PROVIDERS[configuration].label}
+                color={PROVIDERS[effective].color}
+                title={PROVIDERS[effective].label}
                 trailing={
                   <input
                     type="url"
                     value={link}
                     onChange={(e) => setLink(e.target.value)}
-                    placeholder={PROVIDERS[configuration].hint}
+                    placeholder={PROVIDERS[effective].hint}
                     dir="ltr"
                     // A blank source is the one state neither app can render —
                     // and on mobile a blank Vimeo link is fatal
@@ -988,7 +1019,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                 until the user taps this, and only then does `info` change
                 shape. Hidden while the flag is off, because the routes behind
                 it are not deployed. */}
-            {configuration === "instagram" &&
+            {effective === "instagram" &&
               igMode === "link" &&
               INSTAGRAM_FEED_ENABLED && (
                 <GroupedRow
@@ -1009,7 +1040,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
               )}
           </GroupedCard>
 
-          {configuration === "instagram" &&
+          {effective === "instagram" &&
             igMode === "link" &&
             INSTAGRAM_FEED_ENABLED && (
               <p className="px-1 text-xs text-muted-foreground">
@@ -1032,18 +1063,23 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                 additionalSettings). Rendered even when `settings` has not been
                 written yet: mobile itself defaults it to
                 `configuration.additionalSettings`. */}
-            {HAS_PROFILE_SETTINGS[configuration] && (
+            {HAS_PROFILE_SETTINGS[effective] && (
               <GroupedRow
                 Icon={UserCircle}
-                color={PROVIDERS[configuration].color}
+                color={PROVIDERS[effective].color}
                 title={t("socialFeed.showProfileOverview")}
                 trailing={
                   <ToggleSwitch
-                    checked={showProfile}
+                    // While a switch is pending the block can't hold the value
+                    // (it isn't that provider yet) — local state holds it and
+                    // the connect stamp writes it.
+                    checked={pendingProvider ? pendingShowProfile : showProfile}
                     onChange={(v) =>
-                      setBlock({
-                        settings: { ...(settings ?? {}), show_profile_details: v },
-                      })
+                      pendingProvider
+                        ? setPendingShowProfile(v)
+                        : setBlock({
+                            settings: { ...(settings ?? {}), show_profile_details: v },
+                          })
                     }
                   />
                 }
