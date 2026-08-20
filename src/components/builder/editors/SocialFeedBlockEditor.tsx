@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   LayoutGrid,
@@ -13,6 +13,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { useEditorStore } from "@/stores/editor-store";
+import { resolveYoutubeChannelId } from "@/lib/api/youtube";
 import { brandIconUrl } from "@/lib/builder/brand-icons";
 import { hexToArgbA } from "@/lib/builder/color";
 import {
@@ -23,8 +24,8 @@ import {
 import { cn } from "@/lib/utils";
 import type {
   SocialFeedBlock,
-  FeedConfiguration,
   LinkFeedConfiguration,
+  StoredFeedConfiguration,
   FacebookFeedInfo,
   InstagramConnectedFeedInfo,
   TiktokFeedInfo,
@@ -61,38 +62,58 @@ type Tab = "layout" | "general";
  *   `BlockEntity.fromJson`, so the ENTIRE page fails to parse in the app, not
  *   just this block.
  *
- * · INSTAGRAM_FEED_ENABLED — product + deployment, not parse safety. Mobile
- *   commit 20941620 commented Instagram out of the selector: the old entry used
- *   the public `business_discovery` path (username + one shared qshot token),
- *   replaced by "Business Login for Instagram", a per-user OAuth connect flow
- *   with the same shape as Facebook. What the flag now gates is that
- *   REPLACEMENT — and it stays off until the server ships it (as of 2026-08-06
- *   `instagram/connect` and `instagram/feed` are not deployed on either host).
- *   The configuration VALUE is unchanged and needs no safety gate: every
- *   shipped build parses `"instagram"`.
+ * · INSTAGRAM_FEED_ENABLED — gates the `instagram_connected` entry, and since
+ *   mobile's final treatment (branch `feature/template-sites`) it is BOTH kinds
+ *   of gate at once. Mobile commit 20941620 retired the legacy public
+ *   `business_discovery` entry from the selector; the branch then landed its
+ *   replacement as a DISTINCT configuration —
+ *   `InstagramConnectedFeedConfiguration`, name `"instagram_connected"`, a
+ *   per-user OAuth connect flow with the same shape as TikTok (one account per
+ *   connection, no picker). Distinct value ⇒ parse safety applies exactly as
+ *   for facebook/tiktok: on every build that predates the branch,
+ *   `FeedConfiguration.values["instagram_connected"]!` throws and the WHOLE
+ *   page fails to parse. And it stays off until the server ships the
+ *   `instagram-integration/*` routes. Legacy `"instagram"` blocks are
+ *   unaffected either way — every shipped build parses that value, and mobile
+ *   keeps `InstagramFeedConfiguration` registered so old blocks deserialize.
  *
- * All three now read from `NEXT_PUBLIC_*` env vars (default: all off), so
- * enabling a provider is a deployment decision — see feature-flags.ts.
+ * All three read from `NEXT_PUBLIC_*` env vars (default: all off), so enabling
+ * a provider is a deployment decision — see feature-flags.ts.
  *
  * In every case an EXISTING block keeps its provider visible and fully
  * editable, so the user can still edit it and switch away — mobile keeps
  * `InstagramFeedConfiguration` registered for exactly that reason.
  *
- * Mobile's final new-block order is youtube, vimeo, facebook, tiktok.
+ * Mobile's final new-block order (SocialFeedSelectorSheet._items on
+ * `feature/template-sites`) is youtube, vimeo, facebook, tiktok,
+ * instagram_connected.
  */
 
 /**
- * ── Instagram has ONE configuration and TWO `info` shapes ────────────────────
+ * The provider tables below are keyed by `StoredFeedConfiguration` — i.e. they
+ * include `"instagram_connected"`, the value mobile's
+ * `InstagramConnectedFeedConfiguration` registered on `feature/template-sites`
+ * (`SocialFeedBlock.configuration` is typed with the same union, so writing it
+ * needs no cast).
+ */
+
+/**
+ * ── Legacy `"instagram"` still carries TWO `info` shapes ─────────────────────
  *
- * See `InstagramFeedInfo` in lib/types/blocks.ts. Both are stored under
- * `configuration: "instagram"`:
+ * See `InstagramFeedInfo` in lib/types/blocks.ts. NEW blocks use the distinct
+ * `configuration: "instagram_connected"`, but blocks saved before the split are
+ * stored under `configuration: "instagram"` in either shape:
  *
  *   "link"      legacy → `{ link, username }`   — public `business_discovery`
- *   "connected" new    → `{ connection_id, ig_user_id, username }` — OAuth
+ *   "connected"        → `{ connection_id, ig_user_id, username }` — OAuth,
+ *                        written by this editor before mobile landed the
+ *                        distinct configuration value
  *
  * The editor picks its UI from the block's OWN `info`, never from the flag, so
  * a saved legacy block opens on the legacy link field and is never silently
- * rewritten. The flag only decides what a *fresh* Instagram block becomes.
+ * rewritten. The one place an `"instagram"` block becomes
+ * `"instagram_connected"` is `setInstagramInfo` — the user completing the
+ * connect flow.
  */
 type InstagramMode = "link" | "connected";
 
@@ -107,32 +128,43 @@ type InstagramMode = "link" | "connected";
  * freshly-created, still-blank legacy block as "no evidence" and let the flag
  * flip it to connected — i.e. delete the very keys we are trying to preserve.
  *
- * Only a block with NO evidence either way (empty `info`, e.g. a stub written
- * by an old catalog seed) falls through to the flag.
+ * A block with NO evidence either way (empty `info`, e.g. a stub written by an
+ * old catalog seed) is treated as legacy: now that a NEW connect-flow pick
+ * lands on the distinct `"instagram_connected"` configuration, an empty
+ * `"instagram"` block can only be a legacy artifact — it no longer falls
+ * through to the flag.
  */
 function instagramMode(info: Record<string, unknown>): InstagramMode {
   if ("connection_id" in info) return "connected";
-  if ("link" in info || "username" in info) return "link";
-  return INSTAGRAM_FEED_ENABLED ? "connected" : "link";
+  return "link";
 }
 
 /** The providers every released mobile build can parse. Order = mobile `FeedConfiguration.all`. */
 const LINK_PROVIDERS: LinkFeedConfiguration[] = ["youtube", "vimeo", "instagram"];
 
 /** Display order — mobile `FeedConfiguration.all`. Gating is applied on top. */
-const PROVIDER_ORDER: FeedConfiguration[] = [
+const PROVIDER_ORDER: StoredFeedConfiguration[] = [
   ...LINK_PROVIDERS,
   "facebook",
   "tiktok",
+  "instagram_connected",
 ];
 
-/** Offered for a NEW selection? An existing block's own provider is always added. */
-const OFFERED: Record<FeedConfiguration, boolean> = {
+/**
+ * Offered for a NEW selection? An existing block's own provider is always
+ * added. Mirrors mobile `SocialFeedSelectorSheet._items` on
+ * `feature/template-sites`: youtube, vimeo, facebook, tiktok,
+ * instagram_connected — the legacy public `instagram` entry is retired for NEW
+ * blocks (it stays in PROVIDER_ORDER only so an existing block's own pill
+ * renders in its historical position).
+ */
+const OFFERED: Record<StoredFeedConfiguration, boolean> = {
   youtube: true,
   vimeo: true,
-  instagram: INSTAGRAM_FEED_ENABLED,
+  instagram: false,
   facebook: FACEBOOK_FEED_ENABLED,
   tiktok: TIKTOK_FEED_ENABLED,
+  instagram_connected: INSTAGRAM_FEED_ENABLED,
 };
 
 // Provider metadata mirrors the mobile FeedConfiguration subclasses
@@ -142,7 +174,7 @@ const OFFERED: Record<FeedConfiguration, boolean> = {
 // `defaultTitle` is the mobile `defaultTitleValue`, stamped onto the block when
 // the user picks a provider (mobile does the same in block_selector_sheet).
 const PROVIDERS: Record<
-  FeedConfiguration,
+  StoredFeedConfiguration,
   { label: string; short: string; defaultTitle: string; hint: string; color: string }
 > = {
   youtube: {
@@ -181,11 +213,20 @@ const PROVIDERS: Record<
     hint: "",
     color: "#000000",
   },
+  // mobile InstagramConnectedFeedConfiguration: title "Instagram",
+  // defaultTitleValue "Instagram" ("Show your own Instagram posts.").
+  instagram_connected: {
+    label: "Instagram",
+    short: "Instagram",
+    defaultTitle: "Instagram",
+    hint: "",
+    color: "#DD2A7B",
+  },
 };
 
 const DEFAULT_TITLES = Object.values(PROVIDERS).map((p) => p.defaultTitle);
 
-function isFeedConfiguration(value: unknown): value is FeedConfiguration {
+function isFeedConfiguration(value: unknown): value is StoredFeedConfiguration {
   return typeof value === "string" && value in PROVIDERS;
 }
 
@@ -196,27 +237,35 @@ function isFeedConfiguration(value: unknown): value is FeedConfiguration {
 //
 // `instagram` is false for BOTH of its info shapes. The legacy one renders
 // through mobile `InstagramProfile` (a fixed 2-column grid, no layout options)
-// and so does `SocialFeedBlockView`, which keys off `configuration` alone. The
-// connected shape is planned to reuse `PostFeedContent`, but no mobile code
-// registers it yet, so its `layoutOptions` are unknown — and offering a picker
-// that neither renderer honours would be a lie. Revisit when mobile lands it.
-const HAS_LAYOUT: Record<FeedConfiguration, boolean> = {
+// and so does `SocialFeedBlockView`, which keys off `configuration` alone.
+// `instagram_connected` is false straight from mobile: feed_widget.dart on
+// `feature/template-sites` passes `layoutOptions: null` for every
+// configuration except YouTube/Vimeo, so its settings sheet has no Layout tab.
+// facebook/tiktok were flipped to false 2026-08-12 for the same source line:
+// the null branch is `_` — it covers them too. (The tiktok RENDERER still
+// respects whatever layout_type the block carries; the user just doesn't get a
+// picker, exactly like mobile. facebook posts ignore layout_type entirely.)
+const HAS_LAYOUT: Record<StoredFeedConfiguration, boolean> = {
   youtube: true,
   vimeo: true,
   instagram: false,
-  facebook: true,
-  tiktok: true,
+  facebook: false,
+  tiktok: false,
+  instagram_connected: false,
 };
 
 // Configurations that carry a `settings` map with show_profile_details
 // (mobile `additionalSettings`). `TiktokFeedConfiguration` does not override
 // `additionalSettings`, so it inherits the base class's `null` → no settings.
-const HAS_PROFILE_SETTINGS: Record<FeedConfiguration, boolean> = {
+// `InstagramConnectedFeedConfiguration` DOES override it:
+// `{ show_profile_details: true }`, exactly like Facebook.
+const HAS_PROFILE_SETTINGS: Record<StoredFeedConfiguration, boolean> = {
   youtube: false,
   vimeo: false,
   instagram: true,
   facebook: true,
   tiktok: false,
+  instagram_connected: true,
 };
 
 /**
@@ -230,13 +279,16 @@ const HAS_PROFILE_SETTINGS: Record<FeedConfiguration, boolean> = {
  */
 type InfoFamily = "link" | "facebook" | "tiktok" | "instagram";
 
-const BASE_INFO_FAMILY: Record<FeedConfiguration, InfoFamily> = {
+const BASE_INFO_FAMILY: Record<StoredFeedConfiguration, InfoFamily> = {
   youtube: "link",
   vimeo: "link",
   // Overridden per-shape by infoFamily() — legacy Instagram IS a link provider.
   instagram: "link",
   facebook: "facebook",
   tiktok: "tiktok",
+  // Same family as an `"instagram"` block already carrying the connected
+  // shape, so the config value can flip without losing the connection.
+  instagram_connected: "instagram",
 };
 
 /**
@@ -246,7 +298,7 @@ const BASE_INFO_FAMILY: Record<FeedConfiguration, InfoFamily> = {
  * holds an OAuth connection that means nothing to anyone else.
  */
 function infoFamily(
-  configuration: FeedConfiguration,
+  configuration: StoredFeedConfiguration,
   info: Record<string, unknown>,
 ): InfoFamily {
   if (configuration === "instagram") {
@@ -282,6 +334,23 @@ const str = (v: unknown): string => (typeof v === "string" ? v : "");
 /** `youtube.com/channel/UC…` or a bare `UC…` id — the only forms we can resolve offline. */
 const YOUTUBE_CHANNEL_ID = /(?:^|\/)(UC[A-Za-z0-9_-]{20,})(?:\/|$)/;
 
+/** Mobile `YoutubeFeedConfiguration.regex` — the handle/user URL forms that
+ *  need SERVER resolution to a channel id. */
+const YOUTUBE_URL =
+  /^(https?:\/\/)?(www\.)?(youtube\.com\/(u(ser)?|@)[/\w-]+)(\/(videos|playlists|community|streams|shorts))?$/;
+
+/**
+ * Mobile `YoutubeFeedConfiguration.postJob`: strips a trailing section segment
+ * (`/videos`, `/shorts`, …) so the URL points at the channel root the backend
+ * can resolve to a channel id.
+ */
+function stripYoutubeSection(value: string): string {
+  const m = /^(.*)\/(videos|playlists|community|streams|shorts)\/?$/i.exec(
+    value.trim(),
+  );
+  return m ? m[1] : value.trim();
+}
+
 /** Mirrors mobile InstagramFeedConfiguration.regex (also accepts a bare handle). */
 const INSTAGRAM_URL = /^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([A-Za-z0-9_.]+)\/?$/;
 
@@ -312,7 +381,19 @@ function instagramUsername(link: string): string {
  * exactly the "do not silently rewrite an old block's info" hazard, and keying
  * the list off the block's own `info` is what closes it.
  */
-const REQUIRED_INFO_KEYS: Record<FeedConfiguration, string[]> = {
+/**
+ * Business Login shape (server-contract.md §2.3, mobile
+ * `InstagramConnectCubit`): `connection_id` is required, `ig_user_id` is "a
+ * redundant safety check against the connection" and hence optional — but
+ * written anyway, empty string included, exactly like TikTok's `open_id`.
+ * `username` is required by BOTH Instagram shapes, which is what lets an old
+ * build handed a connected block still resolve the same account. These are the
+ * keys of `"instagram_connected"` AND of an `"instagram"` block already
+ * carrying the connected shape.
+ */
+const INSTAGRAM_CONNECTED_INFO_KEYS = ["connection_id", "ig_user_id", "username"];
+
+const REQUIRED_INFO_KEYS: Record<StoredFeedConfiguration, string[]> = {
   youtube: ["link", "channel_id"],
   vimeo: ["link"],
   // Legacy shape. See requiredInfoKeys() for the connected one.
@@ -323,19 +404,11 @@ const REQUIRED_INFO_KEYS: Record<FeedConfiguration, string[]> = {
   // `String?` there so it tolerates null, but we still always write it — the
   // catalog contract lists it and an empty string is never worse than absent.
   tiktok: ["connection_id", "open_id", "username"],
+  instagram_connected: INSTAGRAM_CONNECTED_INFO_KEYS,
 };
 
-/**
- * Business Login shape (server-contract.md §2.3): `connection_id` is required,
- * `ig_user_id` is "a redundant safety check against the connection" and hence
- * optional — but written anyway, empty string included, exactly like TikTok's
- * `open_id`. `username` is required by BOTH shapes, which is what lets an old
- * build handed a connected block still resolve the same account.
- */
-const INSTAGRAM_CONNECTED_INFO_KEYS = ["connection_id", "ig_user_id", "username"];
-
 function requiredInfoKeys(
-  configuration: FeedConfiguration,
+  configuration: StoredFeedConfiguration,
   info: Record<string, unknown>,
 ): string[] {
   if (configuration === "instagram" && instagramMode(info) === "connected") {
@@ -361,7 +434,7 @@ const KNOWN_INFO_KEYS = [
  * untouched.
  */
 function normalizeInfo(
-  configuration: FeedConfiguration,
+  configuration: StoredFeedConfiguration,
   info: Record<string, unknown>,
 ): Record<string, unknown> {
   // Instagram resolves its key list from the block's OWN `info` — see
@@ -392,7 +465,7 @@ function normalizeInfo(
 
 /** Mobile `FeedConfiguration.additionalSettings`. */
 function defaultSettings(
-  configuration: FeedConfiguration,
+  configuration: StoredFeedConfiguration,
   showProfile = true,
 ): Record<string, unknown> | null {
   return HAS_PROFILE_SETTINGS[configuration]
@@ -415,7 +488,9 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
 
   // An unknown/absent `configuration` is unrepresentable on mobile (the `!` in
   // fromJson), so treat it as the safest link provider and repair it below.
-  const configuration: FeedConfiguration = isFeedConfiguration(block.configuration)
+  const configuration: StoredFeedConfiguration = isFeedConfiguration(
+    block.configuration,
+  )
     ? block.configuration
     : "youtube";
   const hasLayout = HAS_LAYOUT[configuration];
@@ -429,10 +504,18 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
 
   const info = block.info ?? {};
 
-  // Which Instagram UI this particular block gets — read from its own `info`,
-  // so a saved legacy block opens on the legacy link field no matter what the
-  // flag says, and a connected block stays editable even while the flag is off.
+  // Which UI a LEGACY `"instagram"` block gets — read from its own `info`, so
+  // a saved legacy block opens on the legacy link field no matter what the
+  // flag says, and a pre-split connected block stays editable even while the
+  // flag is off. `"instagram_connected"` blocks don't consult this: their
+  // configuration value IS the discriminator.
   const igMode = instagramMode(info);
+
+  // The connect-flow UI serves both the new configuration and a pre-split
+  // `"instagram"` block that already carries the connected `info` shape.
+  const usesInstagramConnect =
+    configuration === "instagram_connected" ||
+    (configuration === "instagram" && igMode === "connected");
 
   // Repair-on-open: a block added from the block catalog arrives as
   // `{configuration:"instagram", info:{}}` with no settings/posts_count, and
@@ -442,7 +525,9 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
   // downgrades that crash to the cubit's catchable "couldn't load" state.
   useEffect(() => {
     const patch: Partial<SocialFeedBlock> = {};
-    if (block.configuration !== configuration) patch.configuration = configuration;
+    if (block.configuration !== configuration) {
+      patch.configuration = configuration;
+    }
     const current = block.info ?? {};
     const normalized = normalizeInfo(configuration, current);
     const keys = new Set([...Object.keys(current), ...Object.keys(normalized)]);
@@ -498,7 +583,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
   };
   const instagramConnected = !!instagramInfo.connection_id;
 
-  function setConfiguration(next: FeedConfiguration) {
+  function setConfiguration(next: StoredFeedConfiguration) {
     // Re-picking the current provider must be inert. Without this, an Instagram
     // block would compare its own family against the family a FRESH Instagram
     // block would get and, with the flag on, "cross" from link to connected —
@@ -516,11 +601,38 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
     // required keys are then materialised, so `info` is never left in a shape
     // the mobile display layer dereferences to null.
     //
-    // The target family is computed from an EMPTY `info` because that is what a
-    // newly picked provider starts from — for Instagram that resolves through
-    // the flag, i.e. picking Instagram today lands on the connect flow.
+    // The target family is computed from an EMPTY `info` because that is what
+    // a newly picked provider starts from. Picking `instagram_connected` from
+    // a pre-split connected `"instagram"` block stays inside the "instagram"
+    // family, so the stored connection survives the value flip.
     const crossesFamily = infoFamily(next, {}) !== infoFamily(configuration, info);
     const nextInfo = normalizeInfo(next, crossesFamily ? {} : info);
+    // Mobile `block_selector_sheet` parity: a connect-flow block is BORN from
+    // a completed connect — an unconnected facebook/tiktok/instagram_connected
+    // block is unrepresentable on mobile and must stay unrepresentable here.
+    // Stamping materialised-EMPTY ids let auto-save ship `connection_id: ""`
+    // to the server (seen live 2026-08-19: the whole save 422'd on the
+    // validator, and even once the enum learns the value, an empty connection
+    // renders nothing). So picking a connect provider without a usable
+    // connection opens its sheet instead; the sheet's success handler
+    // (`setFacebookInfo` / `setTiktokInfo` / `setInstagramInfo`) performs this
+    // stamp, and cancelling leaves the block on its previous provider — the
+    // exact shape of mobile's create flow. A pre-split connected `"instagram"`
+    // block picking `instagram_connected` still stamps directly: its family is
+    // preserved, so `nextInfo` carries the stored connection.
+    const nid = nextInfo as Record<string, unknown>;
+    if (next === "facebook" && !(str(nid.connection_id) && str(nid.page_id))) {
+      setPageSheet(true);
+      return;
+    }
+    if (next === "tiktok" && !str(nid.connection_id)) {
+      setTiktokSheet(true);
+      return;
+    }
+    if (next === "instagram_connected" && !str(nid.connection_id)) {
+      setInstagramSheet(true);
+      return;
+    }
     // Mobile stamps `configuration.defaultTitleValue` when the block is
     // created; do the same while the title is still untouched.
     const title = (block.title ?? "").trim();
@@ -537,49 +649,135 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
     setTab(HAS_LAYOUT[next] ? "layout" : "general");
   }
 
-  /** Writes the exact Facebook contract shape into `info`. */
+  /**
+   * A successful Facebook page pick: the exact contract `info` shape PLUS the
+   * full provider stamp (configuration / settings / title). The stamp matters
+   * because, since the connect-first guard in `setConfiguration`, this handler
+   * may be the FIRST writer of `configuration: "facebook"` — picking the pill
+   * only opens the sheet. Re-picking a page on an existing facebook block
+   * makes the stamp a no-op.
+   */
   function setFacebookInfo(value: FacebookFeedInfo) {
+    const title = (block.title ?? "").trim();
     setBlock({
+      configuration: "facebook",
       info: {
         connection_id: value.connection_id,
         page_id: value.page_id,
         username: value.username,
       },
+      settings: { ...(settings ?? {}), show_profile_details: showProfile ?? true },
+      title:
+        title === "" || DEFAULT_TITLES.includes(title)
+          ? PROVIDERS.facebook.defaultTitle
+          : block.title,
     });
   }
 
-  /** Writes the exact TikTok contract shape into `info` (catalog 2026-08-03). */
+  /**
+   * A successful TikTok connect: contract `info` (catalog 2026-08-03) plus the
+   * full provider stamp — see `setFacebookInfo` for why. TikTok carries no
+   * `settings` map (mobile `additionalSettings` is the base-class null).
+   */
   function setTiktokInfo(value: TiktokFeedInfo) {
+    const title = (block.title ?? "").trim();
     setBlock({
+      configuration: "tiktok",
       info: {
         connection_id: value.connection_id,
         open_id: value.open_id,
         username: value.username,
       },
+      settings: null,
+      title:
+        title === "" || DEFAULT_TITLES.includes(title)
+          ? PROVIDERS.tiktok.defaultTitle
+          : block.title,
     });
   }
 
   /**
-   * Writes the exact Business Login contract shape into `info`
-   * (server-contract.md §1 + plan.md §4). This is the ONE place a legacy block
-   * turns into a connected one — a deliberate, user-initiated action from the
-   * connect sheet — which is why `link` is dropped here and never on open.
+   * A successful connect flow: writes the exact Business Login contract shape
+   * into `info` AND stamps `configuration: "instagram_connected"` — the value
+   * mobile's `InstagramConnectCubit` blocks carry on `feature/template-sites`.
+   * This is the ONE place a legacy `"instagram"` block turns into a connected
+   * one — a deliberate, user-initiated action from the connect sheet — which
+   * is why `link` is dropped here and never on open. Settings and title follow
+   * the same rules a fresh pick gets in `setConfiguration`: the profile toggle
+   * is preserved (mobile `additionalSettings` default: true), and an untouched
+   * or provider-default title becomes the mobile `defaultTitleValue`
+   * "Instagram".
    */
   function setInstagramInfo(value: InstagramConnectedFeedInfo) {
+    const title = (block.title ?? "").trim();
     setBlock({
+      configuration: "instagram_connected",
       info: {
         connection_id: value.connection_id,
         ig_user_id: value.ig_user_id,
         username: value.username,
       },
+      settings: { ...(settings ?? {}), show_profile_details: showProfile },
+      title:
+        title === "" || DEFAULT_TITLES.includes(title)
+          ? PROVIDERS.instagram_connected.defaultTitle
+          : block.title,
     });
+  }
+
+  // Debounced server resolution of a YouTube handle URL → channel id, mobile
+  // `FeedInputCubit._fetchYoutube` (`GET q-profile/youtube-channel/name?url=`).
+  // The offline `UC…` extraction below covers channel-id URLs; HANDLE urls
+  // (`youtube.com/@channel` — the hint we show!) can only be resolved by the
+  // backend. Without this the stored channel_id was the raw URL, which the
+  // public RSS endpoint (`videos.xml?channel_id=`) cannot serve — the feed
+  // rendered empty on the published site for every handle-entered block.
+  const youtubeResolveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (youtubeResolveTimer.current) clearTimeout(youtubeResolveTimer.current);
+    },
+    [],
+  );
+  function scheduleYoutubeResolve(link: string) {
+    if (youtubeResolveTimer.current) clearTimeout(youtubeResolveTimer.current);
+    // Mobile debounces input with kSearchDelayDuration before fetching.
+    youtubeResolveTimer.current = setTimeout(async () => {
+      const id = await resolveYoutubeChannelId(link);
+      if (id == null) return; // offline extraction stays as the fallback
+      // Stale guards: the block must still exist, still be YouTube, and still
+      // hold the link this resolution was scheduled for.
+      const current = useEditorStore
+        .getState()
+        .blocks.find((b) => b.id === block.id) as SocialFeedBlock | undefined;
+      if (
+        current == null ||
+        current.configuration !== "youtube" ||
+        (current.info?.link as string | undefined) !== link
+      ) {
+        return;
+      }
+      updateBlock(block.id, {
+        info: { ...current.info, channel_id: id },
+      } as Partial<SocialFeedBlock>);
+    }, 600);
   }
 
   function setLink(value: string) {
     // Write the provider-specific key mobile reads (channel_id / username),
     // derived from the link the way mobile derives it, plus `link` itself.
-    const next: Record<string, unknown> = { ...info, link: value };
-    if (configuration === "youtube") next.channel_id = youtubeChannelId(value);
+    // YouTube: postJob-strip trailing sections first (mobile stores the
+    // STRIPPED link), then the offline id extraction now + the authoritative
+    // server resolution shortly after.
+    const link =
+      configuration === "youtube" ? stripYoutubeSection(value) : value;
+    const next: Record<string, unknown> = { ...info, link };
+    if (configuration === "youtube") {
+      next.channel_id = youtubeChannelId(link);
+      if (YOUTUBE_URL.test(link) && !YOUTUBE_CHANNEL_ID.test(link)) {
+        scheduleYoutubeResolve(link);
+      }
+    }
     if (configuration === "instagram") next.username = instagramUsername(value);
     setBlock({ info: next });
   }
@@ -591,8 +789,21 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
   // Offered providers, in mobile's `FeedConfiguration.all` order, plus this
   // block's own provider even when it is gated off — so an existing instagram /
   // facebook / tiktok block stays editable AND switchable.
-  const providerOptions: FeedConfiguration[] = PROVIDER_ORDER.filter(
-    (p) => OFFERED[p] || p === configuration,
+  //
+  // For a block still on `"instagram"` the `instagram_connected` pill is
+  // suppressed — two pills would both render the brand name "Instagram", and
+  // for the link shape tapping it would wipe the legacy `info` BEFORE any
+  // account is connected (family crossing). Those blocks upgrade through the
+  // connect UI instead: `setInstagramInfo` flips the configuration only once
+  // the flow actually succeeds.
+  const providerOptions: StoredFeedConfiguration[] = PROVIDER_ORDER.filter(
+    (p) => {
+      if (p === configuration) return true;
+      if (p === "instagram_connected" && configuration === "instagram") {
+        return false;
+      }
+      return OFFERED[p];
+    },
   );
 
   const tabs: SheetTab<Tab>[] = [
@@ -653,9 +864,10 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
 
           {/* Source: a link field for the RSS providers and for a LEGACY
               Instagram block, or a server-side OAuth connect flow for Facebook
-              Pages, TikTok and Instagram Business Login. Instagram is the only
-              one that can be either — `igMode` comes from the block's own
-              `info`, never from the flag. */}
+              Pages, TikTok and Instagram Business Login (the
+              `instagram_connected` configuration, plus pre-split `"instagram"`
+              blocks already carrying the connected `info` shape — `igMode`
+              comes from the block's own `info`, never from the flag). */}
           <GroupedCard>
             {configuration === "facebook" ? (
               <GroupedRow
@@ -713,7 +925,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                 }
                 onClick={() => setTiktokSheet(true)}
               />
-            ) : configuration === "instagram" && igMode === "connected" ? (
+            ) : usesInstagramConnect ? (
               <GroupedRow
                 customIcon={
                   // eslint-disable-next-line @next/next/no-img-element
@@ -858,9 +1070,17 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
         </div>
       )}
 
+      {/* `value` (the sheet's current selection) only exists when the block
+          already IS that provider — with the connect-first guard the sheets
+          also open from a block still on ANOTHER provider, whose info keys
+          (e.g. a TikTok connection_id) must not masquerade as a selection. */}
       {pageSheet && (
         <FacebookPageSheet
-          value={facebookConnected ? (facebookInfo as FacebookFeedInfo) : null}
+          value={
+            configuration === "facebook" && facebookConnected
+              ? (facebookInfo as FacebookFeedInfo)
+              : null
+          }
           onSelect={setFacebookInfo}
           onClose={() => setPageSheet(false)}
         />
@@ -868,7 +1088,11 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
 
       {tiktokSheet && (
         <TiktokConnectSheet
-          value={tiktokConnected ? (tiktokInfo as TiktokFeedInfo) : null}
+          value={
+            configuration === "tiktok" && tiktokConnected
+              ? (tiktokInfo as TiktokFeedInfo)
+              : null
+          }
           onSelect={setTiktokInfo}
           onClose={() => setTiktokSheet(false)}
         />
@@ -877,7 +1101,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
       {instagramSheet && (
         <InstagramConnectSheet
           value={
-            instagramConnected
+            configuration === "instagram_connected" && instagramConnected
               ? (instagramInfo as InstagramConnectedFeedInfo)
               : null
           }

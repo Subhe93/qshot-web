@@ -170,7 +170,8 @@ export const BLOCK_CATALOG: CatalogEntry[] = [
     //   • unlike `vimeo`, an empty value is not fatal: `VimeoFeedConfiguration
     //     .extractId` force-unwraps its regex match on a blank link.
     // `settings: null` mirrors `YoutubeFeedConfiguration.additionalSettings`
-    // (the base-class `null`) — only instagram/facebook carry a settings map.
+    // (the base-class `null`) — only instagram / instagram_connected / facebook
+    // carry a settings map ({show_profile_details: true}).
     make: () => ({
       id: nanoid(),
       type: "SocialFeedModule",

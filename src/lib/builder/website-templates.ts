@@ -71,6 +71,7 @@ const BLACK = 0xff000000;
  * | template-5 | template-6 (snapshot FROZEN — see below) |
  * | template-6 | template-6     |
  * | template-7 | template-7     |
+ * | template-8 | template-8     |
  *
  * (template-1/2 shipped in mobile build 161 and keep their ids; 3/4/5 never
  * shipped under their old numbers, which is why renumbering them was safe.)
@@ -88,6 +89,7 @@ export const TEMPLATE_SITE_LABELS: Record<string, string> = {
   "template-5": "Star Website",
   "template-6": "Signature Website",
   "template-7": "Service Website",
+  "template-8": "Menu Website",
 };
 
 /** Ids in picker order — mobile `WebsiteTemplateRegistry._assetIds`. */
@@ -457,6 +459,7 @@ const LOADERS: Record<string, () => Promise<{ default: unknown }>> = {
   "template-5": () => import("./template-sites/template-5.json"),
   "template-6": () => import("./template-sites/template-6.json"),
   "template-7": () => import("./template-sites/template-7.json"),
+  "template-8": () => import("./template-sites/template-8.json"),
 };
 
 /** Mobile `WebsiteTemplateRegistry.load()` — idempotent, cached. */

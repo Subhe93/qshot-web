@@ -101,31 +101,32 @@ export const TIKTOK_FEED_ENABLED = envFlag(
  * which commented `FeedConfiguration.values["instagram"]!` out of
  * `SocialFeedSelectorSheet._items`.
  *
- * What it now gates is the REPLACEMENT, not the thing that was removed. The old
- * entry used the public `business_discovery` path (a username plus one shared
- * qshot token); `docs/plans/social-instagram-feed/` retires that outright in
- * favour of **Business Login for Instagram** — a per-user OAuth connect flow,
- * the same shape as Facebook and TikTok. So while this flag is on, picking
- * Instagram opens the CONNECT sheet (`InstagramConnectSheet`) and writes
+ * What it gates is the REPLACEMENT, not the thing that was removed: the NEW
+ * `instagram_connected` configuration — **Business Login for Instagram**
+ * (`InstagramConnectedFeedConfiguration`, mobile branch
+ * `feature/template-sites`), a per-user OAuth connect flow with the same shape
+ * as Facebook and TikTok, which mobile's selector now offers in Instagram's
+ * slot. While this flag is on, picking Instagram opens the CONNECT sheet
+ * (`InstagramConnectSheet`) and writes
  * `info = { connection_id, ig_user_id, username }`; the legacy link field is
  * only ever shown for a block that already carries the legacy shape.
  *
- * Kept OFF because the server side is **not deployed**: as of 2026-08-06 both
- * `GET instagram/connect` and `GET instagram/feed` answer
- * `{"error":{"name":"Not Found","description":"Route not found"}}` on
- * api.qshot.com *and* api.speaknet.app, while `meta/feed` and
- * `tiktok-integration/connect` are live. Turn it on per-environment once the
- * routes ship — the UI degrades safely either way (`lib/api/instagram.ts`
- * resolves `unavailable` instead of throwing).
+ * The server side IS deployed: the routes moved to `instagram-integration/*`
+ * (mobile `Links.instagram*` — same rename TikTok shipped with) and were
+ * verified live on api.qshot.com 2026-08-12 — `instagram-integration/feed`
+ * answers its own contract envelope (`404 not_found` for an unknown
+ * `connection_id`) and `instagram-integration/connect` answers
+ * `401 connection_unauthorized` without a bearer; the old `instagram/*` paths
+ * are dead. So deployment no longer holds this flag down.
  *
- * NOTE: unlike the two flags above this is NOT a parse-safety gate — every
- * shipped build knows the `"instagram"` configuration value, and the connect
- * flow deliberately keeps writing that same value rather than the speculative
- * `instagram_connected` from the mobile plan (see `SocialFeedInfo` in
- * `lib/types/blocks.ts` for why). `InstagramFeedConfiguration` stays registered
- * on mobile on purpose, and the web model keeps `"instagram"` in
- * `FeedConfiguration` for the same reason: websites already containing an
- * `instagram` block must still deserialize, render and stay editable.
+ * What DOES hold it down — and makes this, like the two flags above, a
+ * parse-safety gate now — is the mobile release: `instagram_connected` is
+ * registered in `FeedConfiguration.all` only on `feature/template-sites`, and
+ * on every build shipped to date `FeedConfiguration.values[…]!` throws on it
+ * and fails the parse of the WHOLE page. Flip it per-environment once the
+ * mobile release carrying that branch is live. Legacy `"instagram"` blocks
+ * stay parseable, renderable and editable regardless of this flag — see
+ * `StoredFeedConfiguration` in `lib/types/blocks.ts`.
  *
  * Env: `NEXT_PUBLIC_INSTAGRAM_FEED_ENABLED` — default **false**.
  */

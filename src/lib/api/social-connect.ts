@@ -26,9 +26,33 @@
  * `window.postMessage` is a global channel, so a TikTok popup posting back
  * could otherwise resolve an open Facebook sheet (and vice versa). There is no
  * `platform` on the OUTBOUND leg in any client — `meta/connect`,
- * `tiktok-integration/connect` and `instagram/connect` are separate routes;
+ * `tiktok-integration/connect` and `instagram-integration/connect` are separate routes;
  * disambiguation is purely a property of the RETURN.
  */
+
+/**
+ * The `return_to` sent (with `client=web`) on every `GET …/connect` request —
+ * the backend's web-return contract:
+ *
+ *   GET …/connect?client=web&return_to=<this URL>
+ *     → …?status=connected&connection_id=…&platform=meta|tiktok|instagram&username=…
+ *
+ * i.e. the server's OAuth callback sends the BROWSER here instead of the
+ * mobile app's `qshot://social` deep link, appending the result params ITSELF
+ * — which is why this URL must be BARE (no query of our own): the callback
+ * appends `?status=…&platform=…`, and a pre-existing `?` would corrupt it.
+ * Note Facebook comes back as `platform=meta` — `isMetaReturn()` below accepts
+ * it. The landing page (`/social-connected`) posts `{platform, status}` to the
+ * builder window and closes; `returnPlatform()` reads exactly that shape.
+ *
+ * Origin-based on purpose: app.qshot.com in production (the URL the backend
+ * allow-lists), localhost in dev. The refocus + re-list fallback stays for
+ * blocked `window.close()` and for hosts predating this contract.
+ */
+export function connectReturnUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  return `${window.location.origin}/social-connected`;
+}
 
 /** Reads `platform` off a posted message payload, a URL, or a URL string. */
 export function returnPlatform(payload: unknown): string | null {

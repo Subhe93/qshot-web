@@ -548,7 +548,8 @@
         "template-4": "Icons Website",
         "template-5": "Star Website",
         "template-6": "Signature Website",
-        "template-7": "Service Website"
+        "template-7": "Service Website",
+        "template-8": "Menu Website"
       },
       "sections": {
         "menu": "Menu",

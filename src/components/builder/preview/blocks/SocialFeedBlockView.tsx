@@ -3,56 +3,85 @@ import { dirOf } from "@/lib/builder/text-direction";
 import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
 /**
- * Read-only preview of a SocialFeedModule, mirroring the mobile `FeedWidget`.
+ * Read-only preview of a SocialFeedModule, mirroring the mobile `FeedWidget`
+ * (mobile `origin/feature/template-sites`, catalog 2026-08-12).
  *
- * The mobile widget fetches the live YouTube / Vimeo / Instagram feed and then
- * renders it through `RSSContent` (YouTube/Vimeo) or `InstagramProfile`
- * (Instagram). In the builder we cannot fetch external feeds, so — exactly like
- * the prompt asks — we render representative post tiles that honour the
- * `configuration` and `layout_type`, matching the mobile dimensions, ratios and
- * spacing precisely:
+ * Mobile routing (`editor/feed_widget.dart` · `_FeedContent._buildContent`):
  *
- *  - Header: title at horizontal 24, headlineMedium bold (`FeedWidget.build`).
- *  - YouTube / Vimeo (`RSSContent`):
- *      • list   → Column of 16:9 `VideoCard`s, horizontal 20, 5px vertical gaps.
- *      • swiper → AspectRatio (16/9 * 1.1), viewportFraction 0.9 centered card.
- *      • grid   → horizontal scroller of 148-high cards, horizontal 24, 4px gaps.
- *    `VideoCard`: 16:9, rounded-8, black38 outside border, white-0.2 fill,
- *    centered 60×60 translucent-white play circle (30×30 glyph), bottom title.
- *  - Instagram (`InstagramProfile`): optional gradient-ringed profile header +
- *    stats, then a 2-column square thumbnail grid (`SliverGridDelegateWithFixedCrossAxisCount`).
- *  - TikTok: mobile renders it through the same `VideoFeed`/`RSSContent` path
- *    as YouTube/Vimeo, so it reuses the `RssFeed` layouts above, with an
- *    account header from `info.username`.
+ *  - `youtube` / `vimeo`        → `RSSContent` (landscape 16:9 video cards —
+ *                                  unchanged from the previous catalog).
+ *  - `tiktok`                   → `TiktokFeedContent` (NEW): portrait 9:14
+ *                                  TikTok-styled cover cards on black, NOT the
+ *                                  landscape treatment it used to share with
+ *                                  YouTube/Vimeo. Tapping opens the video on
+ *                                  TikTok (display rules require linking out).
+ *  - `facebook` /
+ *    `instagram_connected`      → `PostFeedContent` (REWORKED): profile byline
+ *                                  (`settings.show_profile_details`) + a
+ *                                  vertical stack of native-looking post cards
+ *                                  with caption, media and a Like/Comment/Share
+ *                                  affordance row. Badge, media crop and action
+ *                                  icons adapt to the platform.
+ *  - legacy `instagram`         → `InstagramProfile` (unchanged).
+ *
+ * The mobile widget fetches the live feed (`FeedDisplayCubit`) and renders the
+ * result. In the builder we cannot: the posts are NEVER stored in the website
+ * JSON — YouTube/Vimeo come from public RSS, and the connect-flow providers
+ * (`facebook` via `meta/feed`, `instagram_connected` via `instagram/feed`,
+ * `tiktok` via `tiktok-integration/`) are fetched by the PUBLIC renderer
+ * server-side (with the visitor-IP forwarding secret — those endpoints are
+ * deliberately never called from the browser, see `src/lib/api/instagram.ts`).
+ * So — as before — we render representative placeholder tiles that honour
+ * `configuration`, `layout_type` and `posts_count`, matching the mobile
+ * dimensions, ratios, colors and spacing precisely.
+ *
+ * Shared chrome (`FeedWidget.build`):
+ *  - Header: title at horizontal 24, headlineMedium bold.
  *  - Trailing divider at horizontal 20, indent/endIndent 8, foreground @ 0.2.
  *
  * `posts_count` (default 4 — mobile `postsCount` default) caps the tile count.
  *
- * NOTE: the preview never fetches a live feed for ANY provider — not the two
- * link-based ones, and not the connect-flow ones (`facebook` via `meta/feed`,
- * `tiktok` via `tiktok-integration/`), whose posts are fetched server-side and
- * are never stored in the website JSON. Everything here is a placeholder.
- *
- * `instagram` is still fully rendered even though mobile `20941620` withheld it
- * from the new-block selector (business_discovery → Business Login OAuth
- * pivot): the value stays valid in stored documents and must keep rendering.
+ * `instagram` (legacy business_discovery) is still fully rendered even though
+ * mobile `20941620` withheld it from the new-block selector: the value stays
+ * valid in stored documents and must keep rendering. Its connect-flow
+ * successor is the separate `instagram_connected` configuration
+ * (`InstagramConnectedFeedConfiguration`, info `{connection_id, ig_user_id,
+ * username}`), which renders through the shared PostFeed below.
  */
 // Mobile FeedConfiguration.defaultTitleValue — used when no title is set.
 const DEFAULT_FEED_TITLE: Record<string, string> = {
   youtube: "YouTube Videos",
   vimeo: "Vimeo Showcase",
   instagram: "Instagram Feed",
-  facebook: "Facebook Feed",
+  // FacebookFeedConfiguration.defaultTitleValue is plain "Facebook".
+  facebook: "Facebook",
   // TiktokFeedConfiguration.defaultTitleValue is plain "TikTok" (not "… Feed").
   tiktok: "TikTok",
+  // InstagramConnectedFeedConfiguration.defaultTitleValue.
+  instagram_connected: "Instagram",
 };
 
 const FACEBOOK_BLUE = "#1877F2";
+// tiktok_feed_content.dart — brand accents for the badge + bottom hairline.
+const TIKTOK_CYAN = "#25F4EE";
 const TIKTOK_PINK = "#FE2C55";
+// post_feed_content.dart `_instagramGradient` (topLeft → bottomRight).
+const INSTAGRAM_GRADIENT =
+  "linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)";
+// Mobile AppColors — the post cards sit on a FIXED light surface regardless of
+// the site theme (Material(color: AppColors.background)), so the ink inside
+// them is fixed too rather than using the site's foreground token.
+const CARD_BG = "#F2F2F7"; // AppColors.background
+const AVATAR_BG = "#E4E7ED"; // AppColors.grey.shade100
+/** AppColors.black (0xFF1F1F26) at the given alpha. */
+const ink = (alpha: number) => `rgba(31,31,38,${alpha})`;
 
 export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
   const desktop = useDesktopPreview();
-  const configuration = block.configuration;
+  // Widened to string: stored documents may carry `instagram_connected`
+  // (mobile `InstagramConnectedFeedConfiguration`) even where the
+  // `FeedConfiguration` union hasn't caught up yet.
+  const configuration: string = block.configuration;
   const title =
     (block.title ?? "").trim() || DEFAULT_FEED_TITLE[configuration] || "";
   const dir = dirOf(title);
@@ -60,9 +89,7 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
   // Mobile SocialFeedBlock.init default layout is "list".
   const layout = block.layout_type ?? "list";
 
-  const showProfileDetails =
-    (block.settings?.["show_profile_details"] as boolean | undefined) ?? true;
-
+  const username = (block.info?.["username"] as string | undefined) ?? "";
   const tiles = Array.from({ length: count });
 
   return (
@@ -86,21 +113,29 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
       <div className="h-[5px]" />
 
       {configuration === "instagram" ? (
-        <InstagramFeed tiles={tiles} showProfileDetails={showProfileDetails} />
-      ) : configuration === "tiktok" ? (
-        <TikTokFeed
+        <InstagramFeed
           tiles={tiles}
-          layout={layout}
-          username={(block.info?.["username"] as string | undefined) ?? ""}
-          connected={!!block.info?.["connection_id"]}
+          // Legacy InstagramProfile defaults show_profile_details to TRUE.
+          showProfileDetails={
+            (block.settings?.["show_profile_details"] as boolean | undefined) ??
+            true
+          }
         />
-      ) : configuration === "facebook" ? (
-        <FacebookFeed
+      ) : configuration === "tiktok" ? (
+        <TikTokFeed tiles={tiles} layout={layout} />
+      ) : configuration === "facebook" ||
+        configuration === "instagram_connected" ? (
+        <PostFeed
           tiles={tiles}
-          layout={layout}
-          showProfileDetails={showProfileDetails}
-          pageName={(block.info?.["username"] as string | undefined) ?? ""}
-          connected={!!block.info?.["connection_id"] && !!block.info?.["page_id"]}
+          platform={configuration === "facebook" ? "facebook" : "instagram"}
+          // PostFeedContent defaults show_profile_details to FALSE (unlike the
+          // legacy InstagramProfile path); the configurations write `true`
+          // into settings on creation, so this only matters for old blocks.
+          showProfileDetails={
+            (block.settings?.["show_profile_details"] as boolean | undefined) ??
+            false
+          }
+          name={username}
         />
       ) : (
         <RssFeed tiles={tiles} layout={layout} />
@@ -204,182 +239,474 @@ function VideoCard({ fill = false }: { fill?: boolean }) {
           className="flex size-[60px] items-center justify-center rounded-full"
           style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
         >
-          <svg width={30} height={30} viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
-            <path d="M8 5v14l11-7z" />
-          </svg>
+          <PlayGlyph size={30} />
         </span>
       </div>
     </div>
   );
 }
 
-// ─── TikTok (video feed) ─────────────────────────────────────────────────────
+// ─── TikTok (TiktokFeedContent) ──────────────────────────────────────────────
 
 /**
- * Placeholder render of a TikTok feed (mobile catalog 2026-08-03, commit
- * `121470ef`). Mobile pipes TikTok through the same `VideoFeed`/`RSSContent`
- * path as YouTube and Vimeo — cover image plus a link out to TikTok — so it
- * honours all three `layout_type` values, and we reuse `RssFeed`/`VideoCard`
- * verbatim rather than inventing a second video card.
+ * Placeholder render of `tiktok_feed_content.dart` — portrait 9:14 cover
+ * cards on black, the way TikTok itself presents videos, NOT the landscape
+ * treatment shared by YouTube/Vimeo. The block's `layout_type` still controls
+ * the arrangement, remapped exactly like mobile:
  *
- * Like Facebook, the videos live behind a server-side connect flow
- * (`tiktok-integration/`, keyed by `info.connection_id`) and are never stored
- * in the website JSON. The builder preview does **not** fetch any provider's
- * live feed, so this shows representative tiles capped by `posts_count`,
- * preceded by an account header built from `info.username` (display only —
- * TikTok's API scope returns the connected user's OWN videos, so the username
- * can never point the feed at another account).
+ *  - swiper → TikTok's one-at-a-time swipe: AspectRatio 9/14 viewport,
+ *             viewportFraction 0.62 snap slides (mobile also scales the
+ *             neighbours to 0.92 — a live-swipe effect we skip in a static
+ *             preview).
+ *  - list   → a 2-column portrait grid (TikTok's profile grid), 8px gaps,
+ *             horizontal 16.
+ *  - grid   → a horizontal scroll row of 220-high cards (width 220·9/14),
+ *             8px gaps, horizontal 16.
+ *
+ * On mobile, tapping a card opens the video ON TikTok (`launchUrlExternal`) —
+ * TikTok's display rules require linking out — which is a no-op in the builder
+ * canvas, like every other feed. Unlike the post feeds, TikTok has NO profile
+ * header (`TiktokFeedConfiguration` carries no `show_profile_details`).
  */
 function TikTokFeed({
   tiles,
   layout,
-  username,
-  connected,
 }: {
   tiles: unknown[];
   layout: SocialFeedBlock["layout_type"];
-  username: string;
-  connected: boolean;
 }) {
-  return (
-    <div>
-      <TikTokHeader username={username} connected={connected} />
-      <RssFeed tiles={tiles} layout={layout} />
-    </div>
-  );
-}
-
-function TikTokHeader({ username, connected }: { username: string; connected: boolean }) {
-  return (
-    <div className="flex items-center gap-2.5 px-5 pb-3">
-      <span
-        className="flex size-11 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
-        style={{ backgroundColor: TIKTOK_PINK }}
-      >
-        {(username || "T").trim().charAt(0).toUpperCase()}
-      </span>
-      <div className="min-w-0">
-        {username ? (
-          <p className="truncate text-sm font-bold text-foreground">{username}</p>
-        ) : (
-          <div className="h-4 w-28 rounded bg-foreground/20" />
-        )}
-        {connected ? (
-          <p className="text-xs text-muted-foreground">TikTok</p>
-        ) : (
-          <div className="mt-1.5 h-3 w-20 rounded bg-foreground/10" />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Facebook Page (Meta feed) ───────────────────────────────────────────────
-
-/**
- * Placeholder render of a Facebook Page feed. The real posts are fetched
- * server-side from `meta/feed` using `info.connection_id` and are never stored
- * in the website JSON, so — like the other providers — the builder preview
- * shows representative post cards honouring `layout_type` and `posts_count`,
- * preceded by the Page header when `settings.show_profile_details` is on.
- */
-function FacebookFeed({
-  tiles,
-  layout,
-  showProfileDetails,
-  pageName,
-  connected,
-}: {
-  tiles: unknown[];
-  layout: SocialFeedBlock["layout_type"];
-  showProfileDetails: boolean;
-  pageName: string;
-  connected: boolean;
-}) {
-  const post = (key: number) => (
-    <div
-      key={key}
-      className="overflow-hidden rounded-xl"
-      style={{ border: "1px solid rgba(0,0,0,0.10)", backgroundColor: "rgba(255,255,255,0.2)" }}
-    >
-      {/* author row */}
-      <div className="flex items-center gap-2 p-2.5">
-        <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white"
-          style={{ backgroundColor: FACEBOOK_BLUE }}
-        >
-          {(pageName || "F").trim().charAt(0).toUpperCase()}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block h-3 w-24 max-w-full rounded bg-foreground/20" />
-          <span className="mt-1 block h-2 w-14 max-w-full rounded bg-foreground/10" />
-        </span>
-      </div>
-      {/* media */}
-      <div className="aspect-[4/3] w-full bg-black/10" />
-      {/* caption */}
-      <div className="space-y-1.5 p-2.5">
-        <div className="h-2.5 w-11/12 rounded bg-foreground/15" />
-        <div className="h-2.5 w-3/5 rounded bg-foreground/10" />
-      </div>
-    </div>
-  );
-
-  return (
-    <div>
-      {showProfileDetails && <FacebookHeader pageName={pageName} connected={connected} />}
-
-      {layout === "grid" ? (
-        <div className="overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex items-start">
-            {tiles.map((_, i) => (
-              <div key={i} className="w-[220px] shrink-0 px-1">
-                {post(i)}
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : layout === "swiper" ? (
-        <div className="flex snap-x snap-mandatory overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+  if (layout === "swiper") {
+    return (
+      <div className="w-full" style={{ aspectRatio: "9 / 14" }}>
+        <div className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tiles.map((_, i) => (
-            <div key={i} className="w-[90%] shrink-0 snap-center px-1">
-              {post(i)}
+            <div key={i} className="h-full w-[62%] shrink-0 snap-center px-1">
+              <TikTokCard />
             </div>
           ))}
         </div>
-      ) : (
-        <div className="flex flex-col gap-2.5 px-5">{tiles.map((_, i) => post(i))}</div>
-      )}
+      </div>
+    );
+  }
+
+  if (layout === "grid") {
+    return (
+      <div className="overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex items-start gap-2">
+          {tiles.map((_, i) => (
+            // SizedBox(height: 220, width: 220 * 9 / 14 ≈ 141)
+            <div key={i} className="h-[220px] w-[141px] shrink-0">
+              <TikTokCard />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // list — 2-column grid, childAspectRatio 9/14, 8px gaps, horizontal 16.
+  return (
+    <div className="grid grid-cols-2 gap-2 px-4">
+      {tiles.map((_, i) => (
+        <div key={i} style={{ aspectRatio: "9 / 14" }}>
+          <TikTokCard />
+        </div>
+      ))}
     </div>
   );
 }
 
-function FacebookHeader({ pageName, connected }: { pageName: string; connected: boolean }) {
+/**
+ * Mirrors mobile `_TiktokCard`: rounded-14 black card, cover image (empty
+ * state = dim glyph on black), bottom caption over a transparent→black-0.85
+ * gradient (2 lines, 12px w600 white — bars here), a 26×26 music badge at the
+ * top end (black-0.45, 1px cyan-0.6 ring), a centered 46×46 play circle
+ * (black-0.3, 1.5px white-0.85 ring, 26px glyph) and a 3px cyan→pink brand
+ * hairline along the bottom.
+ */
+function TikTokCard() {
   return (
-    <div className="flex items-center gap-2.5 px-5 pb-3">
-      <span
-        className="flex size-11 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
-        style={{ backgroundColor: FACEBOOK_BLUE }}
+    <div className="relative size-full overflow-hidden rounded-[14px] bg-black">
+      {/* empty-thumbnail state: centered dim image glyph (white24) */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <svg
+          width={36}
+          height={36}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="rgba(255,255,255,0.24)"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+          <circle cx="9" cy="9" r="2" />
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+        </svg>
+      </div>
+
+      {/* caption over gradient — padding (10, 24, 10, 10) */}
+      <div
+        className="absolute inset-x-0 bottom-0 px-2.5 pb-2.5 pt-6"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent, rgba(0,0,0,0.85))",
+        }}
       >
-        {(pageName || "F").trim().charAt(0).toUpperCase()}
+        <div className="h-2.5 w-11/12 rounded bg-white/50" />
+        <div className="mt-1 h-2.5 w-3/5 rounded bg-white/30" />
+      </div>
+
+      {/* TikTok note badge — top end, 26×26 */}
+      <span
+        className="absolute end-2 top-2 flex size-[26px] items-center justify-center rounded-full"
+        style={{
+          backgroundColor: "rgba(0,0,0,0.45)",
+          border: `1px solid rgba(37,244,238,0.6)`,
+        }}
+      >
+        <svg
+          width={12}
+          height={12}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M9 18V5l12-2v13" />
+          <circle cx="6" cy="18" r="3" />
+          <circle cx="18" cy="16" r="3" />
+        </svg>
       </span>
-      <div className="min-w-0">
-        {pageName ? (
-          <p className="truncate text-sm font-bold text-foreground">{pageName}</p>
+
+      {/* centered 46×46 play circle */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span
+          className="flex size-[46px] items-center justify-center rounded-full"
+          style={{
+            backgroundColor: "rgba(0,0,0,0.3)",
+            border: "1.5px solid rgba(255,255,255,0.85)",
+          }}
+        >
+          <PlayGlyph size={26} />
+        </span>
+      </div>
+
+      {/* 3px cyan→pink brand hairline */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-[3px]"
+        style={{
+          background: `linear-gradient(to right, ${TIKTOK_CYAN}, ${TIKTOK_PINK})`,
+        }}
+      />
+    </div>
+  );
+}
+
+function PlayGlyph({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+// ─── Facebook / Instagram connected (PostFeedContent) ────────────────────────
+
+type PostPlatform = "facebook" | "instagram";
+
+/**
+ * Per-platform look-and-feel, mirroring mobile `_Brand`
+ * (post_feed_content.dart): badge icon + background, media crop, and the
+ * engagement action row. `_Brand.of` derives it from the feed profile's
+ * `platform`; here the configuration already tells us
+ * (facebook → facebook, instagram_connected → instagram).
+ */
+const POST_BRAND: Record<
+  PostPlatform,
+  {
+    /** CSS aspect-ratio of the media area. */
+    aspect: string;
+    /** CSS background of the byline badge circle. */
+    badgeBackground: string;
+    actions: readonly { icon: ActionIconName; label: string }[];
+  }
+> = {
+  facebook: {
+    aspect: "4 / 3", // Facebook's typical link/photo post crop.
+    badgeBackground: FACEBOOK_BLUE,
+    actions: [
+      { icon: "thumbsUp", label: "Like" },
+      { icon: "comment", label: "Comment" },
+      { icon: "shareFromSquare", label: "Share" },
+    ],
+  },
+  instagram: {
+    aspect: "1 / 1", // Instagram posts are square.
+    badgeBackground: INSTAGRAM_GRADIENT,
+    actions: [
+      { icon: "heart", label: "Like" },
+      { icon: "comment", label: "Comment" },
+      { icon: "paperPlane", label: "Share" },
+    ],
+  },
+};
+
+/**
+ * Placeholder render of the reworked `PostFeedContent` — shared by
+ * `facebook` (info `{connection_id, page_id}`) and `instagram_connected`
+ * (info `{connection_id, ig_user_id}`): an optional profile byline
+ * (`settings.show_profile_details`), then a VERTICAL STACK of post cards.
+ * Mobile renders the same stack for every `layout_type` — the post feed has
+ * no swiper/grid variants — so the preview does too.
+ *
+ * Like every provider here, the real posts are fetched by the PUBLIC renderer
+ * server-side (`meta/feed`, `instagram/feed`) and never from the browser, so
+ * the cards are representative placeholders capped by `posts_count`. On
+ * mobile a card tap opens the post's permalink; a no-op on the canvas.
+ */
+function PostFeed({
+  tiles,
+  platform,
+  showProfileDetails,
+  name,
+}: {
+  tiles: unknown[];
+  platform: PostPlatform;
+  showProfileDetails: boolean;
+  name: string;
+}) {
+  return (
+    <div>
+      {showProfileDetails && <PostByline platform={platform} name={name} />}
+      {tiles.map((_, i) => (
+        // Card padding — EdgeInsets.fromLTRB(16, 0, 16, 12)
+        <div key={i} className="px-4 pb-3">
+          <PostCard platform={platform} name={name} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Mobile `_ProfileByline`: 44px avatar with a brand badge overlapping its
+ * bottom end (white 3px ring around a 4px-padded brand circle, 11px glyph),
+ * then name (bodyLarge bold) and a follower count (bodySmall, ink 0.5) — the
+ * count is server data we never have in the builder, so it stays a bar.
+ */
+function PostByline({
+  platform,
+  name,
+}: {
+  platform: PostPlatform;
+  name: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 px-4 pb-3">
+      <span className="relative shrink-0">
+        <span
+          className="block size-11 rounded-full"
+          style={{ backgroundColor: AVATAR_BG }}
+        />
+        {/* PositionedDirectional(bottom: -2, end: -2) */}
+        <span className="absolute -bottom-0.5 -end-0.5 block rounded-full bg-white p-[3px]">
+          <span
+            className="flex items-center justify-center rounded-full p-1"
+            style={{ background: POST_BRAND[platform].badgeBackground }}
+          >
+            <BrandGlyph platform={platform} size={11} />
+          </span>
+        </span>
+      </span>
+      <div className="min-w-0 flex-1">
+        {name ? (
+          <p className="truncate text-base font-bold text-foreground">{name}</p>
         ) : (
           <div className="h-4 w-28 rounded bg-foreground/20" />
         )}
-        {connected ? (
-          <p className="text-xs text-muted-foreground">Facebook Page</p>
-        ) : (
-          <div className="mt-1.5 h-3 w-20 rounded bg-foreground/10" />
-        )}
+        {/* "1.2K followers" on mobile — unknown here, so a placeholder bar. */}
+        <div className="mt-1.5 h-3 w-20 rounded bg-foreground/10" />
       </div>
     </div>
   );
 }
 
-// ─── Instagram (InstagramProfile) ────────────────────────────────────────────
+/**
+ * Mobile `_PostCard`: rounded-14 card on the FIXED light AppColors.background
+ * surface (no border) containing — page row (24px avatar + 12px w700 name,
+ * padding 12/10/12/6), caption (bodyMedium ×4 lines max, padding 12/2/12/10 —
+ * bars here), the media crop, a 1px ink-0.08 divider, and three equal
+ * Like/Comment/Share affordances (14px icon + bodySmall w600 label,
+ * ink 0.55, 10px vertical padding). The affordances are purely visual on
+ * mobile too — the whole card is one tap target.
+ */
+function PostCard({
+  platform,
+  name,
+}: {
+  platform: PostPlatform;
+  name: string;
+}) {
+  const brand = POST_BRAND[platform];
+  return (
+    <div
+      className="overflow-hidden rounded-[14px]"
+      style={{ backgroundColor: CARD_BG }}
+    >
+      {/* page row — EdgeInsets.fromLTRB(12, 10, 12, 6) */}
+      <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
+        <span
+          className="size-6 shrink-0 rounded-full"
+          style={{ backgroundColor: AVATAR_BG }}
+        />
+        {name ? (
+          <p
+            className="min-w-0 flex-1 truncate text-xs font-bold"
+            style={{ color: ink(0.9) }}
+          >
+            {name}
+          </p>
+        ) : (
+          <span
+            className="block h-2.5 w-24 rounded"
+            style={{ backgroundColor: ink(0.2) }}
+          />
+        )}
+      </div>
+
+      {/* caption — EdgeInsets.fromLTRB(12, 2, 12, 10) */}
+      <div className="space-y-1.5 px-3 pb-2.5 pt-0.5">
+        <div
+          className="h-2.5 w-11/12 rounded"
+          style={{ backgroundColor: ink(0.15) }}
+        />
+        <div
+          className="h-2.5 w-3/5 rounded"
+          style={{ backgroundColor: ink(0.1) }}
+        />
+      </div>
+
+      {/* media — 4:3 for Facebook, square for Instagram */}
+      <div
+        className="w-full bg-black/10"
+        style={{ aspectRatio: brand.aspect }}
+      />
+
+      <div className="h-px" style={{ backgroundColor: ink(0.08) }} />
+
+      {/* engagement affordances */}
+      <div className="flex">
+        {brand.actions.map(({ icon, label }) => (
+          <span
+            key={label}
+            className="flex flex-1 items-center justify-center gap-1.5 py-2.5"
+          >
+            <ActionGlyph name={icon} size={14} color={ink(0.55)} />
+            <span
+              className="text-xs font-semibold"
+              style={{ color: ink(0.55) }}
+            >
+              {label}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type ActionIconName = "thumbsUp" | "comment" | "shareFromSquare" | "heart" | "paperPlane";
+
+const ACTION_PATHS: Record<ActionIconName, React.ReactNode> = {
+  thumbsUp: (
+    <>
+      <path d="M7 10v12" />
+      <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+    </>
+  ),
+  comment: <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />,
+  shareFromSquare: (
+    <>
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" x2="12" y1="2" y2="15" />
+    </>
+  ),
+  heart: (
+    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+  ),
+  paperPlane: (
+    <>
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </>
+  ),
+};
+
+function ActionGlyph({
+  name,
+  size,
+  color,
+}: {
+  name: ActionIconName;
+  size: number;
+  color: string;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {ACTION_PATHS[name]}
+    </svg>
+  );
+}
+
+function BrandGlyph({
+  platform,
+  size,
+}: {
+  platform: PostPlatform;
+  size: number;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#ffffff"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {platform === "facebook" ? (
+        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+      ) : (
+        <>
+          <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+          <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+// ─── Instagram (legacy `InstagramProfile`) ───────────────────────────────────
 
 function InstagramFeed({
   tiles,

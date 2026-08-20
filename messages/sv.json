@@ -548,7 +548,8 @@
         "template-4": "Ikonwebbplats",
         "template-5": "Stjärnwebbplats",
         "template-6": "Signaturwebbplats",
-        "template-7": "Tjänstewebbplats"
+        "template-7": "Tjänstewebbplats",
+        "template-8": "Menywebbplats"
       },
       "sections": {
         "menu": "Meny",

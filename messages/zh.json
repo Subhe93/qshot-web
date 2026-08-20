@@ -548,7 +548,8 @@
         "template-4": "图标网站",
         "template-5": "明星网站",
         "template-6": "签名网站",
-        "template-7": "服务网站"
+        "template-7": "服务网站",
+        "template-8": "菜单网站"
       },
       "sections": {
         "menu": "菜单",

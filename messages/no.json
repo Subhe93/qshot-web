@@ -548,7 +548,8 @@
         "template-4": "Ikonnettsted",
         "template-5": "Stjernenettsted",
         "template-6": "Signaturnettsted",
-        "template-7": "Tjenestenettsted"
+        "template-7": "Tjenestenettsted",
+        "template-8": "Menynettsted"
       },
       "sections": {
         "menu": "Meny",

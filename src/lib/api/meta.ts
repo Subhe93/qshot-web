@@ -1,5 +1,6 @@
 import { HTTPError } from "ky";
 import { api } from "./client";
+import { connectReturnUrl } from "./social-connect";
 
 /**
  * Meta (Facebook Page) feed endpoints.
@@ -115,7 +116,19 @@ async function guard<T>(
  */
 export async function getMetaConnectUrl(): Promise<MetaResult<string | null>> {
   return guard<string | null>(async () => {
-    const d = unwrap(await api.get("meta/connect").json());
+    // `client=web` + `return_to`: the backend's web-return contract (see
+    // social-connect.ts) — the callback redirects the popup back to us with
+    // `?status=…&platform=meta&…` instead of the app's `qshot://` deep link.
+    const returnTo = connectReturnUrl();
+    const d = unwrap(
+      await api
+        .get("meta/connect", {
+          searchParams: returnTo
+            ? { client: "web", return_to: returnTo }
+            : undefined,
+        })
+        .json(),
+    );
     if (typeof d === "string") return d;
     const obj = (d ?? {}) as Record<string, unknown>;
     const url = obj.url ?? obj.authUrl ?? obj.auth_url ?? obj.redirect ?? obj.link;

@@ -431,6 +431,13 @@ export function BuilderShell({
   // stack), then open the Theme sheet over the visible canvas.
   function openThemeSheet() {
     if (!TEMPLATES_ENABLED) return;
+    // Guard from the mobile handover doc (README-form-mobile.md §8 item 1):
+    // with a SUB-PAGE open, the sheet would resolve/apply against the
+    // sub-page's blocks — templating the sub-page and overwriting the whole
+    // site's hero settings. Mobile's auto-gate checks isMainPage but its
+    // manual path is still exposed ("needs a decision" on their side); we take
+    // the doc's suggested fix — templates always operate on the home page.
+    if (useEditorStore.getState().pageId !== null) exitToHome();
     setThemeIsGate(false); // manual open — dismissing writes no marker
     select(null);
     editHero(null);

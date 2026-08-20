@@ -1,18 +1,33 @@
-import { HTTPError } from "ky";
-import { api } from "./client";
+import ky, { HTTPError } from "ky";
+import { api, API_BASE } from "./client";
+import { connectReturnUrl } from "./social-connect";
 
 /**
- * Instagram **Business Login** endpoints (`instagram/…`).
+ * Instagram **Business Login** endpoints (`instagram-integration/…`).
  *
  * Module-direct routes (NO `q-profile` prefix) backing the `SocialFeedModule`
- * with `configuration: "instagram"` in its *connected* shape. Contract:
- * `app-mobile-project/q-profile-flutter` →
- * `docs/plans/social-instagram-feed/server-contract.md` §2.
+ * with `configuration: "instagram_connected"` (and interim web-written
+ * `"instagram"` blocks in the connected shape). Contract:
+ * `app-mobile-project/q-profile-flutter` branch `feature/template-sites` →
+ * `docs/plans/social-instagram-feed/server-contract.md` §2, mirrored by mobile
+ * `Links.instagram*`. Note the base is `instagram-integration/`, not
+ * `instagram/` — the same rename TikTok shipped with (`tiktok-integration/`):
  *
- *   GET    instagram/connect            → { auth_url, state }   (owner)
- *   GET    instagram/callback?code&state→ Instagram redirect     (server-side)
- *   GET    instagram/feed               → PUBLIC render endpoint (server-side)
- *   DELETE instagram/connections/{id}   → drop a connection      (owner)
+ *   GET    instagram-integration/connect            → { auth_url, state } (owner)
+ *   GET    instagram-integration/callback           → Instagram redirect (server-side)
+ *   GET    instagram-integration/feed               → PUBLIC normalized PostFeed
+ *   DELETE instagram-integration/connections/{id}   → drop a connection  (owner)
+ *
+ * The routes are LIVE — verified 2026-08-12 on api.qshot.com:
+ * `instagram-integration/feed?connection_id=x` answers the contract's own
+ * `404 {"error":{"code":"not_found","message":"Unknown connection_id."}}` and
+ * `instagram-integration/connect` answers `401 connection_unauthorized`
+ * without a bearer — real handlers, not the router's catch-all. The old
+ * `instagram/*` paths (an earlier draft of the contract) are dead, which is
+ * why this module no longer sniffs the router's HTTP-400 "Route not found"
+ * envelope: that special case existed to tell "namespace not deployed" apart
+ * from a live route's 400, and a live `instagram-integration/feed` really does
+ * answer `400 invalid_request` for bad params (§5).
  *
  * ⚠️ This is a DIFFERENT app identity from `./meta`. Business Login for
  * Instagram uses an Instagram App ID/Secret and `api.instagram.com` +
@@ -21,26 +36,22 @@ import { api } from "./client";
  * separately accepts `platform=instagram` (Instagram-via-a-Facebook-Page) —
  * that is the OTHER integration and is not what this module talks to.
  *
- * `instagram/feed` is not called from the browser at all: it is the public
- * render path, hit server-side by the published site. The builder only ever
- * needs connect + list + delete.
- *
- * ⚠️ `GET instagram/connections` (the LIST) is **not** in the published
- * contract — mobile never needs it, because it learns the new `connection_id`
- * straight from the `qshot://social/connected?…` deep link. A browser cannot
- * read a cross-origin popup's result, so this client asks for the list anyway
- * (the natural REST sibling of the documented DELETE) and, when it is missing,
- * the call resolves `unavailable` and the sheet degrades to a plain "not
+ * ⚠️ `GET instagram-integration/connections` (the LIST) is **not** in the
+ * published contract — mobile never needs it, because
+ * `instagram_connect_cubit.dart` learns the new `connection_id` straight from
+ * the `qshot://social/connected?connection_id=…&platform=instagram&…` deep
+ * link. A browser cannot read a cross-origin popup's result, so this client
+ * asks for the list anyway, on the path mobile already reserves for it
+ * (`Links.instagramConnections` = `instagram-integration/connections`, the
+ * natural REST sibling of the documented DELETE). When the host doesn't serve
+ * it, the call resolves `unavailable` and the sheet degrades to a plain "not
  * available right now" panel with Retry. Identical treatment to
  * `listTiktokConnections`.
  *
- * ⚠️ NONE of these routes are deployed yet. Verified 2026-08-06 against both
- * API hosts: `instagram/connect`, `instagram/connections` and `instagram/feed`
- * all answer the router's not-found envelope, while `meta/feed` and
- * `tiktok-integration/connect` answer for real. Every call below therefore
- * resolves to a result object carrying `unavailable` / `failed` instead of
- * throwing — same contract as `./meta` and `./tiktok` — so the UI never hangs
- * and never crashes.
+ * connect / list / delete resolve to a result object carrying `unavailable` /
+ * `failed` instead of throwing — same contract as `./meta` and `./tiktok` — so
+ * the UI never hangs and never crashes. `getInstagramConnectedFeed` is the one
+ * deliberate exception; see its note.
  */
 
 // ─── Models ─────────────────────────────────────────────────────────────────
@@ -73,10 +84,10 @@ export interface InstagramConnection {
   [key: string]: unknown;
 }
 
-/** Result wrapper: `unavailable` means the `instagram/*` routes are missing. */
+/** Result wrapper: `unavailable` means the endpoint is missing on this host. */
 export interface InstagramResult<T> {
   data: T;
-  /** true when the host says the route does not exist — not deployed. */
+  /** true when the endpoint answered 404 / 501 — not served here. */
   unavailable: boolean;
   /** true for any other failure (network, 5xx, auth) — retrying may help. */
   failed: boolean;
@@ -102,40 +113,12 @@ function pickArray<T>(res: unknown, ...keys: string[]): T[] {
   return [];
 }
 
-/**
- * Is this failure "the route isn't deployed here" rather than "the call went
- * wrong"?
- *
- * 404/501 are the textbook answers and are what `./meta` and `./tiktok` look
- * for. The qshot API does NOT always use them: measured 2026-08-06, an unknown
- * path on api.qshot.com and api.speaknet.app answers **HTTP 400** with
- *
- *     {"error":{"name":"Not Found","description":"Route not found",…}}
- *
- * (`/nonsense/route` answers identically, which is what proves it is the
- * router's catch-all and not an argument complaint from a real handler). A
- * plain status check would classify the entire undeployed `instagram/*`
- * namespace as `failed`, i.e. show a generic error instead of the honest
- * "not available yet" panel. So we also sniff that envelope — and only that
- * envelope, so a genuine `400 invalid_request` from the live route later still
- * reads as a failure.
- */
-async function isMissingRoute(e: unknown): Promise<boolean> {
-  if (!(e instanceof HTTPError)) return false;
-  const status = e.response.status;
-  if (status === 404 || status === 501) return true;
-  if (status !== 400) return false;
-  try {
-    // `clone()` so the caller's own error handling can still read the body.
-    const body = (await e.response.clone().json()) as {
-      error?: { name?: unknown; description?: unknown };
-    } | null;
-    const name = String(body?.error?.name ?? "").toLowerCase();
-    const description = String(body?.error?.description ?? "").toLowerCase();
-    return name === "not found" || description === "route not found";
-  } catch {
-    return false;
-  }
+/** 404/501 ⇒ the endpoint simply isn't served on this API host. */
+function isMissingRoute(e: unknown): boolean {
+  return (
+    e instanceof HTTPError &&
+    (e.response.status === 404 || e.response.status === 501)
+  );
 }
 
 async function guard<T>(
@@ -145,20 +128,26 @@ async function guard<T>(
   try {
     return { data: await run(), unavailable: false, failed: false };
   } catch (e) {
-    const missing = await isMissingRoute(e);
-    return { data: empty, unavailable: missing, failed: !missing };
+    return {
+      data: empty,
+      unavailable: isMissingRoute(e),
+      failed: !isMissingRoute(e),
+    };
   }
 }
 
 // ─── Endpoints ──────────────────────────────────────────────────────────────
 
 /**
- * GET `instagram/connect` → the Instagram authorization URL to open in a popup.
+ * GET `instagram-integration/connect` → the Instagram authorization URL to
+ * open in a popup.
  *
- * Contract §2.1 answers `{ auth_url, state }`; we accept the same aliases the
- * Meta/TikTok clients tolerate so one spelling difference never breaks the flow.
- * `state` is the server's single-use CSRF token — it is embedded in `auth_url`
- * and the client has no use for it, so it is not surfaced.
+ * Contract §2.1 answers `{ auth_url, state }`; mobile reads
+ * `data["auth_url"] ?? data["data"]?["auth_url"]` and we accept the same two
+ * shapes plus the aliases the Meta client happens to use, so one spelling
+ * difference never breaks the flow. `state` is the server's single-use CSRF
+ * token — it is embedded in `auth_url` and the client has no use for it, so it
+ * is not surfaced.
  *
  * There is NO `platform` parameter on this leg — the route itself is
  * provider-specific. Disambiguation happens on the RETURN (`isInstagramReturn`).
@@ -167,7 +156,19 @@ export async function getInstagramConnectUrl(): Promise<
   InstagramResult<string | null>
 > {
   return guard<string | null>(async () => {
-    const d = unwrap(await api.get("instagram/connect").json());
+    // `client=web` + `return_to`: the backend's web-return contract (see
+    // social-connect.ts) — the callback redirects the popup back to us with
+    // `?status=…&platform=instagram&…` instead of the app's `qshot://` link.
+    const returnTo = connectReturnUrl();
+    const d = unwrap(
+      await api
+        .get("instagram-integration/connect", {
+          searchParams: returnTo
+            ? { client: "web", return_to: returnTo }
+            : undefined,
+        })
+        .json(),
+    );
     if (typeof d === "string") return d;
     const obj = (d ?? {}) as Record<string, unknown>;
     const url =
@@ -177,10 +178,12 @@ export async function getInstagramConnectUrl(): Promise<
 }
 
 /**
- * GET `instagram/connections` → the user's stored Instagram connections.
+ * GET `instagram-integration/connections` → the user's stored Instagram
+ * connections.
  *
- * Undocumented (see the module header). A not-found here is expected on every
- * host today and resolves to `{ unavailable: true }` rather than an exception.
+ * Undocumented (see the module header). A 404/501 here is expected on hosts
+ * that only deployed the four contracted routes and resolves to
+ * `{ unavailable: true }` rather than an exception.
  */
 export async function listInstagramConnections(): Promise<
   InstagramResult<InstagramConnection[]>
@@ -188,7 +191,7 @@ export async function listInstagramConnections(): Promise<
   return guard<InstagramConnection[]>(
     async () =>
       pickArray<InstagramConnection>(
-        await api.get("instagram/connections").json(),
+        await api.get("instagram-integration/connections").json(),
         "connections",
         "instagram_connections",
       ).filter((c) => !!connectionId(c)),
@@ -196,14 +199,151 @@ export async function listInstagramConnections(): Promise<
   );
 }
 
-/** DELETE `instagram/connections/{id}` — contract §2.4, answers 204. */
+/** DELETE `instagram-integration/connections/{id}` — contract §2.4, answers 204. */
 export async function deleteInstagramConnection(
   id: string,
 ): Promise<InstagramResult<boolean>> {
   return guard<boolean>(async () => {
-    await api.delete(`instagram/connections/${id}`);
+    await api.delete(`instagram-integration/connections/${id}`);
     return true;
   }, false);
+}
+
+// ─── Normalized feed (PostFeed) ─────────────────────────────────────────────
+
+/**
+ * The server's normalized post-feed envelope (contract §4) — "same envelope as
+ * the other feeds so the app has one model". Field-for-field mirror of mobile
+ * `post_feed.dart` (`PostFeed` / `PostProfile` / `PostFeedItem`), including
+ * its parse fallbacks, in the contract's own snake_case.
+ */
+export interface PostFeed {
+  profile: PostFeedProfile | null;
+  items: PostFeedItem[];
+}
+
+export interface PostFeedProfile {
+  /** `"instagram"` here; the envelope is shared with meta/tiktok. */
+  platform: string;
+  username: string;
+  /** Mobile falls back to `username` when the server omits `name`; so do we. */
+  name: string;
+  avatar_url: string | null;
+  followers_count: number | null;
+  profile_url: string | null;
+}
+
+/** Mobile `PostMediaType.parse`: anything unknown reads as `image`. */
+export type PostMediaType = "image" | "video" | "article";
+
+export interface PostFeedItem {
+  id: string;
+  type: PostMediaType;
+  /**
+   * Required on every item (§4). The server already falls back to `media_url`
+   * for images; mobile repeats that fallback client-side and so do we.
+   */
+  thumbnail_url: string;
+  media_url: string | null;
+  permalink: string | null;
+  title: string | null;
+  caption: string | null;
+  /** ISO-8601 UTC. */
+  timestamp: string | null;
+}
+
+const asStrOrNull = (v: unknown): string | null =>
+  typeof v === "string" ? v : null;
+
+function parsePostMediaType(v: unknown): PostMediaType {
+  return v === "video" || v === "article" ? v : "image";
+}
+
+function parsePostProfile(raw: Record<string, unknown>): PostFeedProfile {
+  const username = asStrOrNull(raw.username) ?? "";
+  return {
+    platform: asStrOrNull(raw.platform) ?? "",
+    username,
+    name: asStrOrNull(raw.name) ?? username,
+    avatar_url: asStrOrNull(raw.avatar_url),
+    followers_count:
+      typeof raw.followers_count === "number" ? raw.followers_count : null,
+    profile_url: asStrOrNull(raw.profile_url),
+  };
+}
+
+function parsePostFeedItem(raw: Record<string, unknown>): PostFeedItem {
+  return {
+    id: asStrOrNull(raw.id) ?? "",
+    type: parsePostMediaType(raw.type),
+    thumbnail_url:
+      asStrOrNull(raw.thumbnail_url) ?? asStrOrNull(raw.media_url) ?? "",
+    media_url: asStrOrNull(raw.media_url),
+    permalink: asStrOrNull(raw.permalink),
+    title: asStrOrNull(raw.title),
+    caption: asStrOrNull(raw.caption),
+    timestamp: asStrOrNull(raw.timestamp),
+  };
+}
+
+/** `PostFeed.fromJson`, tolerating the optional `{ status, data }` envelope. */
+export function parsePostFeed(res: unknown): PostFeed {
+  const d = unwrap(res);
+  const obj = d && typeof d === "object" ? (d as Record<string, unknown>) : {};
+  const profile =
+    obj.profile && typeof obj.profile === "object"
+      ? parsePostProfile(obj.profile as Record<string, unknown>)
+      : null;
+  const items = Array.isArray(obj.items)
+    ? obj.items
+        .filter((it): it is Record<string, unknown> => !!it && typeof it === "object")
+        .map(parsePostFeedItem)
+    : [];
+  return { profile, items };
+}
+
+/**
+ * `instagram-integration/feed` is PUBLIC (§2.3): the unguessable
+ * `connection_id` is the key, no bearer involved. It is deliberately NOT
+ * called through the shared `api` client: that client's afterResponse hook
+ * logs the user out of qshot on ANY 401, and this endpoint answers
+ * `401 connection_unauthorized` when the *Instagram* token has expired or been
+ * revoked (§5) — a condition that must surface as "reconnect this feed", never
+ * end the builder session. Same base URL and timeout/retry, no auth hooks.
+ */
+const publicApi = ky.create({
+  baseUrl: API_BASE,
+  timeout: 30_000,
+  retry: { limit: 1, methods: ["get"] },
+});
+
+/**
+ * GET `instagram-integration/feed` → the normalized `PostFeed` for one
+ * connection, for the builder preview. Mirrors mobile
+ * `InstagramConnectDataSource.getFeed`: `connection_id` required, `ig_user_id`
+ * sent only when non-empty ("a redundant safety check against the
+ * connection"), `limit` defaults to 12 (the server's default; max 24).
+ *
+ * Unlike connect/list/delete this THROWS (ky `HTTPError`) instead of resolving
+ * an `unavailable`/`failed` wrapper — exactly like the mobile data source. The
+ * guard's 404 ⇒ "route not deployed" reading would be WRONG here: on this
+ * route 404 is the contract's own `not_found` ("Unknown connection_id"), and
+ * 401 is `connection_unauthorized` (reconnect needed) — statuses a caller must
+ * tell apart via `HTTPError.response.status`, not blur into one flag.
+ */
+export async function getInstagramConnectedFeed(
+  connectionId: string,
+  igUserId?: string,
+  limit = 12,
+): Promise<PostFeed> {
+  const searchParams: Record<string, string | number> = {
+    connection_id: connectionId,
+    limit,
+  };
+  if (igUserId) searchParams.ig_user_id = igUserId;
+  return parsePostFeed(
+    await publicApi.get("instagram-integration/feed", { searchParams }).json(),
+  );
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

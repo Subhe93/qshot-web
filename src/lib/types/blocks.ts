@@ -89,10 +89,14 @@ export type ImageAlignment = "start" | "center" | "end";
  * `configuration` outside this union unless the target mobile build is known
  * to know it.
  *
- * ⚠️ `instagram` is the odd one out: the value is link-based HISTORICALLY, but
- * it now carries TWO different `info` shapes — see `InstagramFeedInfo` below.
- * It stays in this union because the *configuration string* is what every
- * shipped build parses, and that has not changed.
+ * ⚠️ `instagram` is LEGACY, read-only: the retired public `business_discovery`
+ * path (a username plus one shared qshot token). Mobile branch
+ * `feature/template-sites` replaces it for NEW blocks with the separate
+ * `instagram_connected` configuration (see `StoredFeedConfiguration` below) —
+ * but `InstagramFeedConfiguration` stays registered in mobile
+ * `FeedConfiguration.all` on purpose, so websites already carrying an
+ * `instagram` block keep deserializing and rendering. It stays in this union
+ * for exactly the same reason.
  */
 export type LinkFeedConfiguration = "youtube" | "vimeo" | "instagram";
 
@@ -113,8 +117,38 @@ export type LinkFeedConfiguration = "youtube" | "vimeo" | "instagram";
  */
 export type ConnectFeedConfiguration = "facebook" | "tiktok";
 
-/** All providers the web model can represent. */
+/**
+ * The providers the editor UI currently models — this union is the key set of
+ * the exhaustive `Record<FeedConfiguration, …>` provider tables in
+ * `SocialFeedBlockEditor` (OFFERED, PROVIDERS, HAS_LAYOUT, …), so widening it
+ * is a compile error there until every table grows the matching row.
+ */
 export type FeedConfiguration = LinkFeedConfiguration | ConnectFeedConfiguration;
+
+/**
+ * Every configuration a STORED `SocialFeedModule` may carry — the web mirror
+ * of mobile `FeedConfiguration.all` on branch `feature/template-sites`
+ * (feed_configuration.dart), which registers one provider beyond the five
+ * above:
+ *
+ * - `instagram_connected` — `InstagramConnectedFeedConfiguration` ("Business
+ *   Login for Instagram", title "Instagram"). The connect-flow REPLACEMENT for
+ *   the retired public-`business_discovery` `instagram` entry: mobile's
+ *   `SocialFeedSelectorSheet._items` offers it in Instagram's slot for NEW
+ *   blocks, while `"instagram"` stays registered so old blocks keep
+ *   deserializing (its own comment: "a distinct configuration, not a
+ *   replacement of it"). `info` is `InstagramConnectedFeedInfo`
+ *   (`{connection_id, ig_user_id, username}`), created-with
+ *   `settings: {show_profile_details: true}` (its `additionalSettings`), and
+ *   served by the live `instagram-integration/*` routes (`lib/api/instagram.ts`).
+ *
+ * Like facebook/tiktok it is parse-safe ONLY on mobile builds that register it
+ * — `FeedConfiguration.values[json['configuration']]!` throws on every other
+ * build and fails the parse of the WHOLE page — which is why newly PICKING it
+ * sits behind INSTAGRAM_FEED_ENABLED (builder/feature-flags.ts) while a block
+ * that already carries it round-trips untouched.
+ */
+export type StoredFeedConfiguration = FeedConfiguration | "instagram_connected";
 
 /**
  * Provider-specific `info` payloads. The mobile display layer indexes these
@@ -149,40 +183,39 @@ export interface VimeoFeedInfo {
 }
 
 /**
- * ── Instagram: ONE `configuration`, TWO `info` shapes ────────────────────────
+ * ── Instagram: TWO configurations, TWO `info` shapes ─────────────────────────
  *
- * `configuration: "instagram"` predates the connect flow, and real saved sites
- * carry the legacy payload. Mobile commit 20941620 retires the mechanism behind
- * it (the public `business_discovery` lookup, one shared qshot token) in favour
- * of **Business Login for Instagram**, a per-user OAuth connect flow with the
- * same shape as Facebook/TikTok — but it did NOT change the configuration
- * value: `InstagramFeedConfiguration` stays registered precisely so existing
- * blocks keep deserializing and rendering.
+ * Mobile branch `feature/template-sites` retires the mechanism behind
+ * `configuration: "instagram"` (the public `business_discovery` lookup, one
+ * shared qshot token) in favour of **Business Login for Instagram**, a
+ * per-user OAuth connect flow with the same shape as Facebook/TikTok — and,
+ * unlike the earlier plan sketch, it does so under a NEW configuration value:
+ * `InstagramConnectedFeedConfiguration` (name `"instagram_connected"`) is
+ * registered in `FeedConfiguration.all` alongside the legacy
+ * `InstagramFeedConfiguration`, precisely so existing `"instagram"` blocks
+ * keep deserializing and rendering while new blocks carry the connect shape:
  *
- * So `info` is a two-member union discriminated by which identifier is present:
+ *   "instagram"           → `{ link, username }`                      (legacy, read-only)
+ *   "instagram_connected" → `{ connection_id, ig_user_id, username }` (Business Login)
  *
- *   legacy    → `{ link, username }`                        (business_discovery)
- *   connected → `{ connection_id, ig_user_id, username }`   (Business Login)
+ * (`instagram_connect_cubit.dart` builds exactly that second `info` from the
+ * `qshot://social/connected?…` deep-link return.)
  *
- * `username` is in BOTH, which is the property that makes the split safe:
- * `FeedDisplayCubit` dereferences `info["username"]` into a NON-NULLABLE String
- * in its constructor, outside any try/catch, so a missing key is a hard crash
- * while an empty string is a recoverable "failed to load". Every writer of
- * either shape therefore writes `username`, and an old build handed the new
- * shape still resolves the SAME account through the old path for as long as
- * that endpoint keeps serving (server-contract.md §7 keeps it alive until no
- * live site has an `instagram` block).
+ * The two-member `InstagramFeedInfo` union below is kept anyway — and kept
+ * tolerant — because an interim web build (2026-08-05..12, behind the
+ * default-off INSTAGRAM_FEED_ENABLED) wrote the CONNECTED payload under
+ * `configuration: "instagram"` while `instagram_connected` was still
+ * unregistered on mobile. Any block saved that way must keep parsing, so
+ * readers of an `"instagram"` block discriminate on which identifier is
+ * present rather than assuming the legacy shape.
  *
- * Why not the `instagram_connected` configuration value that
- * `docs/plans/social-instagram-feed/plan.md` §4 sketches? Because it exists in
- * that document only — no mobile code registers it, so on EVERY shipped build
- * `FeedConfiguration.values["instagram_connected"]!` throws and takes down the
- * parse of the whole page; and our copy of the server's website-JSON validator
- * pins `socialFeedBlock.configuration` to
- * `["youtube","vimeo","instagram","facebook"]`, which would additionally 422 the
- * save. Writing `"instagram"` keeps the block parseable, savable and renderable
- * everywhere today. If mobile does land `instagram_connected`, adding it is a
- * pure additive change: this union already models the payload it would carry.
+ * `username` is in BOTH shapes, which is what makes that split safe:
+ * `FeedDisplayCubit` dereferences `info["username"]` into a NON-NULLABLE
+ * String for `"instagram"` blocks in its constructor, outside any try/catch,
+ * so a missing key is a hard crash while an empty string is a recoverable
+ * "failed to load". Every writer of either shape therefore writes `username`
+ * (for `"instagram_connected"` the cubit derefs `connection_id`/`ig_user_id`
+ * instead — `username` there feeds the block title and stays written).
  */
 
 /** Legacy Instagram payload — the retired public `business_discovery` path. */
@@ -194,19 +227,24 @@ export interface InstagramLinkFeedInfo {
 }
 
 /**
- * Business Login payload — written by `InstagramConnectSheet` from the
- * connection record the server stores (`social_connections` with
- * `platform = "instagram"`). The posts themselves are NEVER in the website
- * JSON: the public renderer calls `GET instagram/feed?connection_id=…`.
+ * Business Login payload — the `info` of `configuration: "instagram_connected"`
+ * (and of interim web-written `"instagram"` blocks, see above), written by
+ * `InstagramConnectSheet` from the connection record the server stores
+ * (`social_connections` with `platform = "instagram"`). The posts themselves
+ * are NEVER in the website JSON: the public renderer calls
+ * `GET instagram-integration/feed?connection_id=…`.
  */
 export interface InstagramConnectedFeedInfo {
-  /** `social_connections.id` — the key `instagram/feed` is loaded by. */
+  /** `social_connections.id` — the key `instagram-integration/feed` is loaded by. */
   connection_id: string;
   /**
    * `social_connections.platform_user_id`, i.e. Instagram's `user_id`.
    * OPTIONAL in the contract — "a redundant safety check against the
    * connection" — exactly like TikTok's `open_id`. We still always WRITE the
    * key, empty string included, for the reason in the block comment above.
+   * (Mobile's cubit may store it as JSON null when the deep-link return omits
+   * the param — readers reach `info` through `Record<string, unknown>`, so
+   * that parses fine; this type describes what the WEB writes.)
    */
   ig_user_id: string;
   /** Instagram handle — display only here, but load-bearing on old builds. */
@@ -528,7 +566,13 @@ export interface ButtonBlock extends NamedBlock {
 
 export interface SocialFeedBlock extends NamedBlock {
   type: "SocialFeedModule";
-  configuration: FeedConfiguration;
+  /**
+   * `StoredFeedConfiguration`, not `FeedConfiguration`: a stored block may
+   * carry `"instagram_connected"` (mobile `feature/template-sites`) even
+   * though the editor's provider tables don't model it yet — it must
+   * round-trip untouched either way.
+   */
+  configuration: StoredFeedConfiguration;
   /** Mobile `fromJson` falls back to `list` for an unknown/absent value. */
   layout_type: SocialFeedLayoutType;
   /**
@@ -538,7 +582,10 @@ export interface SocialFeedBlock extends NamedBlock {
    * as strings (a missing key crashes the mobile FeedDisplayCubit).
    */
   info: Record<string, unknown>;
-  /** `{ show_profile_details: boolean }` for instagram/facebook, else null. */
+  /**
+   * `{ show_profile_details: boolean }` for instagram/instagram_connected/
+   * facebook (their mobile `additionalSettings`, default true), else null.
+   */
   settings?: Record<string, unknown> | null;
   posts_count?: number;
 }

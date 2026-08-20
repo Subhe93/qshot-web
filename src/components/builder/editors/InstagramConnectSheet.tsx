@@ -37,8 +37,12 @@ type Phase =
 
 /**
  * "Connect Instagram" sheet — **Business Login for Instagram**, backing the
- * `SocialFeedModule` with `configuration: "instagram"` in its connected shape
- * (`info = { connection_id, ig_user_id, username }`).
+ * `SocialFeedModule` with `configuration: "instagram_connected"` (mobile
+ * `InstagramConnectedFeedConfiguration` on `feature/template-sites`;
+ * `info = { connection_id, ig_user_id, username }`). The sheet itself only
+ * hands the chosen connection to `onSelect` — the editor's `setInstagramInfo`
+ * is what stamps the configuration value, so a pre-split `"instagram"` block
+ * flips to the new value exactly when a flow completes here, never on open.
  *
  * Deliberately the TikTok sheet's twin rather than the Facebook one's: an
  * Instagram Login connection resolves to exactly ONE account, so there is no

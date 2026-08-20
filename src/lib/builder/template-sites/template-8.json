@@ -1,0 +1,689 @@
+{
+  "name": "template-8",
+  "info": {
+    "modules": [
+      {
+        "type": "social_links",
+        "id": "20260806-1016-8938-a894-33a5665ebb7d",
+        "hide": false,
+        "use_background_color": false,
+        "background_color": 0,
+        "layout_type": "gridAlignCenter",
+        "icon_type": "original",
+        "adaptive_icon_color": true,
+        "custom_icon_color": 4294929297,
+        "links": [
+          {
+            "id": "20260806-1020-8522-8657-622eea3539d7",
+            "type": "phone",
+            "icon": null,
+            "link": "+12345678900",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260806-1017-8102-b536-a86fba4b14ed",
+            "type": "facebook",
+            "icon": null,
+            "link": "www.facebook.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260806-1017-8138-a187-8cd1bebd8b32",
+            "type": "instagram",
+            "icon": null,
+            "link": "www.instagram.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260806-1019-8848-8781-31c20f301755",
+            "type": "tiktok",
+            "icon": null,
+            "link": "www.tiktok.com/1",
+            "name": null,
+            "hidden": false
+          },
+          {
+            "id": "20260806-1020-8332-b441-26890fdb8d8a",
+            "type": "whatsapp",
+            "icon": null,
+            "link": "+12345678900",
+            "name": null,
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "20260806-1013-8837-9119-17f866d59ac6",
+        "background_color": 4294929297,
+        "use_background_color": false,
+        "hide": false,
+        "value": "Best Sellers",
+        "align": "center",
+        "size": 22
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "20260806-1011-8018-8605-4a6409a0e131",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"Here’s some of our most popular products people are in love with.\"},{\"insert\":\"\\n\",\"attributes\":{\"align\":\"center\"}}]"
+      },
+      {
+        "type": "ProductsModule",
+        "id": "20260730-1358-8114-9534-65f0ccd20f38",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "show_arrow": false,
+        "circle_image": false,
+        "layout_type": "grid2",
+        "items": [
+          {
+            "id": "20260730-1400-8d44-8231-d727e8a7e4b2",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__p4o04f5rk7f.jpg",
+            "url": "qshot.com",
+            "title": "Generic Notebook",
+            "description": "A touch of elegance and inspiration for your everyday notes.",
+            "currency": "USD",
+            "price": "30",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260730-1429-8034-9037-c9e4c8e10c41",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__ba2qaj09ivi.jpg",
+            "url": "qshot.com",
+            "title": "Ceramic Mug-Perto",
+            "description": "Enjoy your drink with a mug featuring a unique ceramic finish and exquisite gold engravings.",
+            "currency": "$",
+            "price": "35",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260730-1428-8e36-9585-3c6a60408610",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__i6ertqkfar.jpg",
+            "url": "qshot.com",
+            "title": "Artificial Acrylic Plant",
+            "description": "For a delightful look and a unique aesthetic touch to your home decor.",
+            "currency": "$",
+            "price": "17",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260730-1427-8332-b899-8b98ccec11dc",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__03dtf66gk80c.jpg",
+            "url": "qshot.com",
+            "title": "Acrylic Wall Clock - Astronaut",
+            "description": "Add a touch of elegance to your home decor with this high-quality acrylic wall clock; it's battery operated.",
+            "currency": "$",
+            "price": "20",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260730-1426-8502-8856-bbd28cbd80a1",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__8tzaafpmyv.jpg",
+            "url": "qshot.com",
+            "title": "Classic Notebook A5",
+            "description": "A classic notebook box with an elegant design that combines simplicity and luxury.",
+            "currency": "$",
+            "price": "15",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260730-1708-8807-a753-715a392db172",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__i0ujdozmt5.jpg",
+            "url": "qshot.com",
+            "title": "Watch For Men - CASIO",
+            "description": "Men's stainless steel wristwatch with date display, classic style",
+            "currency": "$",
+            "price": "80",
+            "price_after_discount": null,
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "kOK5vBaG0eo-kfHUBT7_s",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": "New Arrivals",
+        "align": "center",
+        "size": 22
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "NnO8L9ylw4yrONuOqqfpe",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"Discover what's fresh and exciting. Our latest gift selections await!\"},{\"insert\":\"\\n\",\"attributes\":{\"align\":\"center\"}}]"
+      },
+      {
+        "type": "ProductsModule",
+        "id": "20260730-1510-8947-b913-85b2c16724d0",
+        "title": "",
+        "background_color": 687827857,
+        "use_background_color": true,
+        "hide": false,
+        "foldable": false,
+        "show_arrow": false,
+        "circle_image": false,
+        "layout_type": "promo",
+        "items": [
+          {
+            "id": "20260730-1514-8606-9958-74fc451be9c7",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__lj3pg5ti8y.jpg",
+            "url": "qshot.com",
+            "title": "Thermal Mug",
+            "description": "High-quality stainless steel thermal mug with an internal filter, safe and healthy for everyday use - Capacity: 600 ml",
+            "currency": "USD",
+            "price": "45",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260730-1517-8044-b783-edd58839537c",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__j29e9k4igc.jpg",
+            "url": "qshot.com",
+            "title": "Resin Tic-Tac-Toe Game",
+            "description": "Enjoy fun-filled moments with the classic Tic-Tac-Toe game.",
+            "currency": "USD",
+            "price": "45",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260730-1519-8a45-b911-0a50790275a4",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__7sz54r3mjod.jpg",
+            "url": "qshot.com",
+            "title": "Gift Envelope",
+            "description": "An elegantly designed gift envelope with a heartfelt message that touches her heart and stays with her in every moment.",
+            "currency": "USD",
+            "price": "16.00",
+            "price_after_discount": "1",
+            "hidden": false
+          },
+          {
+            "id": "20260730-2327-8946-b717-4c62e68f72ef",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__quqpdkdj2pc.jpg",
+            "url": "qshot.com",
+            "title": "Acrylic Gel Decor - Mared",
+            "description": "An acrylic decorative piece; the sculpture moves gracefully on the glossy gel, creating a breathtaking scene.",
+            "currency": "USD",
+            "price": "11",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260730-2330-8b50-a954-54d6ed8b5f38",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__ryjyy4aaa8i.jpg",
+            "url": "qshot.com",
+            "title": "Acrylic Humidifier",
+            "description": "Enjoy a calm and refreshing atmosphere that enhances your comfort with a modern-designed diffuser.",
+            "currency": "USD",
+            "price": "15",
+            "price_after_discount": null,
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "20260730-1430-8620-b365-912c0e7498be",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": "Special Offer For Her",
+        "align": "center",
+        "size": 22
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "Z5KoCLzjwXL-TuFdE_d4O",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"Special finds she'll absolutely adore.\"},{\"insert\":\"\\n\",\"attributes\":{\"align\":\"center\"}}]"
+      },
+      {
+        "type": "ProductsModule",
+        "id": "0T6Chiv_ouKYBhWx1peEP",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "show_arrow": false,
+        "circle_image": false,
+        "layout_type": "grid2",
+        "items": [
+          {
+            "id": "20260730-1429-8034-9037-c9e4c8e10c41",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__lt99hr53rpe.jpg",
+            "url": "qshot.com",
+            "title": " Watches for Women",
+            "description": "",
+            "currency": "$",
+            "price": "123",
+            "price_after_discount": "95",
+            "hidden": false
+          },
+          {
+            "id": "20260730-1428-8e36-9585-3c6a60408610",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__74iksd8vvfp.jpg",
+            "url": "qshot.com",
+            "title": " Bags & Notebooks for Women",
+            "description": "",
+            "currency": "$",
+            "price": "115",
+            "price_after_discount": "80",
+            "hidden": false
+          },
+          {
+            "id": "20260730-1400-8d44-8231-d727e8a7e4b2",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__7wgxw9zx5dp.jpg",
+            "url": "qshot.com",
+            "title": " Self Care",
+            "description": "",
+            "currency": "$",
+            "price": "230",
+            "price_after_discount": "165",
+            "hidden": false
+          },
+          {
+            "id": "20260730-1427-8332-b899-8b98ccec11dc",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__7fbelxqh4vl.jpg",
+            "url": "qshot.com",
+            "title": " Accessories",
+            "description": "",
+            "currency": "$",
+            "price": "125",
+            "price_after_discount": "80",
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "20260730-1510-8545-a362-cf020661228d",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": "Special Offer For Him",
+        "align": "center",
+        "size": 22
+      },
+      {
+        "type": "ParagraphModule",
+        "id": "pWutq8xetssdzA4GY95ot",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "content": "[{\"insert\":\"Thoughtful gifts he'll truly appreciate.\"},{\"insert\":\"\\n\",\"attributes\":{\"align\":\"center\"}}]"
+      },
+      {
+        "type": "ProductsModule",
+        "id": "AW5rAjpGuzNZ4eI4_dB2d",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "show_arrow": false,
+        "circle_image": false,
+        "layout_type": "grid2",
+        "items": [
+          {
+            "id": "20260730-1426-8502-8856-bbd28cbd80a1",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__6ahb6z686qd.jpg",
+            "url": "qshot.com",
+            "title": " Watches for Men",
+            "description": "",
+            "currency": "$",
+            "price": "185",
+            "price_after_discount": "115",
+            "hidden": false
+          },
+          {
+            "id": "xY6f8Uj2n0arWCTCAPDfC",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__d7cd1ce6h9d.jpg",
+            "url": "qshot.com",
+            "title": " Bags & Wallets for Men",
+            "description": "",
+            "currency": "$",
+            "price": "55",
+            "price_after_discount": "35",
+            "hidden": false
+          },
+          {
+            "id": "20260730-1708-8807-a753-715a392db172",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__py00rins7u8.jpg",
+            "url": "qshot.com",
+            "title": " Gifts for Men",
+            "description": "",
+            "currency": "$",
+            "price": "155",
+            "price_after_discount": "80",
+            "hidden": false
+          },
+          {
+            "id": "2cSw6oBDEaDgLx8y38pY8",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__4yhl5psgc4.jpg",
+            "url": "qshot.com",
+            "title": " Car Accessories",
+            "description": "",
+            "currency": "$",
+            "price": "50",
+            "price_after_discount": "30",
+            "hidden": false
+          }
+        ]
+      },
+      {
+        "type": "HeaderModule",
+        "id": "pIvMJ_ZnsYze_wiCfUo1I",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": "Handmade",
+        "align": "center",
+        "size": 20
+      },
+      {
+        "type": "ProductsModule",
+        "id": "20260731-1359-8f33-9881-2d7133a94708",
+        "title": "",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "show_arrow": false,
+        "circle_image": false,
+        "layout_type": "shop",
+        "items": [
+          {
+            "id": "20260731-1402-8730-a679-2f3cf201b08c",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__13lue1yoz5db.jpg",
+            "url": "qshot.com",
+            "title": "Handmade Bag",
+            "description": "A handmade crochet bag with unique details that reflect the beauty of craftsmanship and a spirit of distinction.",
+            "currency": "$",
+            "price": "75",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "20260731-1403-8444-a529-51897c195808",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__l5coqiy3pvm.jpg",
+            "url": "qshot.com",
+            "title": "Handmade Flower Keychain",
+            "description": "A touch of beauty and elegance for your everyday essentials.",
+            "currency": "$",
+            "price": "5",
+            "price_after_discount": null,
+            "hidden": false
+          },
+          {
+            "id": "R7gJkphs4mxGDfZmIov85",
+            "title": "Handmade Wallet",
+            "url": "qshot.com",
+            "currency": "$",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__761novilwzv.jpg",
+            "description": "A wallet with soft crochet details that give it a unique and charming touch.",
+            "price": "22"
+          },
+          {
+            "id": "Ha0i4cOos5tRd2Nm7fAXG",
+            "title": "Glass Bottle Message - Harry Potter",
+            "url": "qshot.com",
+            "currency": "$",
+            "thumbnail_url": "images/profiles66d6163f22224329039cf464__8jhksdlnv7w.jpg",
+            "description": "ديكور زجاج أنيق يحتوي على صدف وبعض الورق لكتابة رسائلك لمن تحب",
+            "price": "30"
+          }
+        ]
+      },
+      {
+        "type": "LocationModule",
+        "id": "20260816-1018-8b50-b057-3437e769d071",
+        "title": "Location",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "value": {
+          "formatted_address": "Mall of The Emirates - E11 Sheikh Zayed Rd - Umm Suqeim Third - Umm Suqeim 3 - Dubai - United Arab Emirates",
+          "geometry": {
+            "location": {
+              "lat": 25.1401778,
+              "lng": 55.1914266
+            }
+          },
+          "place_id": "ChIJyRskyFFqXz4RTdZ8S65vtAQ",
+          "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/geocode-71.png",
+          "name": "Mall of The Emirates",
+          "vicinity": "E11 Sheikh Zayed Rd",
+          "rating": null,
+          "url": "https://maps.google.com/?cid=339018666341094989",
+          "user_ratings_total": null,
+          "reviews": []
+        },
+        "hide_reviews": false
+      },
+      {
+        "type": "ReviewsModule",
+        "id": "20260816-1019-8d19-9693-084ca42561cb",
+        "title": "Reviews",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "foldable": false,
+        "layout_type": "cards",
+        "reviews": [
+          {
+            "id": "20260816-1019-8956-a051-ae936c36ac3c",
+            "reviewer_name": "Muhammad Usman Iqbal",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a-/ALV-UjVLKYshl_Z9-LFqdk7ZIXvA_bD1lkotD5OvnMLSG5TviIIivH4O=s128-c0x00000000-cc-rp-mo-ba5",
+            "rating": 5,
+            "text": "Mall of the Emirates Metro Station, like other metro stations in Dubai, is beautifully designed, neat, and well-maintained. It is one of the busiest stations, as it is directly connected to the Mall of the Emirates and an RTA bus station, making it a convenient hub for commuters.",
+            "relative_time_description": "a year ago",
+            "hidden": false,
+            "locked": true,
+            "google_review_key": "Muhammad Usman Iqbal_1738602150"
+          },
+          {
+            "id": "20260816-1019-8156-b051-dea26c3f986d",
+            "reviewer_name": "Alex Eyagu",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a-/ALV-UjVkNmDB0YIFcKHnQCVArtqeIkOUU98TyCr25icO5pEARsg1aQlU=s128-c0x00000000-cc-rp-mo-ba4",
+            "rating": 5,
+            "text": "Exceptional,great and good looking.\nClean and organized,\nThere's no congestion except only evenning hours, but not every evening, the staffs too are so helpful.\nFlowers 🌸🌹🌹🌹🌸",
+            "relative_time_description": "8 months ago",
+            "hidden": false,
+            "locked": true,
+            "google_review_key": "Alex Eyagu_1763890659"
+          },
+          {
+            "id": "20260816-1019-8456-a051-662f5ae0b933",
+            "reviewer_name": "Sahi",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a/ACg8ocI1LMK67cH_9druENEe82GUBIDhB5OfGJ8B4exBH51gyi1VQA=s128-c0x00000000-cc-rp-mo-ba3",
+            "rating": 5,
+            "text": "One of the most convenient metro stations in Dubai. It’s directly connected to Mall of the Emirates via a covered, air-conditioned walkway, which is a lifesaver in the heat. The station is exceptionally clean, well-maintained, and the staff are always efficient at the service counters. Perfect for tourists and residents alike!",
+            "relative_time_description": "3 months ago",
+            "hidden": false,
+            "locked": true,
+            "google_review_key": "Sahi_1776882901"
+          },
+          {
+            "id": "20260816-1019-8956-a051-e79007cc0200",
+            "reviewer_name": "Andrea",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a/ACg8ocJCyq9sw_ZpXmIUDSw9yNIVQuNSF-Mzm4nldYnluoBGesgg6A=s128-c0x00000000-cc-rp-mo-ba5",
+            "rating": 5,
+            "text": "Mall of the Emirates offers a different yet equally impressive experience compared to other major malls in Dubai. While it may not be as vast as Dubai Mall, it excels in comfort, accessibility and overall balance. The mall is beautifully maintained, easy to navigate and designed to provide a relaxed and enjoyable shopping environment, making it particularly appealing for both tourists and residents.\nOne of its most distinctive features is Ski Dubai, which alone makes the mall unique on a global level. The contrast of stepping from a modern shopping environment into an indoor ski resort is something truly remarkable and perfectly reflects Dubai’s ability to surprise and innovate. Beyond this iconic attraction, the mall offers a wide selection of shops, from luxury brands to popular international retailers, ensuring a diverse and satisfying shopping experience.\nThe dining options are extensive and well distributed throughout the mall, with a strong mix of restaurants, cafés and casual dining spots. Whether you are looking for a quick coffee, a relaxed lunch or a full dinner, Mall of the Emirates provides plenty of high quality options. The atmosphere is generally calmer than other major malls, which makes it particularly pleasant for spending longer periods of time without feeling overwhelmed.\nAccessibility is another major advantage of this mall. Its direct connection to the metro, combined with ample parking facilities, makes it extremely convenient to reach. Inside, the layout is intuitive, signage is clear and the overall flow of movement is well planned. Cleanliness and maintenance standards are consistently high, contributing to a comfortable and enjoyable experience every time.\nMall of the Emirates manages to combine entertainment, shopping and dining in a way that feels cohesive and well balanced. It is a mall that invites you to slow down, explore and truly enjoy your time rather than rushing from one place to another. Overall, it remains one of Dubai’s most reliable and enjoyable shopping destinations, offering quality, comfort and a touch of uniqueness that keeps people coming back.",
+            "relative_time_description": "6 months ago",
+            "hidden": false,
+            "locked": true,
+            "google_review_key": "Andrea_1770896445"
+          },
+          {
+            "id": "20260816-1021-8f02-a063-a1651241c422",
+            "reviewer_name": "Hassan Bilal",
+            "reviewer_photo_url": "https://lh3.googleusercontent.com/a-/ALV-UjVoiCd402iZh_HcF_W8tNHHpuhpO7QjNz_rwoGd1Z7qinPunNU=s128-c0x00000000-cc-rp-mo-ba2",
+            "rating": 5,
+            "text": "it’s a good place ❤️",
+            "relative_time_description": "4 months ago",
+            "hidden": false,
+            "locked": false,
+            "google_review_key": null
+          }
+        ],
+        "google_place_id": "ChIJD-G_QzhrXz4RmgvissuXFMo",
+        "google_place_url": "https://maps.google.com/?cid=14561430396330970010",
+        "google_last_fetched_at": 1786875601076,
+        "click_url": "https://maps.google.com/?cid=14561430396330970010",
+        "show_add_review_button": true,
+        "add_review_url": "https://search.google.com/local/writereview?placeid=ChIJD-G_QzhrXz4RmgvissuXFMo"
+      },
+      {
+        "type": "FormModule",
+        "id": "20260816-1021-8254-b964-0a2d440d264b",
+        "title": "Contact us",
+        "background_color": null,
+        "use_background_color": false,
+        "hide": false,
+        "questions": [
+          {
+            "type": "text",
+            "data": {
+              "by_default": true,
+              "question": "Your Name",
+              "description": null,
+              "required": true,
+              "hint": "John Doe"
+            }
+          },
+          {
+            "type": "text",
+            "data": {
+              "by_default": true,
+              "question": "Your Email",
+              "description": null,
+              "required": true,
+              "hint": "john.doe@gmail.com"
+            }
+          },
+          {
+            "type": "paragraph",
+            "data": {
+              "by_default": true,
+              "question": "Your Message",
+              "description": null,
+              "required": true,
+              "hint": "Enter your message"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "website_logo": "images/profiles66d6163f22224329039cf464__8b2wpyoi49a.png",
+    "website_name": "Template 8",
+    "style": "style2",
+    "logo": {
+      "image_url": null,
+      "hide": false
+    },
+    "header": {
+      "hide": false,
+      "title": {
+        "hide": false,
+        "text": "Gift Store",
+        "color": null
+      },
+      "leading_alignment": "start",
+      "foreground_color": 4294967295,
+      "background_color": 4294925477,
+      "position": "aboveCover",
+      "background_opacity": 1,
+      "fillSides": true
+    },
+    "profile_picture": null,
+    "cover_photo": {
+      "image_url": "images/profiles66d6163f22224329039cf464__jwqan5ml8uk.jpg",
+      "image_rect": [
+        785,
+        0,
+        1920,
+        640
+      ],
+      "hide": false,
+      "size": "horizontal",
+      "transparency": 0.1,
+      "fade": false,
+      "color": null
+    },
+    "title": {
+      "hide": false,
+      "text": "Hook the Big One",
+      "color": 4278190080
+    },
+    "text": {
+      "hide": false,
+      "text": "High-performance fishing rods and high-attractant baits engineered for every water and every angler.",
+      "color": 4278190080
+    },
+    "button1": {
+      "hide": false,
+      "text": "Shop Now",
+      "url": "https://qshot.com",
+      "foreground_color": 4280556559,
+      "background_color": 4287878702
+    },
+    "button2": {
+      "hide": false,
+      "text": "Call us",
+      "url": "",
+      "foreground_color": 4294967295,
+      "background_color": 4281545523
+    },
+    "background": {
+      "image": null,
+      "color_value": {
+        "type": "solid",
+        "color": 4294963960
+      }
+    },
+    "name": {
+      "text": "",
+      "alignment": "center",
+      "hide": true,
+      "color": null
+    },
+    "bio": {
+      "text": "",
+      "alignment": "center",
+      "hide": true
+    },
+    "floating_button": {
+      "hide": false,
+      "type": null
+    },
+    "font_family": null,
+    "font_color": 4278190080,
+    "card_style": null,
+    "can_save_contact": false,
+    "index_in_google": true
+  }
+}
