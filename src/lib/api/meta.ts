@@ -1,5 +1,6 @@
-import { HTTPError } from "ky";
-import { api } from "./client";
+import ky, { HTTPError } from "ky";
+import { api, API_BASE } from "./client";
+import { parsePostFeed, type PostFeed } from "./instagram";
 import { connectReturnUrl } from "./social-connect";
 
 /**
@@ -183,6 +184,52 @@ export async function deleteMetaConnection(id: string): Promise<MetaResult<boole
     await api.delete(`meta/connections/${id}`);
     return true;
   }, false);
+}
+
+/**
+ * `meta/feed` is PUBLIC: the unguessable `connection_id` is the key, no bearer
+ * involved. Like `getInstagramConnectedFeed` (see `./instagram`) it is
+ * deliberately NOT called through the shared `api` client — that client's
+ * afterResponse hook logs the user out of qshot on ANY 401, and this endpoint
+ * answers 401 when the *Meta* token has expired or been revoked, a condition
+ * that must surface as "reconnect this feed", never end the builder session.
+ * Same base URL and timeout/retry, no auth hooks.
+ */
+const publicApi = ky.create({
+  baseUrl: API_BASE,
+  timeout: 30_000,
+  retry: { limit: 1, methods: ["get"] },
+});
+
+/**
+ * GET `meta/feed?platform=facebook` → the normalized `PostFeed` for one
+ * Facebook Page, for the builder preview. Mirrors mobile
+ * `MetaFeedDataSource.getFacebookFeed`: `platform=facebook`, `connection_id`,
+ * `page_id`, `limit` defaults to 12 (the server's default).
+ *
+ * Unlike the guarded calls above this THROWS (ky `HTTPError`) instead of
+ * resolving an `unavailable`/`failed` wrapper — exactly like the mobile data
+ * source, and for the same reason as `getInstagramConnectedFeed`: on this
+ * route 404/401 are contract answers about THIS feed, not "namespace not
+ * deployed", so they must stay distinguishable to the caller.
+ */
+export async function getFacebookFeed(
+  connectionId: string,
+  pageId: string,
+  limit = 12,
+): Promise<PostFeed> {
+  return parsePostFeed(
+    await publicApi
+      .get("meta/feed", {
+        searchParams: {
+          platform: "facebook",
+          connection_id: connectionId,
+          page_id: pageId,
+          limit,
+        },
+      })
+      .json(),
+  );
 }
 
 /**

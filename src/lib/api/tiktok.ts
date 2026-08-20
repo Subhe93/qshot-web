@@ -1,5 +1,6 @@
-import { HTTPError } from "ky";
-import { api } from "./client";
+import ky, { HTTPError } from "ky";
+import { api, API_BASE } from "./client";
+import type { VideoFeed, VideoFeedItem } from "./rss-feeds";
 import { connectReturnUrl } from "./social-connect";
 
 /**
@@ -169,6 +170,66 @@ export async function deleteTiktokConnection(
     await api.delete(`tiktok-integration/connections/${id}`);
     return true;
   }, false);
+}
+
+// ─── Normalized feed (VideoFeed) ────────────────────────────────────────────
+
+/**
+ * `tiktok-integration/feed` is PUBLIC: the unguessable `connection_id` is the
+ * key, no bearer involved. Like `getInstagramConnectedFeed` (see `./instagram`)
+ * it is deliberately NOT called through the shared `api` client — that client's
+ * afterResponse hook logs the user out of qshot on ANY 401, and this endpoint
+ * answers 401 when the *TikTok* token has expired or been revoked, a condition
+ * that must surface as "reconnect this feed", never end the builder session.
+ * Same base URL and timeout/retry, no auth hooks.
+ */
+const publicApi = ky.create({
+  baseUrl: API_BASE,
+  timeout: 30_000,
+  retry: { limit: 1, methods: ["get"] },
+});
+
+/**
+ * GET `tiktok-integration/feed` → the normalized video feed for one
+ * connection, for the builder preview. Mirrors mobile
+ * `TiktokFeedDataSource.getFeed` (`connection_id` required, `open_id` sent
+ * only when non-empty, `limit` defaults to 12) parsed through
+ * `VideoFeed.fromNormalizedJson` (`video_feed.dart`): per item
+ * url ← `permalink`, thumbnail ← `thumbnail_url` ?? `media_url`,
+ * title ← `title` ?? `caption`, and items missing a usable url or thumbnail
+ * are DROPPED rather than rendered as broken cards. The envelope's `profile`
+ * is ignored — TikTok has no byline (no `show_profile_details`).
+ *
+ * Unlike the guarded calls above this THROWS (ky `HTTPError`) instead of
+ * resolving an `unavailable`/`failed` wrapper — exactly like the mobile data
+ * source: on this route 404/401 are contract answers about THIS feed, not
+ * "namespace not deployed", so they must stay distinguishable to the caller.
+ */
+export async function getTiktokFeed(
+  connectionId: string,
+  openId?: string,
+  limit = 12,
+): Promise<VideoFeed> {
+  const searchParams: Record<string, string | number> = {
+    connection_id: connectionId,
+    limit,
+  };
+  if (openId) searchParams.open_id = openId;
+  const res = await publicApi
+    .get("tiktok-integration/feed", { searchParams })
+    .json();
+  const d = unwrap(res);
+  const obj = d && typeof d === "object" ? (d as Record<string, unknown>) : {};
+  const asStr = (v: unknown) => (typeof v === "string" ? v : "");
+  const items: VideoFeedItem[] = (Array.isArray(obj.items) ? obj.items : [])
+    .filter((it): it is Record<string, unknown> => !!it && typeof it === "object")
+    .map((it) => ({
+      url: asStr(it.permalink),
+      thumbnailUrl: asStr(it.thumbnail_url ?? it.media_url),
+      title: asStr(it.title ?? it.caption),
+    }))
+    .filter((it) => it.url !== "" && it.thumbnailUrl !== "");
+  return { items };
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

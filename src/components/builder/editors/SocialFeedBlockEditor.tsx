@@ -921,7 +921,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                     >
                       {facebookConnected
                         ? facebookInfo.username || facebookInfo.page_id
-                        : t("socialFeed.facebook.notConnected")}
+                        : t("socialFeed.facebook.choosePage")}
                     </span>
                     <ChevronRight className="size-4 shrink-0 text-foreground/25 rtl:rotate-180" />
                   </span>
@@ -949,7 +949,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                     >
                       {tiktokConnected
                         ? tiktokInfo.username || tiktokInfo.connection_id
-                        : t("socialFeed.tiktok.notConnected")}
+                        : t("socialFeed.tiktok.chooseAccount")}
                     </span>
                     <ChevronRight className="size-4 shrink-0 text-foreground/25 rtl:rotate-180" />
                   </span>
@@ -979,7 +979,7 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                     >
                       {instagramConnected
                         ? instagramInfo.username || instagramInfo.connection_id
-                        : t("socialFeed.instagram.notConnected")}
+                        : t("socialFeed.instagram.chooseAccount")}
                     </span>
                     <ChevronRight className="size-4 shrink-0 text-foreground/25 rtl:rotate-180" />
                   </span>

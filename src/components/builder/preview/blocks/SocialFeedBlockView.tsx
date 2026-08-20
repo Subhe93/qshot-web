@@ -1,4 +1,22 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import type { SocialFeedBlock } from "@/lib/types/blocks";
+import {
+  getInstagramConnectedFeed,
+  type PostFeed as PostFeedData,
+  type PostFeedItem,
+  type PostFeedProfile,
+} from "@/lib/api/instagram";
+import { getFacebookFeed } from "@/lib/api/meta";
+import {
+  extractVimeoId,
+  getVimeoFeed,
+  getYoutubeFeed,
+  type VideoFeed,
+  type VideoFeedItem,
+} from "@/lib/api/rss-feeds";
+import { getTiktokFeed } from "@/lib/api/tiktok";
 import { dirOf } from "@/lib/builder/text-direction";
 import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
 
@@ -22,24 +40,30 @@ import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
  *                                  with caption, media and a Like/Comment/Share
  *                                  affordance row. Badge, media crop and action
  *                                  icons adapt to the platform.
- *  - legacy `instagram`         → `InstagramProfile` (unchanged).
+ *  - legacy `instagram`         → `InstagramProfile` (unchanged — placeholder
+ *                                  chrome only; the business_discovery fetch is
+ *                                  a retired path the web builder never calls).
  *
- * The mobile widget fetches the live feed (`FeedDisplayCubit`) and renders the
- * result. In the builder we cannot: the posts are NEVER stored in the website
- * JSON — YouTube/Vimeo come from public RSS, and the connect-flow providers
- * (`facebook` via `meta/feed`, `instagram_connected` via `instagram/feed`,
- * `tiktok` via `tiktok-integration/`) are fetched by the PUBLIC renderer
- * server-side (with the visitor-IP forwarding secret — those endpoints are
- * deliberately never called from the browser, see `src/lib/api/instagram.ts`).
- * So — as before — we render representative placeholder tiles that honour
- * `configuration`, `layout_type` and `posts_count`, matching the mobile
- * dimensions, ratios, colors and spacing precisely.
+ * Like the mobile widget (`FeedDisplayCubit` + `FeedRepository`), the preview
+ * fetches the LIVE feed and renders the real posts — `useFeedData` below, with
+ * the same per-configuration cache keys and 10-minute TTL. YouTube/Vimeo come
+ * from public RSS (via `/api/feed-proxy` — the browser can't reach the XML
+ * hosts cross-origin), and the connect-flow providers come from their PUBLIC
+ * feed routes (`meta/feed`, `instagram-integration/feed`,
+ * `tiktok-integration/feed` — keyed by the unguessable `connection_id`, no
+ * bearer, see `src/lib/api/instagram.ts` on why they bypass the shared client).
+ *
+ * The representative placeholder tiles remain as the loading / error / empty
+ * state — and for blocks whose identifiers are still blank — matching the
+ * mobile dimensions, ratios, colors and spacing precisely.
  *
  * Shared chrome (`FeedWidget.build`):
  *  - Header: title at horizontal 24, headlineMedium bold.
  *  - Trailing divider at horizontal 20, indent/endIndent 8, foreground @ 0.2.
  *
  * `posts_count` (default 4 — mobile `postsCount` default) caps the tile count.
+ * Mobile fetches the FULL feed and slices client-side (`VideoFeed.take` /
+ * `PostFeed.take`) so changing `posts_count` never refetches; same here.
  *
  * `instagram` (legacy business_discovery) is still fully rendered even though
  * mobile `20941620` withheld it from the new-block selector: the value stays
@@ -76,6 +100,170 @@ const AVATAR_BG = "#E4E7ED"; // AppColors.grey.shade100
 /** AppColors.black (0xFF1F1F26) at the given alpha. */
 const ink = (alpha: number) => `rgba(31,31,38,${alpha})`;
 
+// ─── Live feed data (mobile FeedDisplayCubit + FeedRepositoryImpl) ───────────
+
+type FeedData =
+  | { kind: "videos"; feed: VideoFeed }
+  | { kind: "posts"; feed: PostFeedData };
+
+type FeedState =
+  /** Nothing to fetch: blank identifiers, legacy `instagram`, unknown value. */
+  | { status: "placeholder" }
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "data"; data: FeedData };
+
+/** Mobile `FeedRepositoryImpl._ttl` — 10 minutes. */
+const FEED_TTL_MS = 10 * 60_000;
+
+/**
+ * Module-level memo shared by every rendered feed block, so the same feed used
+ * twice (or re-mounted while editing) is only fetched once — the web analogue
+ * of the singleton `FeedRepositoryImpl` cache. Only successes are stored;
+ * errors retry on the next mount, like a fresh `FeedDisplayCubit.load()`.
+ */
+const feedCache = new Map<string, { data: FeedData; expiresAt: number }>();
+
+function peekFeedCache(key: string): FeedData | null {
+  const entry = feedCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    feedCache.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+
+/**
+ * The fetch + cache key for a block, or null when there is nothing to fetch.
+ * Keys mirror mobile `FeedRepository.*Key` exactly; identifier reads mirror
+ * `FeedDisplayCubit._fetch` (blank values, which would crash mobile, resolve
+ * to null here so the placeholder chrome stays up instead).
+ */
+function feedRequest(
+  configuration: string,
+  info: Record<string, unknown> | undefined,
+): { key: string; run: () => Promise<FeedData> } | null {
+  const s = (k: string) => {
+    const v = info?.[k];
+    return typeof v === "string" ? v.trim() : "";
+  };
+  switch (configuration) {
+    case "youtube": {
+      const channelId = s("channel_id");
+      if (!channelId) return null;
+      return {
+        key: `youtube:${channelId}`,
+        run: async () => ({ kind: "videos", feed: await getYoutubeFeed(channelId) }),
+      };
+    }
+    case "vimeo": {
+      // Mobile keys on the EXTRACTED id (`FeedDisplayCubit._vimeoId`).
+      const vimeoId = extractVimeoId(s("link"));
+      if (!vimeoId) return null;
+      return {
+        key: `vimeo:${vimeoId}`,
+        run: async () => ({ kind: "videos", feed: await getVimeoFeed(vimeoId) }),
+      };
+    }
+    case "facebook": {
+      const connectionId = s("connection_id");
+      const pageId = s("page_id");
+      if (!connectionId || !pageId) return null;
+      return {
+        key: `facebook:${connectionId}:${pageId}`,
+        run: async () => ({
+          kind: "posts",
+          feed: await getFacebookFeed(connectionId, pageId),
+        }),
+      };
+    }
+    case "tiktok": {
+      const connectionId = s("connection_id");
+      if (!connectionId) return null;
+      // `open_id` rides along but is NOT part of the key — mobile
+      // `FeedRepository.tiktokKey` keys on the connection alone.
+      const openId = s("open_id");
+      return {
+        key: `tiktok:${connectionId}`,
+        run: async () => ({
+          kind: "videos",
+          feed: await getTiktokFeed(connectionId, openId || undefined),
+        }),
+      };
+    }
+    case "instagram_connected": {
+      const connectionId = s("connection_id");
+      if (!connectionId) return null;
+      // `ig_user_id` is mobile's "redundant safety check" — sent, not keyed.
+      const igUserId = s("ig_user_id");
+      return {
+        key: `instagram_connected:${connectionId}`,
+        run: async () => ({
+          kind: "posts",
+          feed: await getInstagramConnectedFeed(connectionId, igUserId || undefined),
+        }),
+      };
+    }
+    default:
+      return null;
+  }
+}
+
+/** The state a key renders as before its fetch settles (or with no fetch). */
+function initialFeedState(req: { key: string } | null): FeedState {
+  if (!req) return { status: "placeholder" };
+  const cached = peekFeedCache(req.key);
+  // Cache hit renders without a loading flicker — mobile `FeedRepository.peek`
+  // in the FeedDisplayCubit constructor.
+  return cached ? { status: "data", data: cached } : { status: "loading" };
+}
+
+/**
+ * Fetches the block's live feed, memoized like mobile: placeholder for
+ * unfetchable configs, a cache hit renders instantly, otherwise
+ * loading → data | error. Placeholder/cache/loading are derived at render
+ * time (the documented "adjust state when props change" reset — the fetch
+ * key doubles as the marker of which key the stored state belongs to);
+ * the effect only runs the network fetch, and results landing after the
+ * block changed providers are dropped via its cleanup flag.
+ */
+function useFeedData(block: SocialFeedBlock): FeedState {
+  const configuration: string = block.configuration;
+  const info = block.info;
+  const req = useMemo(() => feedRequest(configuration, info), [configuration, info]);
+  const key = req?.key ?? null;
+
+  const [state, setState] = useState<{ key: string | null; value: FeedState }>(
+    () => ({ key, value: initialFeedState(req) }),
+  );
+  if (state.key !== key) {
+    setState({ key, value: initialFeedState(req) });
+  }
+
+  useEffect(() => {
+    if (!req || peekFeedCache(req.key)) return;
+    let stale = false;
+    req.run().then(
+      (data) => {
+        if (stale) return;
+        feedCache.set(req.key, { data, expiresAt: Date.now() + FEED_TTL_MS });
+        setState({ key: req.key, value: { status: "data", data } });
+      },
+      () => {
+        if (!stale) setState({ key: req.key, value: { status: "error" } });
+      },
+    );
+    return () => {
+      stale = true;
+    };
+  }, [req]);
+
+  // While the render-time reset above is catching up, report the fresh key's
+  // initial state rather than the previous key's leftover value.
+  return state.key === key ? state.value : initialFeedState(req);
+}
+
 export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
   const desktop = useDesktopPreview();
   // Widened to string: stored documents may carry `instagram_connected`
@@ -91,6 +279,17 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
 
   const username = (block.info?.["username"] as string | undefined) ?? "";
   const tiles = Array.from({ length: count });
+
+  // Live feed — loading/error/empty keep the placeholder tiles below, so the
+  // block always has mobile-faithful chrome no matter what the network does.
+  const feed = useFeedData(block);
+  const live = feed.status === "data" ? feed.data : null;
+  // Mobile slices the full feed to postsCount at render (`VideoFeed.take`).
+  const videoItems =
+    live?.kind === "videos" && live.feed.items.length > 0
+      ? live.feed.items.slice(0, count)
+      : null;
+  const postData = live?.kind === "posts" && live.feed.items.length > 0 ? live.feed : null;
 
   return (
     <div className="my-[5px] py-2">
@@ -122,7 +321,7 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
           }
         />
       ) : configuration === "tiktok" ? (
-        <TikTokFeed tiles={tiles} layout={layout} />
+        <TikTokFeed tiles={tiles} layout={layout} items={videoItems} />
       ) : configuration === "facebook" ||
         configuration === "instagram_connected" ? (
         <PostFeed
@@ -136,9 +335,10 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
             false
           }
           name={username}
+          feed={postData}
         />
       ) : (
-        <RssFeed tiles={tiles} layout={layout} />
+        <RssFeed tiles={tiles} layout={layout} items={videoItems} />
       )}
 
       <div className="h-[5px]" />
@@ -156,16 +356,22 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
 function RssFeed({
   tiles,
   layout,
+  items,
 }: {
   tiles: unknown[];
   layout: SocialFeedBlock["layout_type"];
+  /** Live feed items (already sliced to posts_count); null = placeholder mode. */
+  items: VideoFeedItem[] | null;
 }) {
+  // One card per live item, or one placeholder per tile — same chrome either way.
+  const cards: (VideoFeedItem | null)[] = items ?? tiles.map(() => null);
+
   if (layout === "list") {
     return (
       <div className="flex flex-col px-5">
-        {tiles.map((_, i) => (
+        {cards.map((item, i) => (
           <div key={i} className="py-[5px]">
-            <VideoCard />
+            <VideoCard item={item} />
           </div>
         ))}
       </div>
@@ -176,11 +382,11 @@ function RssFeed({
     return (
       <div className="overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex items-start">
-          {tiles.map((_, i) => (
+          {cards.map((item, i) => (
             <div key={i} className="px-1">
               {/* SizedBox(height: 148) → width follows 16:9 = ~263 */}
               <div className="h-[148px] w-[263px]">
-                <VideoCard fill />
+                <VideoCard fill item={item} />
               </div>
             </div>
           ))}
@@ -193,13 +399,13 @@ function RssFeed({
   return (
     <div className="w-full" style={{ aspectRatio: (16 / 9) * 1.1 }}>
       <div className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {tiles.map((_, i) => (
+        {cards.map((item, i) => (
           <div
             key={i}
             className="flex h-full w-[90%] shrink-0 snap-center items-center justify-center px-1"
           >
             <div className="w-full">
-              <VideoCard />
+              <VideoCard item={item} />
             </div>
           </div>
         ))}
@@ -209,12 +415,20 @@ function RssFeed({
 }
 
 /**
- * Mirrors the mobile `VideoCard`: 16:9 (unless `fill`, which fills the height
- * inside the grid SizedBox), rounded-8, black38 outside border, white-0.2 fill,
- * centered 60×60 translucent-white circular play button (30×30 glyph) and a
- * bottom title strip.
+ * Mirrors the mobile `VideoCard` (videos_widget.dart): 16:9 (unless `fill`,
+ * which fills the height inside the grid SizedBox), rounded-8, black38 outside
+ * border, white-0.2 fill, cover thumbnail, centered 60×60 translucent-white
+ * circular play button (30×30 glyph) and a bottom title strip (bodyMedium
+ * w600 white, single marquee line → truncated here). With no live item the
+ * thumbnail area stays blank and the title is a placeholder bar.
  */
-function VideoCard({ fill = false }: { fill?: boolean }) {
+function VideoCard({
+  fill = false,
+  item = null,
+}: {
+  fill?: boolean;
+  item?: VideoFeedItem | null;
+}) {
   return (
     <div
       className={
@@ -228,9 +442,19 @@ function VideoCard({ fill = false }: { fill?: boolean }) {
         backgroundColor: "rgba(255,255,255,0.2)",
       }}
     >
+      {item?.thumbnailUrl ? <FeedImage src={item.thumbnailUrl} /> : null}
+
       {/* bottom title strip (height 20, bottom 16, start/end 16) */}
       <div className="absolute inset-x-4 bottom-4 h-5">
-        <div className="h-3 w-3/5 rounded-full bg-white/40" />
+        {item ? (
+          item.title ? (
+            <p className="truncate text-sm font-semibold leading-5 text-white">
+              {item.title}
+            </p>
+          ) : null
+        ) : (
+          <div className="h-3 w-3/5 rounded-full bg-white/40" />
+        )}
       </div>
 
       {/* centered 60×60 translucent-white play circle */}
@@ -243,6 +467,30 @@ function VideoCard({ fill = false }: { fill?: boolean }) {
         </span>
       </div>
     </div>
+  );
+}
+
+/**
+ * Cover image for a live feed tile. The URLs are ABSOLUTE (YouTube/Vimeo CDNs,
+ * scontent.*, TikTok covers) so they are used as-is — `cdnUrl` is only for the
+ * site's own relative asset paths. A failed load hides the element, revealing
+ * the placeholder chrome underneath (mobile's `errorWidget`). Not a link: the
+ * canvas convention is that block internals never navigate in edit mode
+ * (mobile only opens permalinks when `previewEnabled`).
+ */
+function FeedImage({ src }: { src: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      draggable={false}
+      className="absolute inset-0 size-full object-cover"
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
   );
 }
 
@@ -271,17 +519,22 @@ function VideoCard({ fill = false }: { fill?: boolean }) {
 function TikTokFeed({
   tiles,
   layout,
+  items,
 }: {
   tiles: unknown[];
   layout: SocialFeedBlock["layout_type"];
+  /** Live feed items (already sliced to posts_count); null = placeholder mode. */
+  items: VideoFeedItem[] | null;
 }) {
+  const cards: (VideoFeedItem | null)[] = items ?? tiles.map(() => null);
+
   if (layout === "swiper") {
     return (
       <div className="w-full" style={{ aspectRatio: "9 / 14" }}>
         <div className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {tiles.map((_, i) => (
+          {cards.map((item, i) => (
             <div key={i} className="h-full w-[62%] shrink-0 snap-center px-1">
-              <TikTokCard />
+              <TikTokCard item={item} />
             </div>
           ))}
         </div>
@@ -293,10 +546,10 @@ function TikTokFeed({
     return (
       <div className="overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex items-start gap-2">
-          {tiles.map((_, i) => (
+          {cards.map((item, i) => (
             // SizedBox(height: 220, width: 220 * 9 / 14 ≈ 141)
             <div key={i} className="h-[220px] w-[141px] shrink-0">
-              <TikTokCard />
+              <TikTokCard item={item} />
             </div>
           ))}
         </div>
@@ -307,9 +560,9 @@ function TikTokFeed({
   // list — 2-column grid, childAspectRatio 9/14, 8px gaps, horizontal 16.
   return (
     <div className="grid grid-cols-2 gap-2 px-4">
-      {tiles.map((_, i) => (
+      {cards.map((item, i) => (
         <div key={i} style={{ aspectRatio: "9 / 14" }}>
-          <TikTokCard />
+          <TikTokCard item={item} />
         </div>
       ))}
     </div>
@@ -319,12 +572,14 @@ function TikTokFeed({
 /**
  * Mirrors mobile `_TiktokCard`: rounded-14 black card, cover image (empty
  * state = dim glyph on black), bottom caption over a transparent→black-0.85
- * gradient (2 lines, 12px w600 white — bars here), a 26×26 music badge at the
- * top end (black-0.45, 1px cyan-0.6 ring), a centered 46×46 play circle
- * (black-0.3, 1.5px white-0.85 ring, 26px glyph) and a 3px cyan→pink brand
- * hairline along the bottom.
+ * gradient (2 lines, 12px w600 white — real title when live, bars otherwise),
+ * a 26×26 music badge at the top end (black-0.45, 1px cyan-0.6 ring), a
+ * centered 46×46 play circle (black-0.3, 1.5px white-0.85 ring, 26px glyph)
+ * and a 3px cyan→pink brand hairline along the bottom. Live items always have
+ * a thumbnail — `getTiktokFeed` drops the rest, like mobile
+ * `VideoFeed.fromNormalizedJson`.
  */
-function TikTokCard() {
+function TikTokCard({ item = null }: { item?: VideoFeedItem | null }) {
   return (
     <div className="relative size-full overflow-hidden rounded-[14px] bg-black">
       {/* empty-thumbnail state: centered dim image glyph (white24) */}
@@ -346,6 +601,8 @@ function TikTokCard() {
         </svg>
       </div>
 
+      {item?.thumbnailUrl ? <FeedImage src={item.thumbnailUrl} /> : null}
+
       {/* caption over gradient — padding (10, 24, 10, 10) */}
       <div
         className="absolute inset-x-0 bottom-0 px-2.5 pb-2.5 pt-6"
@@ -354,8 +611,16 @@ function TikTokCard() {
             "linear-gradient(to bottom, transparent, rgba(0,0,0,0.85))",
         }}
       >
-        <div className="h-2.5 w-11/12 rounded bg-white/50" />
-        <div className="mt-1 h-2.5 w-3/5 rounded bg-white/30" />
+        {item ? (
+          <p className="line-clamp-2 text-xs font-semibold leading-[1.3] text-white">
+            {item.title}
+          </p>
+        ) : (
+          <>
+            <div className="h-2.5 w-11/12 rounded bg-white/50" />
+            <div className="mt-1 h-2.5 w-3/5 rounded bg-white/30" />
+          </>
+        )}
       </div>
 
       {/* TikTok note badge — top end, 26×26 */}
@@ -457,62 +722,99 @@ const POST_BRAND: Record<
 };
 
 /**
- * Placeholder render of the reworked `PostFeedContent` — shared by
- * `facebook` (info `{connection_id, page_id}`) and `instagram_connected`
- * (info `{connection_id, ig_user_id}`): an optional profile byline
- * (`settings.show_profile_details`), then a VERTICAL STACK of post cards.
- * Mobile renders the same stack for every `layout_type` — the post feed has
- * no swiper/grid variants — so the preview does too.
+ * The reworked `PostFeedContent` — shared by `facebook` (info
+ * `{connection_id, page_id}`) and `instagram_connected` (info
+ * `{connection_id, ig_user_id}`): an optional profile byline
+ * (`settings.show_profile_details`), then a VERTICAL STACK of post cards
+ * capped by `posts_count` (`PostFeed.take`). Mobile renders the same stack for
+ * every `layout_type` — the post feed has no swiper/grid variants — so the
+ * preview does too.
  *
- * Like every provider here, the real posts are fetched by the PUBLIC renderer
- * server-side (`meta/feed`, `instagram/feed`) and never from the browser, so
- * the cards are representative placeholders capped by `posts_count`. On
- * mobile a card tap opens the post's permalink; a no-op on the canvas.
+ * With a live feed the cards carry the real caption/media/byline; mobile
+ * derives the brand from `profile.platform` (`_Brand.of`) but the server sets
+ * it to exactly what the configuration already tells us, so the prop stands.
+ * On mobile a card tap opens the post's permalink; a no-op on the canvas.
  */
 function PostFeed({
   tiles,
   platform,
   showProfileDetails,
   name,
+  feed,
 }: {
   tiles: unknown[];
   platform: PostPlatform;
   showProfileDetails: boolean;
   name: string;
+  /** Live feed (unsliced); null = placeholder mode. */
+  feed: PostFeedData | null;
 }) {
+  // tiles.length is the clamped posts_count.
+  const cards: (PostFeedItem | null)[] = feed
+    ? feed.items.slice(0, tiles.length)
+    : tiles.map(() => null);
+  // Mobile hides the byline entirely when the live feed has no profile.
+  const byline = feed ? (feed.profile ? feed.profile : null) : undefined;
   return (
     <div>
-      {showProfileDetails && <PostByline platform={platform} name={name} />}
-      {tiles.map((_, i) => (
+      {showProfileDetails && byline !== null && (
+        <PostByline platform={platform} name={name} profile={byline ?? null} />
+      )}
+      {cards.map((item, i) => (
         // Card padding — EdgeInsets.fromLTRB(16, 0, 16, 12)
         <div key={i} className="px-4 pb-3">
-          <PostCard platform={platform} name={name} />
+          <PostCard
+            platform={platform}
+            name={name}
+            item={item}
+            profile={feed ? (feed.profile ?? null) : undefined}
+          />
         </div>
       ))}
     </div>
   );
 }
 
+/** Mobile post_feed_content.dart `_formatCount` — 1.2K / 3.4M. */
+function formatCount(count: number): string {
+  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
+  if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
+  return String(count);
+}
+
 /**
  * Mobile `_ProfileByline`: 44px avatar with a brand badge overlapping its
  * bottom end (white 3px ring around a 4px-padded brand circle, 11px glyph),
- * then name (bodyLarge bold) and a follower count (bodySmall, ink 0.5) — the
- * count is server data we never have in the builder, so it stays a bar.
+ * then name (bodyLarge bold) and a follower count (bodySmall, fixed
+ * AppColors.black 0.5 — NOT the site foreground token, matching mobile). With
+ * a live profile the row shows the real avatar/name/count; the follower row is
+ * omitted when the server sends no count (mobile `if (followers != null)`),
+ * and stays a placeholder bar in placeholder mode.
  */
 function PostByline({
   platform,
   name,
+  profile,
 }: {
   platform: PostPlatform;
   name: string;
+  /** Live profile; null = placeholder mode. */
+  profile: PostFeedProfile | null;
 }) {
+  const displayName = profile ? profile.name : name;
   return (
     <div className="flex items-center gap-2.5 px-4 pb-3">
       <span className="relative shrink-0">
         <span
-          className="block size-11 rounded-full"
+          className="block size-11 overflow-hidden rounded-full"
           style={{ backgroundColor: AVATAR_BG }}
-        />
+        >
+          {profile?.avatar_url ? (
+            <span className="relative block size-full">
+              <FeedImage src={profile.avatar_url} />
+            </span>
+          ) : null}
+        </span>
         {/* PositionedDirectional(bottom: -2, end: -2) */}
         <span className="absolute -bottom-0.5 -end-0.5 block rounded-full bg-white p-[3px]">
           <span
@@ -524,13 +826,23 @@ function PostByline({
         </span>
       </span>
       <div className="min-w-0 flex-1">
-        {name ? (
-          <p className="truncate text-base font-bold text-foreground">{name}</p>
+        {displayName ? (
+          <p className="truncate text-base font-bold text-foreground">
+            {displayName}
+          </p>
         ) : (
           <div className="h-4 w-28 rounded bg-foreground/20" />
         )}
-        {/* "1.2K followers" on mobile — unknown here, so a placeholder bar. */}
-        <div className="mt-1.5 h-3 w-20 rounded bg-foreground/10" />
+        {profile ? (
+          profile.followers_count != null ? (
+            <p className="truncate text-xs" style={{ color: ink(0.5) }}>
+              {formatCount(profile.followers_count)} followers
+            </p>
+          ) : null
+        ) : (
+          // "1.2K followers" on mobile — unknown here, so a placeholder bar.
+          <div className="mt-1.5 h-3 w-20 rounded bg-foreground/10" />
+        )}
       </div>
     </div>
   );
@@ -539,8 +851,9 @@ function PostByline({
 /**
  * Mobile `_PostCard`: rounded-14 card on the FIXED light AppColors.background
  * surface (no border) containing — page row (24px avatar + 12px w700 name,
- * padding 12/10/12/6), caption (bodyMedium ×4 lines max, padding 12/2/12/10 —
- * bars here), the media crop, a 1px ink-0.08 divider, and three equal
+ * padding 12/10/12/6; mobile hides the row when the feed has no profile),
+ * caption (bodyMedium ×4 lines max, padding 12/2/12/10; mobile skips it when
+ * blank), the media crop, a 1px ink-0.08 divider, and three equal
  * Like/Comment/Share affordances (14px icon + bodySmall w600 label,
  * ink 0.55, 10px vertical padding). The affordances are purely visual on
  * mobile too — the whole card is one tap target.
@@ -548,54 +861,85 @@ function PostByline({
 function PostCard({
   platform,
   name,
+  item = null,
+  profile,
 }: {
   platform: PostPlatform;
   name: string;
+  /** Live post; null = placeholder mode. */
+  item?: PostFeedItem | null;
+  /**
+   * Live feed profile (mobile passes `pageName`/`pageAvatarUrl` from it);
+   * undefined = placeholder mode, null = live feed without a profile.
+   */
+  profile?: PostFeedProfile | null;
 }) {
   const brand = POST_BRAND[platform];
+  const live = item != null;
+  const pageName = live ? (profile?.name ?? "") : name;
+  const caption = live ? (item.caption ?? "").trim() : "";
   return (
     <div
       className="overflow-hidden rounded-[14px]"
       style={{ backgroundColor: CARD_BG }}
     >
       {/* page row — EdgeInsets.fromLTRB(12, 10, 12, 6) */}
-      <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
-        <span
-          className="size-6 shrink-0 rounded-full"
-          style={{ backgroundColor: AVATAR_BG }}
-        />
-        {name ? (
-          <p
-            className="min-w-0 flex-1 truncate text-xs font-bold"
-            style={{ color: ink(0.9) }}
-          >
-            {name}
-          </p>
-        ) : (
+      {live && !profile ? null : (
+        <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
           <span
-            className="block h-2.5 w-24 rounded"
-            style={{ backgroundColor: ink(0.2) }}
-          />
-        )}
-      </div>
+            className="relative size-6 shrink-0 overflow-hidden rounded-full"
+            style={{ backgroundColor: AVATAR_BG }}
+          >
+            {profile?.avatar_url ? <FeedImage src={profile.avatar_url} /> : null}
+          </span>
+          {pageName ? (
+            <p
+              className="min-w-0 flex-1 truncate text-xs font-bold"
+              style={{ color: ink(0.9) }}
+            >
+              {pageName}
+            </p>
+          ) : (
+            <span
+              className="block h-2.5 w-24 rounded"
+              style={{ backgroundColor: ink(0.2) }}
+            />
+          )}
+        </div>
+      )}
 
       {/* caption — EdgeInsets.fromLTRB(12, 2, 12, 10) */}
-      <div className="space-y-1.5 px-3 pb-2.5 pt-0.5">
-        <div
-          className="h-2.5 w-11/12 rounded"
-          style={{ backgroundColor: ink(0.15) }}
-        />
-        <div
-          className="h-2.5 w-3/5 rounded"
-          style={{ backgroundColor: ink(0.1) }}
-        />
-      </div>
+      {live ? (
+        caption ? (
+          <div className="px-3 pb-2.5 pt-0.5">
+            <p
+              className="line-clamp-4 text-sm leading-[1.35]"
+              style={{ color: ink(0.9) }}
+            >
+              {caption}
+            </p>
+          </div>
+        ) : null
+      ) : (
+        <div className="space-y-1.5 px-3 pb-2.5 pt-0.5">
+          <div
+            className="h-2.5 w-11/12 rounded"
+            style={{ backgroundColor: ink(0.15) }}
+          />
+          <div
+            className="h-2.5 w-3/5 rounded"
+            style={{ backgroundColor: ink(0.1) }}
+          />
+        </div>
+      )}
 
       {/* media — 4:3 for Facebook, square for Instagram */}
       <div
-        className="w-full bg-black/10"
+        className="relative w-full bg-black/10"
         style={{ aspectRatio: brand.aspect }}
-      />
+      >
+        {item?.thumbnail_url ? <FeedImage src={item.thumbnail_url} /> : null}
+      </div>
 
       <div className="h-px" style={{ backgroundColor: ink(0.08) }} />
 
