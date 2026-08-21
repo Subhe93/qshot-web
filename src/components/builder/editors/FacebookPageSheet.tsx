@@ -8,8 +8,10 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
+  connectionId as metaConnectionId,
   deleteMetaConnection,
   getMetaConnectUrl,
+  isActiveConnection,
   listMetaConnections,
   listMetaPages,
   pagePicture,
@@ -104,8 +106,16 @@ export function FacebookPageSheet({
       setPhase("connect");
       return;
     }
-    // Keep the block's stored connection when it still exists, else take the first.
-    const keep = res.data.find((c) => c._id === connectionId)?._id ?? res.data[0]._id;
+    // Keep the block's stored connection when it still exists, else take the
+    // first — but only among ACTIVE connections: web-contract §7 says only
+    // `status: "active"` can list Pages; `expired`/`revoked` need a fresh
+    // connect, so they are never auto-selected (their rows offer reconnect
+    // instead). `metaConnectionId` tolerates both `id` (the live server /
+    // contract spelling) and `_id` — reading `_id` alone left `keep` undefined
+    // and silently skipped the pages fetch (live bug, 2026-08-21). An empty
+    // `keep` (every connection stale) renders the reconnect panel below.
+    const usable = res.data.filter(isActiveConnection).map(metaConnectionId);
+    const keep = usable.find((cid) => cid === connectionId) ?? usable[0] ?? "";
     setConnectionId(keep);
     setNotice(null);
     setPhase("pages");
@@ -278,34 +288,48 @@ export function FacebookPageSheet({
                 {t("socialFeed.facebook.account")}
               </p>
               <div className="overflow-hidden rounded-xl border border-border">
-                {connections.map((c) => (
+                {connections.map((c) => {
+                  const cid = metaConnectionId(c);
+                  const usable = isActiveConnection(c);
+                  return (
                   <div
-                    key={c._id}
+                    key={cid}
                     className="flex items-center gap-2 border-b border-border px-3 py-2.5 last:border-b-0"
                   >
                     <button
                       type="button"
-                      onClick={() => setConnectionId(c._id)}
+                      // An expired/revoked connection can't list Pages
+                      // (web-contract §7) — tapping it starts a fresh connect
+                      // instead of selecting it.
+                      onClick={() => (usable ? setConnectionId(cid) : void connect())}
                       className="flex min-w-0 flex-1 items-center gap-2 text-start"
                     >
                       <FbMark className="size-4 shrink-0" />
-                      <span className="truncate text-sm text-foreground">
-                        {c.name || c.username || c.email || c._id}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm text-foreground">
+                          {c.name || c.username || c.email || cid}
+                        </span>
+                        {!usable && (
+                          <span className="block truncate text-xs text-error">
+                            {t("socialFeed.connectionExpired")}
+                          </span>
+                        )}
                       </span>
-                      {c._id === connectionId && (
+                      {usable && cid === connectionId && (
                         <Check className="ms-auto size-4 shrink-0 text-primary" />
                       )}
                     </button>
                     <button
                       type="button"
                       aria-label={t("socialFeed.facebook.disconnect")}
-                      onClick={() => setConfirmDisconnect(c._id)}
+                      onClick={() => setConfirmDisconnect(cid)}
                       className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-error"
                     >
                       <Trash2 className="size-4" />
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <button
                 type="button"
@@ -325,7 +349,23 @@ export function FacebookPageSheet({
                 {t("socialFeed.facebook.choosePage")}
               </p>
 
-              {loadingPages ? (
+              {!connectionId ? (
+                // Every stored connection is expired/revoked (web-contract §7)
+                // — nothing can list Pages until the user reconnects.
+                <div className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface px-4 py-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {t("socialFeed.connectionExpired")}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={connecting}
+                    onClick={() => void connect()}
+                  >
+                    {t("socialFeed.facebook.reconnect")}
+                  </Button>
+                </div>
+              ) : loadingPages ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="size-5 animate-spin text-muted-foreground" />
                 </div>

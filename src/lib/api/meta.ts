@@ -25,16 +25,39 @@ import { connectReturnUrl } from "./social-connect";
 
 // ─── Models ─────────────────────────────────────────────────────────────────
 
-/** A stored Meta OAuth connection. `_id` is what goes into `info.connection_id`. */
+/**
+ * A stored Meta OAuth connection. The row id is what goes into
+ * `info.connection_id` — the live server (and contract §4.4) spell it `id`;
+ * `_id` is tolerated for older responses. Read it through `connectionId()`,
+ * never a bare field: reading `_id` alone made `keep` undefined in the page
+ * sheet, which silently skipped the `meta/pages` fetch and showed "No Pages
+ * found" for accounts that had pages (seen live 2026-08-21).
+ */
 export interface MetaConnection {
-  _id: string;
+  id?: string;
+  _id?: string;
   /** Meta user id / account name, when the backend returns them (display only). */
   name?: string | null;
   username?: string | null;
   email?: string | null;
+  /**
+   * `active | expired | revoked` (web-contract §7). Only an active connection
+   * can list Pages — the other two need a fresh connect. Absent on older
+   * responses, so read it through `isActiveConnection()`.
+   */
+  status?: string | null;
   expired?: boolean | null;
   createdAt?: string;
   [key: string]: unknown;
+}
+
+/**
+ * Can this connection still be used (list Pages, back a feed block)?
+ * A missing `status` is treated as active — servers predating the field
+ * only ever returned live connections.
+ */
+export function isActiveConnection(c: MetaConnection | null | undefined): boolean {
+  return c != null && (c.status == null || c.status === "active");
 }
 
 /**
@@ -158,24 +181,32 @@ export async function listMetaConnections(): Promise<MetaResult<MetaConnection[]
 export async function listMetaPages(
   connectionId: string,
 ): Promise<MetaResult<MetaPage[]>> {
-  return guard<MetaPage[]>(
-    async () =>
-      pickArray<MetaPage>(
-        await api
-          .get("meta/pages", { searchParams: { connection_id: connectionId } })
-          .json(),
-        "pages",
-        "accounts",
-      )
-        .filter((p) => p != null)
-        .map((p) => ({
-          ...p,
-          id: String(p.id ?? p.page_id ?? ""),
-          name: String(p.name ?? p.page_name ?? ""),
-        }))
-        .filter((p) => p.id !== ""),
-    [],
-  );
+  try {
+    const pages = pickArray<MetaPage>(
+      await api
+        .get("meta/pages", { searchParams: { connection_id: connectionId } })
+        .json(),
+      "pages",
+      "accounts",
+    )
+      .filter((p) => p != null)
+      .map((p) => ({
+        ...p,
+        id: String(p.id ?? p.page_id ?? ""),
+        name: String(p.name ?? p.page_name ?? ""),
+      }))
+      .filter((p) => p.id !== "");
+    return { data: pages, unavailable: false, failed: false };
+  } catch (e) {
+    // 409 `no_pages` (web-contract §4/§9) is the CONTRACT answer for an
+    // account that manages no Facebook Page — a real, common state, not a
+    // failure. Surface it as an empty list so the sheet renders its
+    // "create a Page, then reconnect" explanation instead of a generic error.
+    if (e instanceof HTTPError && e.response.status === 409) {
+      return { data: [], unavailable: false, failed: false };
+    }
+    return { data: [], unavailable: isMissingRoute(e), failed: !isMissingRoute(e) };
+  }
 }
 
 /** DELETE meta/connections/{id}. */
@@ -230,6 +261,12 @@ export async function getFacebookFeed(
       })
       .json(),
   );
+}
+
+/** The value that goes into `info.connection_id`, whichever key carries it —
+ *  same helper shape as `./tiktok` / `./instagram`. */
+export function connectionId(c: MetaConnection | null | undefined): string {
+  return String(c?.id ?? c?._id ?? "");
 }
 
 /**

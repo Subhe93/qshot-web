@@ -392,6 +392,7 @@
       "finishSignInDesc": "Fullfør trinnene i nettleseren, og kom deretter tilbake til denne skjermen.",
       "reopenSignIn": "Åpne innlogging på nytt",
       "noConnectionReturned": "Ingen tilkobling ble returnert.",
+      "connectionExpired": "Tilkoblingen er utløpt — må kobles til på nytt",
       "facebook": {
         "title": "Facebook-side",
         "subtitle": "Vis innlegg fra siden din",
@@ -444,7 +445,7 @@
         "unavailable": "Instagram-feeder er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
         "popupBlocked": "Nettleseren blokkerte påloggingsvinduet. Tillat popup-vinduer for dette nettstedet og prøv igjen.",
         "switchToConnect": "Koble til Instagram-kontoen din",
-        "legacyNotice": "Denne blokken bruker fortsatt den gamle metoden med offentlig profil, som fases ut. Koble til kontoen din for at den skal fortsette å virke."
+        "legacyNotice": "Denne blokken brukte den gamle metoden med offentlig profil, som nå er fjernet — innlegg vises ikke lenger. Koble til Instagram-kontoen din for å gjenopprette den."
       }
     },
     "form": {

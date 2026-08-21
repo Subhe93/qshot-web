@@ -392,6 +392,7 @@
       "finishSignInDesc": "Gavan di geroka xwe de temam bike, paşê vegere vê ekranê.",
       "reopenSignIn": "Têketinê ji nû ve veke",
       "noConnectionReturned": "Tu girêdan nehat vegerandin.",
+      "connectionExpired": "Girêdan qediya — divê ji nû ve were girêdan",
       "facebook": {
         "title": "Rûpela Facebookê",
         "subtitle": "Şandiyên rûpela xwe nîşan bide",
@@ -444,7 +445,7 @@
         "unavailable": "Feedên Instagramê niha ne berdest in. Ji kerema xwe paşê biceribîne.",
         "popupBlocked": "Geroka te paceya têketinê asteng kir. Ji bo vê malperê destûrê bide pop-upan û dîsa biceribîne.",
         "switchToConnect": "Hesabê xwe yê Instagramê girêde",
-        "legacyNotice": "Ev blok hîn rêbaza kevn a profîla giştî bi kar tîne, ku tê rakirin. Hesabê xwe girêde da ku bixebite."
+        "legacyNotice": "Ev blokê rêbaza kevn a profîla giştî bi kar dianî, ku hat rakirin — êdî post nayên nîşandan. Hesabê xwe yê Instagramê girêde da ku vegere."
       }
     },
     "form": {

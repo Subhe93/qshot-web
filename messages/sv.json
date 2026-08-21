@@ -392,6 +392,7 @@
       "finishSignInDesc": "Slutför stegen i webbläsaren och kom sedan tillbaka till den här skärmen.",
       "reopenSignIn": "Öppna inloggningen igen",
       "noConnectionReturned": "Ingen anslutning returnerades.",
+      "connectionExpired": "Anslutningen har gått ut — måste anslutas igen",
       "facebook": {
         "title": "Facebook-sida",
         "subtitle": "Visa inlägg från din sida",
@@ -444,7 +445,7 @@
         "unavailable": "Instagram-flöden är inte tillgängliga just nu. Försök igen senare.",
         "popupBlocked": "Din webbläsare blockerade inloggningsfönstret. Tillåt popup-fönster för den här webbplatsen och försök igen.",
         "switchToConnect": "Anslut ditt Instagram-konto",
-        "legacyNotice": "Det här blocket använder fortfarande den äldre metoden med offentlig profil, som håller på att fasas ut. Anslut ditt konto så att det fortsätter fungera."
+        "legacyNotice": "Det här blocket använde den äldre metoden med offentlig profil, som nu har tagits bort — inlägg visas inte längre. Anslut ditt Instagram-konto för att återställa det."
       }
     },
     "form": {

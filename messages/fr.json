@@ -392,6 +392,7 @@
       "finishSignInDesc": "Terminez les étapes dans votre navigateur, puis revenez à cet écran.",
       "reopenSignIn": "Rouvrir la connexion",
       "noConnectionReturned": "Aucune connexion n'a été renvoyée.",
+      "connectionExpired": "Connexion expirée — reconnexion nécessaire",
       "facebook": {
         "title": "Page Facebook",
         "subtitle": "Afficher les publications de votre Page",
@@ -444,7 +445,7 @@
         "unavailable": "Les fils Instagram ne sont pas disponibles pour le moment. Réessayez plus tard.",
         "popupBlocked": "Votre navigateur a bloqué la fenêtre de connexion. Autorisez les pop-ups pour ce site puis réessayez.",
         "switchToConnect": "Connectez votre compte Instagram",
-        "legacyNotice": "Ce bloc utilise encore l’ancienne méthode par profil public, qui va être retirée. Connectez votre compte pour qu’il continue de fonctionner."
+        "legacyNotice": "Ce bloc utilisait l’ancienne méthode par profil public, désormais retirée — les publications ne s’affichent plus. Connectez votre compte Instagram pour le rétablir."
       }
     },
     "form": {

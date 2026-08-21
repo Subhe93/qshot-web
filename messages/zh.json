@@ -392,6 +392,7 @@
       "finishSignInDesc": "在浏览器中完成这些步骤，然后返回此页面。",
       "reopenSignIn": "重新打开登录",
       "noConnectionReturned": "未返回任何连接。",
+      "connectionExpired": "连接已过期——需要重新连接",
       "facebook": {
         "title": "Facebook 主页",
         "subtitle": "展示主页的帖子",
@@ -444,7 +445,7 @@
         "unavailable": "Instagram 信息流暂时不可用，请稍后再试。",
         "popupBlocked": "浏览器拦截了登录窗口。请允许本站弹出窗口后重试。",
         "switchToConnect": "连接你的 Instagram 账号",
-        "legacyNotice": "此模块仍在使用即将停用的旧版公开主页方式。请连接你的账号以保持其正常运行。"
+        "legacyNotice": "此模块使用的旧版公开主页方式已停用——帖子不再显示。请连接你的 Instagram 账号以恢复。"
       }
     },
     "form": {

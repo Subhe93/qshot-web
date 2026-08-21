@@ -392,6 +392,7 @@
       "finishSignInDesc": "Conclua as etapas no seu navegador e volte a este ecrã.",
       "reopenSignIn": "Reabrir o login",
       "noConnectionReturned": "Nenhuma ligação foi devolvida.",
+      "connectionExpired": "A ligação expirou — é necessário voltar a ligar",
       "facebook": {
         "title": "Página do Facebook",
         "subtitle": "Mostrar publicações da sua Página",
@@ -444,7 +445,7 @@
         "unavailable": "Os feeds do Instagram não estão disponíveis neste momento. Tente novamente mais tarde.",
         "popupBlocked": "O seu navegador bloqueou a janela de início de sessão. Permita pop-ups neste site e tente novamente.",
         "switchToConnect": "Ligue a sua conta do Instagram",
-        "legacyNotice": "Este bloco ainda usa o método antigo de perfil público, que está a ser descontinuado. Ligue a sua conta para continuar a funcionar."
+        "legacyNotice": "Este bloco usava o método antigo de perfil público, que foi descontinuado — as publicações já não são mostradas. Ligue a sua conta do Instagram para o restaurar."
       }
     },
     "form": {

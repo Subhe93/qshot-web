@@ -693,8 +693,10 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
         show_profile_details: pendingProvider ? pendingShowProfile : showProfile,
       },
       title:
+        // web-contract §5.3: the title is the PAGE NAME — "Facebook" is only
+        // the fallback when no page name exists. (Mobile stamps the same.)
         title === "" || DEFAULT_TITLES.includes(title)
-          ? PROVIDERS.facebook.defaultTitle
+          ? value.username || PROVIDERS.facebook.defaultTitle
           : block.title,
     });
     setPendingProvider(null);
@@ -738,7 +740,16 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
   function setInstagramInfo(value: InstagramConnectedFeedInfo) {
     const title = (block.title ?? "").trim();
     setBlock({
-      configuration: "instagram_connected",
+      // ⚠️ Written as `"instagram"` (the PRE-SPLIT value), NOT mobile's
+      // `"instagram_connected"` — user decision 2026-08-21: the deployed
+      // save-validator's enum has no `instagram_connected` and the backend
+      // declined to add it for now, so the connected shape ships under the
+      // legacy value and every renderer discriminates on `info` shape
+      // (`connection_id` present = connected). The editor already reads such
+      // blocks correctly (`instagramMode`). Revisit when the backend adds the
+      // value — mobile build 166+ writes `instagram_connected` and CANNOT save
+      // against this validator, so the enum addition remains inevitable.
+      configuration: "instagram",
       info: {
         connection_id: value.connection_id,
         ig_user_id: value.ig_user_id,
@@ -986,7 +997,14 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
                 }
                 onClick={() => setInstagramSheet(true)}
               />
-            ) : (
+            ) : effective === "instagram" &&
+              igMode === "link" &&
+              INSTAGRAM_FEED_ENABLED ? null : (
+              // ^ Legacy public-scrape Instagram is RETIRED (mobile deleted the
+              // business_discovery path — web-implementation-contract §3.4):
+              // no link field; the "switchToConnect" row below is the only
+              // source control. The link editor survives solely behind a
+              // disabled flag, where reconnecting isn't possible.
               <GroupedRow
                 Icon={LinkIcon}
                 color={PROVIDERS[effective].color}

@@ -392,6 +392,7 @@
       "finishSignInDesc": "Complete the steps in your browser, then come back to this screen.",
       "reopenSignIn": "Reopen sign-in",
       "noConnectionReturned": "No connection was returned.",
+      "connectionExpired": "Connection expired — reconnect needed",
       "facebook": {
         "title": "Facebook Page",
         "subtitle": "Show posts from your Page",
@@ -444,7 +445,7 @@
         "unavailable": "Instagram feeds aren’t available right now. Please try again later.",
         "popupBlocked": "Your browser blocked the login window. Allow pop-ups for this site and try again.",
         "switchToConnect": "Connect your Instagram account",
-        "legacyNotice": "This block still uses the older public-profile method, which is being retired. Connect your account to keep it working."
+        "legacyNotice": "This block used the older public-profile method, which has been retired — posts no longer display. Connect your Instagram account to restore it."
       }
     },
     "form": {

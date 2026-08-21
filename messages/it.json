@@ -392,6 +392,7 @@
       "finishSignInDesc": "Completa i passaggi nel browser, poi torna a questa schermata.",
       "reopenSignIn": "Riapri l'accesso",
       "noConnectionReturned": "Nessuna connessione restituita.",
+      "connectionExpired": "Connessione scaduta — è necessario ricollegarsi",
       "facebook": {
         "title": "Pagina Facebook",
         "subtitle": "Mostra i post della tua Pagina",
@@ -444,7 +445,7 @@
         "unavailable": "I feed di Instagram non sono disponibili in questo momento. Riprova più tardi.",
         "popupBlocked": "Il browser ha bloccato la finestra di accesso. Consenti i pop-up per questo sito e riprova.",
         "switchToConnect": "Collega il tuo account Instagram",
-        "legacyNotice": "Questo blocco usa ancora il vecchio metodo del profilo pubblico, che verrà dismesso. Collega il tuo account per mantenerlo funzionante."
+        "legacyNotice": "Questo blocco usava il vecchio metodo del profilo pubblico, ormai dismesso: i post non vengono più mostrati. Collega il tuo account Instagram per ripristinarlo."
       }
     },
     "form": {

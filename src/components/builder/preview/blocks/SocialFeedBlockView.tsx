@@ -40,9 +40,10 @@ import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
  *                                  with caption, media and a Like/Comment/Share
  *                                  affordance row. Badge, media crop and action
  *                                  icons adapt to the platform.
- *  - legacy `instagram`         → `InstagramProfile` (unchanged — placeholder
- *                                  chrome only; the business_discovery fetch is
- *                                  a retired path the web builder never calls).
+ *  - legacy `instagram`         → RETIRED: the business_discovery path was
+ *                                  deleted (web-implementation-contract §3.4);
+ *                                  a `{link, username}` block renders a
+ *                                  reconnect hint, never the old fake grid.
  *
  * Like the mobile widget (`FeedDisplayCubit` + `FeedRepository`), the preview
  * fetches the LIVE feed and renders the real posts — `useFeedData` below, with
@@ -65,12 +66,11 @@ import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
  * Mobile fetches the FULL feed and slices client-side (`VideoFeed.take` /
  * `PostFeed.take`) so changing `posts_count` never refetches; same here.
  *
- * `instagram` (legacy business_discovery) is still fully rendered even though
- * mobile `20941620` withheld it from the new-block selector: the value stays
- * valid in stored documents and must keep rendering. Its connect-flow
- * successor is the separate `instagram_connected` configuration
- * (`InstagramConnectedFeedConfiguration`, info `{connection_id, ig_user_id,
- * username}`), which renders through the shared PostFeed below.
+ * `instagram` carries two `info` shapes: the connected one (`connection_id`
+ * present — the web builder stamps it under this value while the validator's
+ * enum has no `instagram_connected`) renders through the shared PostFeed; the
+ * legacy `{link, username}` shape is retired (see above) and renders the
+ * reconnect hint.
  */
 // Mobile FeedConfiguration.defaultTitleValue — used when no title is set.
 const DEFAULT_FEED_TITLE: Record<string, string> = {
@@ -192,6 +192,12 @@ function feedRequest(
         }),
       };
     }
+    // `"instagram"` with the CONNECTED info shape (connection_id present) is
+    // how the web writes Business Login blocks while the deployed validator's
+    // enum lacks `instagram_connected` (user decision 2026-08-21) — same
+    // fetch, same key family. A legacy `{link, username}` instagram block has
+    // no connection_id and falls through to null → placeholder, as before.
+    case "instagram":
     case "instagram_connected": {
       const connectionId = s("connection_id");
       if (!connectionId) return null;
@@ -278,6 +284,12 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
   const layout = block.layout_type ?? "list";
 
   const username = (block.info?.["username"] as string | undefined) ?? "";
+  // `"instagram"` carrying the connected shape (see feedRequest) renders the
+  // PostFeed chrome, not the legacy profile grid.
+  const instagramConnectedShape =
+    configuration === "instagram" &&
+    typeof block.info?.["connection_id"] === "string" &&
+    (block.info["connection_id"] as string).trim() !== "";
   const tiles = Array.from({ length: count });
 
   // Live feed — loading/error/empty keep the placeholder tiles below, so the
@@ -311,19 +323,17 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
 
       <div className="h-[5px]" />
 
-      {configuration === "instagram" ? (
-        <InstagramFeed
-          tiles={tiles}
-          // Legacy InstagramProfile defaults show_profile_details to TRUE.
-          showProfileDetails={
-            (block.settings?.["show_profile_details"] as boolean | undefined) ??
-            true
-          }
-        />
+      {configuration === "instagram" && !instagramConnectedShape ? (
+        // Legacy public-scrape Instagram is RETIRED (mobile deleted the
+        // business_discovery path — web-implementation-contract §3.4): render
+        // a reconnect hint, not the old fake profile grid. The published Nuxt
+        // site renders nothing for this shape.
+        <LegacyInstagramRetired />
       ) : configuration === "tiktok" ? (
         <TikTokFeed tiles={tiles} layout={layout} items={videoItems} />
       ) : configuration === "facebook" ||
-        configuration === "instagram_connected" ? (
+        configuration === "instagram_connected" ||
+        instagramConnectedShape ? (
         <PostFeed
           tiles={tiles}
           platform={configuration === "facebook" ? "facebook" : "instagram"}
@@ -1050,62 +1060,32 @@ function BrandGlyph({
   );
 }
 
-// ─── Instagram (legacy `InstagramProfile`) ───────────────────────────────────
+// ─── Instagram (legacy `InstagramProfile` — RETIRED) ─────────────────────────
 
-function InstagramFeed({
-  tiles,
-  showProfileDetails,
-}: {
-  tiles: unknown[];
-  showProfileDetails: boolean;
-}) {
+/**
+ * A legacy `{link, username}` Instagram block. The public business_discovery
+ * path behind it was deleted (web-implementation-contract §3.4 — mobile shows
+ * a reconnect prompt, never the old grid), so the preview shows a quiet
+ * reconnect hint instead of fake profile chrome. English-only like the rest of
+ * the preview placeholder copy; the real call to action lives in the editor.
+ */
+function LegacyInstagramRetired() {
   return (
-    <div className="px-2">
-      {showProfileDetails ? <InstagramHeader /> : null}
-
-      {/* SliverGrid crossAxisCount: 2 — square tiles, no gaps */}
-      <div className="grid grid-cols-2">
-        {tiles.map((_, i) => (
-          <div key={i} className="aspect-square bg-black/10" />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function InstagramHeader() {
-  const desktop = useDesktopPreview();
-  return (
-    <div className="pb-4">
-      {/* avatar + name row, centered */}
-      <div className="flex items-center justify-center gap-2.5">
-        {/* gradient-ringed 50×50 avatar (2px ring + 2px pad) */}
+    <div className="px-5">
+      <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-dashed border-foreground/20 px-4 py-6">
+        {/* gradient-ringed avatar stub — keeps the Instagram identity */}
         <span
-          className="flex size-[58px] items-center justify-center rounded-full p-0.5"
+          className="flex size-8 items-center justify-center rounded-full p-0.5"
           style={{
             background:
               "linear-gradient(135deg,#F58529,#DD2A7B,#8134AF,#515BD4)",
           }}
         >
-          <span className="size-[50px] rounded-full bg-black/10" />
+          <span className="size-full rounded-full bg-black/10" />
         </span>
-        <div className="min-w-0">
-          <div className="h-4 w-28 rounded bg-foreground/20" />
-          <div className="mt-1.5 h-3 w-20 rounded bg-foreground/10" />
-        </div>
-      </div>
-
-      {/* stats row: Posts / Followers / Following */}
-      <div className="mt-2.5 flex items-center justify-evenly px-6">
-        {["Posts", "Followers", "Following"].map((label) => (
-          <div key={label} className="flex flex-col items-center gap-1">
-            <div className="h-4 w-8 rounded bg-foreground/20" />
-            {/* Desktop = Nuxt Instagram/Grid.vue stat label: 16px / full colour. */}
-            <span className={desktop ? "text-base text-foreground" : "text-xs text-muted-foreground"}>
-              {label}
-            </span>
-          </div>
-        ))}
+        <span className="text-xs text-muted-foreground">
+          Reconnect Instagram to show posts
+        </span>
       </div>
     </div>
   );
