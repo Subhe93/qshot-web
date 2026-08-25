@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  expandRectToAspect,
   isUsableRect,
   rectHeight,
   rectPaint,
@@ -14,23 +15,26 @@ import {
  * equivalent of mobile's `RectImage`, which does
  * `canvas.drawImageRect(image, rect, Offset.zero & size)`.
  *
- * Geometry (kept identical to the Nuxt `components/RectImage.vue`): the crop
- * is laid on a "stage" that has the crop's OWN aspect ratio and covers this
- * box (max of the two fits, centred — CSS container units, no resize
- * listener), and the image is positioned on the stage by percentages. When the
- * box already has the crop's aspect (mobile-width covers, every gallery tile)
- * the stage IS the box and this is pixel-identical to drawImageRect. When it
- * doesn't (the desktop preview's full-width hero cover) the crop covers the
- * box uniformly instead of being stretched to it — mobile never hands
- * drawImageRect a mismatched box, so "cover" is the faithful reading.
+ * Geometry — kept identical to the Nuxt `components/RectImage.vue` so the
+ * preview shows what visitors get (decision 2026-08-25):
+ *  - The box is measured (ResizeObserver). When its aspect equals the crop's
+ *    (the phone canvas, every gallery tile) the crop is painted exactly —
+ *    pixel-identical to drawImageRect.
+ *  - When the box has a different shape (the desktop preview's full-width
+ *    hero cover) the crop is EXPANDED to the box's aspect, centred on the crop
+ *    and clamped to the photo — the crop plus context, never a zoomed slice,
+ *    never a stretch (`expandRectToAspect`).
+ *  - The region sits on a stage with its own aspect that covers the box
+ *    (container units) and the image is percentage-positioned on it.
  *
  * With no usable rect it degrades to plain `object-fit: cover`, which is exactly
  * how every image uploaded before the non-destructive crop landed must keep
  * rendering — those were cut for real and carry `rect: null`.
  *
- * The natural size is read from both the `load` event and `complete` after
- * mount, so an already-cached image (which can finish before the listener is
- * live) paints the same geometry as a freshly downloaded one.
+ * While a rect exists and the natural size or the box is still unmeasured the
+ * image stays invisible, then appears once in its final place — no wrong
+ * geometry is ever painted. The natural size is read from both `load` and
+ * `complete`-after-mount so cached and fresh loads take the same path.
  *
  * Two things to know before using it:
  *  - The box positions itself `relative` via an INLINE style, so an `absolute`
@@ -59,6 +63,8 @@ export function RectImage({
   const [nat, setNat] = useState<{ src: string; w: number; h: number } | null>(
     null,
   );
+  const [boxAspect, setBoxAspect] = useState<number | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   // A cached image may already be complete before `onLoad` can fire.
@@ -71,11 +77,37 @@ export function RectImage({
     return () => clearTimeout(handle);
   }, [src]);
 
+  // Measure the box; re-derive only when its aspect actually changes.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const measure = () => {
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      const next = w > 0 && h > 0 ? w / h : null;
+      setBoxAspect((prev) =>
+        prev != null && next != null && Math.abs(prev - next) < 1e-3 ? prev : next,
+      );
+    };
+    const handle = setTimeout(measure, 0);
+    const observer =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    observer?.observe(el);
+    return () => {
+      clearTimeout(handle);
+      observer?.disconnect();
+    };
+  }, []);
+
   const measured = nat && nat.src === src ? nat : null;
-  const paint =
-    measured && isUsableRect(rect)
-      ? rectPaint(rect, measured.w, measured.h)
+  const hasRect = isUsableRect(rect);
+  const region =
+    measured && boxAspect != null && isUsableRect(rect)
+      ? expandRectToAspect(rect, measured.w, measured.h, boxAspect)
       : null;
+  const paint = region && measured ? rectPaint(region, measured.w, measured.h) : null;
+  // Rect present but not yet measurable: show nothing rather than a wrong paint.
+  const pending = hasRect && !paint;
 
   const img = (
     // eslint-disable-next-line @next/next/no-img-element
@@ -112,35 +144,44 @@ export function RectImage({
     />
   );
 
-  const w = paint && isUsableRect(rect) ? rectWidth(rect) : 0;
-  const h = paint && isUsableRect(rect) ? rectHeight(rect) : 0;
+  const w = region ? rectWidth(region) : 0;
+  const h = region ? rectHeight(region) : 0;
 
   return (
     <div
+      ref={rootRef}
       className={className}
       // Size containment lets the stage measure the box in cqw/cqh. The box is
       // always sized from outside (aspect ratio / explicit size), never from
       // its content, so containment costs nothing.
       style={{ position: "relative", overflow: "hidden", containerType: "size" }}
     >
-      {paint ? (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            overflow: "hidden",
-            aspectRatio: `${w} / ${h}`,
-            // max(fit-width, fit-height) = cover.
-            width: `max(100cqw, calc(100cqh * ${w} / ${h}))`,
-          }}
-        >
-          {img}
-        </div>
-      ) : (
-        img
-      )}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          visibility: pending ? "hidden" : undefined,
+        }}
+      >
+        {paint ? (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              overflow: "hidden",
+              aspectRatio: `${w} / ${h}`,
+              // max(fit-width, fit-height) = cover.
+              width: `max(100cqw, calc(100cqh * ${w} / ${h}))`,
+            }}
+          >
+            {img}
+          </div>
+        ) : (
+          img
+        )}
+      </div>
     </div>
   );
 }

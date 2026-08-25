@@ -147,3 +147,35 @@ export function roundRect(
   const bottom = Math.min(natH, Math.round(rect[3]));
   return [left, top, Math.max(left + 1, right), Math.max(top + 1, bottom)];
 }
+
+/**
+ * Grow `rect` until it has `aspect` (box width / height), centred on the crop
+ * and clamped to the image bounds — the region a box of a DIFFERENT shape than
+ * the crop should show: the crop itself plus surrounding context from the
+ * original photo, never a zoomed slice of the crop. When the box already has
+ * the crop's aspect this returns the crop unchanged. If the image runs out of
+ * pixels on one axis the result keeps the crop on that axis and the caller's
+ * cover geometry absorbs the (small) remaining mismatch. Identical to the Nuxt
+ * `utils/image-rect.ts` helper so visitor and builder agree.
+ */
+export function expandRectToAspect(
+  rect: RectTuple,
+  naturalWidth: number,
+  naturalHeight: number,
+  aspect: number,
+): RectTuple {
+  const w = rectWidth(rect);
+  const h = rectHeight(rect);
+  if (!(aspect > 0) || !(naturalWidth > 0) || !(naturalHeight > 0)) return rect;
+  let newW = w;
+  let newH = h;
+  if (aspect > w / h) newW = h * aspect;
+  else newH = w / aspect;
+  newW = Math.min(newW, naturalWidth);
+  newH = Math.min(newH, naturalHeight);
+  const cx = (rect[0] + rect[2]) / 2;
+  const cy = (rect[1] + rect[3]) / 2;
+  const left = Math.min(Math.max(cx - newW / 2, 0), naturalWidth - newW);
+  const top = Math.min(Math.max(cy - newH / 2, 0), naturalHeight - newH);
+  return [left, top, left + newW, top + newH];
+}
