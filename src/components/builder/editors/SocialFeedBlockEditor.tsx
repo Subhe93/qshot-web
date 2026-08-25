@@ -501,7 +501,9 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
   const effective = pendingProvider ?? configuration;
   const hasLayout = HAS_LAYOUT[effective];
 
-  const [tab, setTab] = useState<Tab>(hasLayout ? "layout" : "general");
+  // Always open on Settings (user decision 2026-08-25): the layout tab is a
+  // secondary choice reached by tapping it, for every provider.
+  const [tab, setTab] = useState<Tab>("general");
   const [pageSheet, setPageSheet] = useState(false);
   const [tiktokSheet, setTiktokSheet] = useState(false);
   const [instagramSheet, setInstagramSheet] = useState(false);
@@ -657,7 +659,8 @@ export function SocialFeedBlockEditor({ block }: { block: SocialFeedBlock }) {
       info: nextInfo,
       title: nextTitle,
     });
-    setTab(HAS_LAYOUT[next] ? "layout" : "general");
+    // Switching provider lands on Settings too (see the `tab` initialiser).
+    setTab("general");
   }
 
   /**
