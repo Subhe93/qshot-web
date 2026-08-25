@@ -12,6 +12,8 @@ import {
   Pencil,
   Link2,
   User,
+  CircleHelp,
+  IdCard,
   Search,
   CreditCard,
   CalendarDays,
@@ -519,24 +521,39 @@ function TransferSheet({
   const [foundName, setFoundName] = useState("");
   const [transferring, setTransferring] = useState(false);
   const [done, setDone] = useState(false);
+  // Mobile's help button opens an InstructionsDialog with four notes; here
+  // they expand inline under the field.
+  const [help, setHelp] = useState(false);
 
+  // The destination is the other user's ACCOUNT ID (the value shown under
+  // "Your account id" on their Transfer page), never a username or email —
+  // `temp-move/get-name/{id}` and `temp-move/store {destUser}` both take the
+  // id, exactly like mobile's UserCheckCubit / TransferOutRequest.
   useEffect(() => {
     const v = value.trim();
-    if (!v) {
-      setStatus("idle");
-      return;
-    }
-    setStatus("checking");
+    // Every state update happens inside the deferred callback (never
+    // synchronously in the effect body) — and it matches mobile's
+    // UserCheckCubit, which emits "waiting" only once its 300ms timer fires.
+    let stale = false;
     const handle = setTimeout(async () => {
+      if (!v) {
+        setStatus("idle");
+        return;
+      }
+      setStatus("checking");
       const name = await getTransferUserName(v);
+      if (stale) return;
       if (name) {
         setFoundName(name);
         setStatus("found");
       } else {
         setStatus("missing");
       }
-    }, 500);
-    return () => clearTimeout(handle);
+    }, v ? 300 : 0);
+    return () => {
+      stale = true;
+      clearTimeout(handle);
+    };
   }, [value]);
 
   async function submit() {
@@ -576,15 +593,35 @@ function TransferSheet({
     >
       <p className="mb-3 text-sm text-muted-foreground">{t("transferDesc")}</p>
       <div className="flex items-center gap-2 rounded-xl border border-input bg-card px-3">
-        <User className="size-5 text-muted-foreground" />
+        <IdCard className="size-5 text-muted-foreground" />
         <input
           autoFocus
           value={value}
           placeholder={t("transferUserPlaceholder")}
           onChange={(e) => setValue(e.target.value)}
-          className="h-11 w-full bg-transparent text-sm outline-none"
+          dir="ltr"
+          spellCheck={false}
+          autoComplete="off"
+          className="h-11 w-full bg-transparent font-mono text-sm outline-none"
         />
+        <button
+          type="button"
+          aria-label={t("transfer")}
+          aria-expanded={help}
+          onClick={() => setHelp((v) => !v)}
+          className="shrink-0 rounded-lg bg-primary/10 p-1.5 text-primary"
+        >
+          <CircleHelp className="size-4" />
+        </button>
       </div>
+      {help && (
+        <ul className="mt-2 list-disc space-y-1 rounded-xl bg-surface px-3 py-2 ps-7 text-xs text-muted-foreground">
+          <li>{t("transferInsure")}</li>
+          <li>{t("transferAccess")}</li>
+          <li>{t("transferUndone")}</li>
+          <li>{t("transferCancellation")}</li>
+        </ul>
+      )}
       <div className="mt-2 h-5 text-xs">
         {status === "checking" && (
           <span className="flex items-center gap-1 text-muted-foreground">
@@ -594,8 +631,9 @@ function TransferSheet({
         )}
         {status === "found" && (
           <span className="flex items-center gap-1 text-success">
-            <Check className="size-3" />
+            <User className="size-3" />
             {foundName}
+            <Check className="size-3" />
           </span>
         )}
         {status === "missing" && (
@@ -693,20 +731,26 @@ function UrlSheet({
 
   useEffect(() => {
     const clean = value.trim().toLowerCase();
-    if (!clean || clean === initial) {
-      setStatus("idle");
-      return;
-    }
-    setStatus("checking");
+    const unchanged = !clean || clean === initial;
+    // State updates only inside the deferred callback (react-hooks rule).
+    let stale = false;
     const handle = setTimeout(async () => {
+      if (unchanged) {
+        setStatus("idle");
+        return;
+      }
+      setStatus("checking");
       try {
         await checkUserName(clean);
-        setStatus("ok");
+        if (!stale) setStatus("ok");
       } catch {
-        setStatus("taken");
+        if (!stale) setStatus("taken");
       }
-    }, 600);
-    return () => clearTimeout(handle);
+    }, unchanged ? 0 : 600);
+    return () => {
+      stale = true;
+      clearTimeout(handle);
+    };
   }, [value, initial]);
 
   return (
