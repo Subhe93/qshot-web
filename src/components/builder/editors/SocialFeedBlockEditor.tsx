@@ -230,28 +230,19 @@ function isFeedConfiguration(value: unknown): value is StoredFeedConfiguration {
   return typeof value === "string" && value in PROVIDERS;
 }
 
-// Layout picker: YouTube / Vimeo (mobile layoutOptions != null), the Facebook
-// Page feed and TikTok — the catalog entry for `tiktok` states it "renders as a
-// video feed … so it honours layout_type (list / swiper / grid) like the
-// YouTube and Vimeo blocks".
-//
-// `instagram` is false for BOTH of its info shapes. The legacy one renders
-// through mobile `InstagramProfile` (a fixed 2-column grid, no layout options)
-// and so does `SocialFeedBlockView`, which keys off `configuration` alone.
-// `instagram_connected` is false straight from mobile: feed_widget.dart on
-// `feature/template-sites` passes `layoutOptions: null` for every
-// configuration except YouTube/Vimeo, so its settings sheet has no Layout tab.
-// facebook/tiktok were flipped to false 2026-08-12 for the same source line:
-// the null branch is `_` — it covers them too. (The tiktok RENDERER still
-// respects whatever layout_type the block carries; the user just doesn't get a
-// picker, exactly like mobile. facebook posts ignore layout_type entirely.)
+// Layout picker: EVERY provider offers list / grid / swiper — mobile dev
+// build 174 (fa18604d, "three layouts for every social feed") moved the
+// capability onto `FeedConfiguration.supportedLayouts`, and all five
+// configurations return the same three values. No schema change: the enum
+// stays [swiper, list, grid]. Instagram's retired legacy shape still gets the
+// tab (mobile keys this off the configuration, not the info shape).
 const HAS_LAYOUT: Record<StoredFeedConfiguration, boolean> = {
   youtube: true,
   vimeo: true,
-  instagram: false,
-  facebook: false,
-  tiktok: false,
-  instagram_connected: false,
+  instagram: true,
+  facebook: true,
+  tiktok: true,
+  instagram_connected: true,
 };
 
 // Configurations that carry a `settings` map with show_profile_details

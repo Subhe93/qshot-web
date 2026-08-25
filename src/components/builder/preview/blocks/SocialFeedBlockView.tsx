@@ -302,6 +302,9 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
       ? live.feed.items.slice(0, count)
       : null;
   const postData = live?.kind === "posts" && live.feed.items.length > 0 ? live.feed : null;
+  // A live feed that yielded nothing: mobile (dev build 174) renders one
+  // shared FeedEmptyPlaceholder across every renderer instead of a silent gap.
+  const liveEmpty = live != null && live.feed.items.length === 0;
 
   return (
     <div className="my-[5px] py-2">
@@ -330,12 +333,14 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
         // site renders nothing for this shape.
         <LegacyInstagramRetired />
       ) : configuration === "tiktok" ? (
-        <TikTokFeed tiles={tiles} layout={layout} items={videoItems} />
+        <TikTokFeed tiles={tiles} layout={layout} items={videoItems} empty={liveEmpty} />
       ) : configuration === "facebook" ||
         configuration === "instagram_connected" ||
         instagramConnectedShape ? (
         <PostFeed
           tiles={tiles}
+          layout={layout}
+          empty={liveEmpty}
           platform={configuration === "facebook" ? "facebook" : "instagram"}
           // PostFeedContent defaults show_profile_details to FALSE (unlike the
           // legacy InstagramProfile path); the configurations write `true`
@@ -348,7 +353,7 @@ export function SocialFeedBlockView({ block }: { block: SocialFeedBlock }) {
           feed={postData}
         />
       ) : (
-        <RssFeed tiles={tiles} layout={layout} items={videoItems} />
+        <RssFeed tiles={tiles} layout={layout} items={videoItems} empty={liveEmpty} />
       )}
 
       <div className="h-[5px]" />
@@ -367,12 +372,16 @@ function RssFeed({
   tiles,
   layout,
   items,
+  empty,
 }: {
   tiles: unknown[];
   layout: SocialFeedBlock["layout_type"];
   /** Live feed items (already sliced to posts_count); null = placeholder mode. */
   items: VideoFeedItem[] | null;
+  /** The live feed loaded and has no items. */
+  empty: boolean;
 }) {
+  if (empty) return <FeedEmptyPlaceholder glyph="video" />;
   // One card per live item, or one placeholder per tile — same chrome either way.
   const cards: (VideoFeedItem | null)[] = items ?? tiles.map(() => null);
 
@@ -389,16 +398,15 @@ function RssFeed({
   }
 
   if (layout === "grid") {
+    // A REAL grid (mobile RSSContent.grid, dev build 174): vertical, 16:9
+    // cards, 12px gutters, and the column count from the available width —
+    // 2 / 3 / 4 / 5 at 600 / 900 / 1200px (`gridColumnsFor`). The old
+    // horizontal row scrolled on the swiper's axis while promising a grid.
     return (
-      <div className="overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex items-start">
+      <div className="@container px-5">
+        <div className="grid grid-cols-2 gap-3 @min-[600px]:grid-cols-3 @min-[900px]:grid-cols-4 @min-[1200px]:grid-cols-5">
           {cards.map((item, i) => (
-            <div key={i} className="px-1">
-              {/* SizedBox(height: 148) → width follows 16:9 = ~263 */}
-              <div className="h-[148px] w-[263px]">
-                <VideoCard fill item={item} />
-              </div>
-            </div>
+            <VideoCard key={i} item={item} />
           ))}
         </div>
       </div>
@@ -454,11 +462,17 @@ function VideoCard({
     >
       {item?.thumbnailUrl ? <FeedImage src={item.thumbnailUrl} /> : null}
 
-      {/* bottom title strip (height 20, bottom 16, start/end 16) */}
-      <div className="absolute inset-x-4 bottom-4 h-5">
+      {/* bottom title strip (bottom 16, start/end 16) — no fixed height, so
+          the title is never clipped mid-line; two lines then an ellipsis with
+          a soft shadow, the way YouTube itself does (mobile dev build 174
+          replaced the marquee). */}
+      <div className="absolute inset-x-4 bottom-4">
         {item ? (
           item.title ? (
-            <p className="truncate text-sm font-semibold leading-5 text-white">
+            <p
+              className="line-clamp-2 text-sm font-semibold leading-[1.3] text-white"
+              style={{ textShadow: "0 1px 4px rgba(0,0,0,0.54)" }}
+            >
               {item.title}
             </p>
           ) : null
@@ -530,12 +544,16 @@ function TikTokFeed({
   tiles,
   layout,
   items,
+  empty,
 }: {
   tiles: unknown[];
   layout: SocialFeedBlock["layout_type"];
   /** Live feed items (already sliced to posts_count); null = placeholder mode. */
   items: VideoFeedItem[] | null;
+  /** The live feed loaded and has no items. */
+  empty: boolean;
 }) {
+  if (empty) return <FeedEmptyPlaceholder glyph="tiktok" />;
   const cards: (VideoFeedItem | null)[] = items ?? tiles.map(() => null);
 
   if (layout === "swiper") {
@@ -709,6 +727,16 @@ const POST_BRAND: Record<
     /** CSS background of the byline badge circle. */
     badgeBackground: string;
     actions: readonly { icon: ActionIconName; label: string }[];
+    /**
+     * Grid geometry (mobile `_Brand`, dev build 174): Instagram's profile
+     * grid is a dense edge-to-edge 3-up of squares; Facebook's Photos tab a
+     * chunkier rounded 2-up of 4:3 crops.
+     */
+    gridClass: string;
+    gridAspect: string;
+    gridRadius: number;
+    /** Corner glyph stamped on a video grid tile. */
+    videoGlyph: "play" | "clapperboard";
   }
 > = {
   facebook: {
@@ -719,6 +747,11 @@ const POST_BRAND: Record<
       { icon: "comment", label: "Comment" },
       { icon: "shareFromSquare", label: "Share" },
     ],
+    // gridColumns 2, spacing 6, side margin 16, radius 10.
+    gridClass: "mx-4 grid grid-cols-2 gap-1.5",
+    gridAspect: "4 / 3",
+    gridRadius: 10,
+    videoGlyph: "play",
   },
   instagram: {
     aspect: "1 / 1", // Instagram posts are square.
@@ -728,59 +761,325 @@ const POST_BRAND: Record<
       { icon: "comment", label: "Comment" },
       { icon: "paperPlane", label: "Share" },
     ],
+    // gridColumns 3, spacing 2, side margin 0, radius 0.
+    gridClass: "grid grid-cols-3 gap-0.5",
+    gridAspect: "1 / 1",
+    gridRadius: 0,
+    videoGlyph: "clapperboard",
   },
 };
 
 /**
  * The reworked `PostFeedContent` — shared by `facebook` (info
- * `{connection_id, page_id}`) and `instagram_connected` (info
+ * `{connection_id, page_id}`) and connected Instagram (info
  * `{connection_id, ig_user_id}`): an optional profile byline
- * (`settings.show_profile_details`), then a VERTICAL STACK of post cards
- * capped by `posts_count` (`PostFeed.take`). Mobile renders the same stack for
- * every `layout_type` — the post feed has no swiper/grid variants — so the
- * preview does too.
+ * (`settings.show_profile_details`), then the block's `layout_type` picks the
+ * arrangement (mobile dev build 174, "three layouts for every social feed"):
  *
- * With a live feed the cards carry the real caption/media/byline; mobile
- * derives the brand from `profile.platform` (`_Brand.of`) but the server sets
- * it to exactly what the configuration already tells us, so the prop stands.
- * On mobile a card tap opens the post's permalink; a no-op on the canvas.
+ *  - list   → the vertical stack of post cards (the original, untouched).
+ *  - grid   → the platform's own grid — bare media tiles, no captions, no
+ *             card chrome; geometry from POST_BRAND.
+ *  - swiper → one card per page at 86% of the viewport, neighbours peeking,
+ *             every page the same fixed height.
+ *
+ * Capped by `posts_count` (`PostFeed.take`). With a live feed the cards carry
+ * the real caption/media/byline; a live feed with NO items renders the shared
+ * FeedEmptyPlaceholder under the byline. On mobile a card tap opens the
+ * post's permalink; a no-op on the canvas.
  */
 function PostFeed({
   tiles,
+  layout,
+  empty,
   platform,
   showProfileDetails,
   name,
   feed,
 }: {
   tiles: unknown[];
+  layout: SocialFeedBlock["layout_type"];
+  /** The live feed loaded and has no items. */
+  empty: boolean;
   platform: PostPlatform;
   showProfileDetails: boolean;
   name: string;
   /** Live feed (unsliced); null = placeholder mode. */
   feed: PostFeedData | null;
 }) {
+  const brand = POST_BRAND[platform];
   // tiles.length is the clamped posts_count.
   const cards: (PostFeedItem | null)[] = feed
     ? feed.items.slice(0, tiles.length)
     : tiles.map(() => null);
   // Mobile hides the byline entirely when the live feed has no profile.
   const byline = feed ? (feed.profile ? feed.profile : null) : undefined;
+  const profile = feed ? (feed.profile ?? null) : undefined;
+
+  let body: React.ReactNode;
+  if (empty) {
+    body = <FeedEmptyPlaceholder glyph={platform} />;
+  } else if (layout === "grid") {
+    body = (
+      <div className={brand.gridClass}>
+        {cards.map((item, i) => (
+          <PostGridTile key={i} platform={platform} item={item} />
+        ))}
+      </div>
+    );
+  } else if (layout === "swiper") {
+    // _SwiperLayout: viewportFraction 0.86, 6px gutter per side, page height
+    // = chrome (132) + the media crop at the card's width. Expressed in
+    // container-query units so the CSS derives it from the real width.
+    const height =
+      platform === "instagram"
+        ? "calc(132px + (86cqw - 12px))"
+        : "calc(132px + (86cqw - 12px) * 3 / 4)";
+    // `cqw` resolves against an ANCESTOR container, so the height sits on a
+    // child of the `@container` element, never on it.
+    body = (
+      <div className="@container w-full">
+        <div
+          className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          style={{ height }}
+        >
+          {/* leading spacer so the first page sits centred like a PageView */}
+          <div className="h-full w-[7%] shrink-0" />
+          {cards.map((item, i) => (
+            <div key={i} className="h-full w-[86%] shrink-0 snap-center px-1.5">
+              <PostSwiperCard
+                platform={platform}
+                name={name}
+                item={item}
+                profile={profile}
+              />
+            </div>
+          ))}
+          <div className="h-full w-[7%] shrink-0" />
+        </div>
+      </div>
+    );
+  } else {
+    body = cards.map((item, i) => (
+      // Card padding — EdgeInsets.fromLTRB(16, 0, 16, 12)
+      <div key={i} className="px-4 pb-3">
+        <PostCard platform={platform} name={name} item={item} profile={profile} />
+      </div>
+    ));
+  }
+
   return (
     <div>
       {showProfileDetails && byline !== null && (
         <PostByline platform={platform} name={name} profile={byline ?? null} />
       )}
-      {cards.map((item, i) => (
-        // Card padding — EdgeInsets.fromLTRB(16, 0, 16, 12)
-        <div key={i} className="px-4 pb-3">
-          <PostCard
-            platform={platform}
-            name={name}
-            item={item}
-            profile={feed ? (feed.profile ?? null) : undefined}
-          />
+      {body}
+    </div>
+  );
+}
+
+/**
+ * Mobile `_GridTile`: the media cropped to fill, a corner glyph when the post
+ * is a video (black-0.35 circle, 5px padding, 11px glyph at top/end 6). No
+ * engagement affordances — those belong on a post card, never on a
+ * contact-sheet tile. Placeholder mode = a bare grey tile.
+ */
+function PostGridTile({
+  platform,
+  item,
+}: {
+  platform: PostPlatform;
+  item: PostFeedItem | null;
+}) {
+  const brand = POST_BRAND[platform];
+  return (
+    <div
+      className="relative overflow-hidden"
+      style={{
+        aspectRatio: brand.gridAspect,
+        borderRadius: brand.gridRadius,
+        backgroundColor: AVATAR_BG,
+      }}
+    >
+      {item?.thumbnail_url ? <FeedImage src={item.thumbnail_url} /> : null}
+      {item?.type === "video" ? (
+        <span
+          className="absolute end-1.5 top-1.5 inline-flex rounded-full p-[5px] leading-none"
+          style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+        >
+          {brand.videoGlyph === "play" ? (
+            <PlayGlyph size={11} />
+          ) : (
+            <svg
+              width={11}
+              height={11}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z" />
+              <path d="m6.2 5.3 3.1 3.9" />
+              <path d="m12.4 3.4 3.1 4" />
+              <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+            </svg>
+          )}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Mobile `_SwiperCard` — the fixed-height twin of `PostCard`: same chrome,
+ * but the media is the flexible child so every page is exactly as tall as
+ * every other. A 50px caption slot (two lines) is reserved whether or not
+ * the post has one; a text-only post puts its caption (up to 10 lines) in the
+ * slot the media would have had.
+ */
+function PostSwiperCard({
+  platform,
+  name,
+  item = null,
+  profile,
+}: {
+  platform: PostPlatform;
+  name: string;
+  item?: PostFeedItem | null;
+  profile?: PostFeedProfile | null;
+}) {
+  const brand = POST_BRAND[platform];
+  const live = item != null;
+  const pageName = live ? (profile?.name ?? "") : name;
+  const caption = live ? (item.caption ?? "").trim() : "";
+  // Placeholder mode behaves like a post with media.
+  const hasMedia = live ? Boolean(item.thumbnail_url) : true;
+  return (
+    <div
+      className="flex h-full flex-col overflow-hidden rounded-[14px]"
+      style={{ backgroundColor: CARD_BG }}
+    >
+      {live && !profile ? null : (
+        <div className="flex shrink-0 items-center gap-2 px-3 pb-1.5 pt-2.5">
+          <span
+            className="relative size-6 shrink-0 overflow-hidden rounded-full"
+            style={{ backgroundColor: AVATAR_BG }}
+          >
+            {profile?.avatar_url ? <FeedImage src={profile.avatar_url} /> : null}
+          </span>
+          {pageName ? (
+            <p
+              className="min-w-0 flex-1 truncate text-xs font-bold"
+              style={{ color: ink(0.9) }}
+            >
+              {pageName}
+            </p>
+          ) : (
+            <span
+              className="block h-2.5 w-24 rounded"
+              style={{ backgroundColor: ink(0.2) }}
+            />
+          )}
         </div>
-      ))}
+      )}
+
+      {/* the flexible slot: media, or the caption of a text-only post */}
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-black/10">
+        {hasMedia ? (
+          item?.thumbnail_url ? <FeedImage src={item.thumbnail_url} /> : null
+        ) : (
+          <p
+            className="line-clamp-[10] px-3 pb-2.5 pt-0.5 text-sm leading-[1.35]"
+            style={{ color: ink(0.9) }}
+          >
+            {caption}
+          </p>
+        )}
+      </div>
+
+      {/* reserved two-line caption slot (only when the media took the flex) */}
+      {hasMedia ? (
+        <div className="h-[50px] shrink-0 overflow-hidden">
+          {live ? (
+            caption ? (
+              <p
+                className="line-clamp-2 px-3 pb-1 pt-2 text-sm leading-[1.35]"
+                style={{ color: ink(0.9) }}
+              >
+                {caption}
+              </p>
+            ) : null
+          ) : (
+            <div className="space-y-1.5 px-3 pt-2.5">
+              <div className="h-2.5 w-11/12 rounded" style={{ backgroundColor: ink(0.15) }} />
+              <div className="h-2.5 w-3/5 rounded" style={{ backgroundColor: ink(0.1) }} />
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      <div className="h-px shrink-0" style={{ backgroundColor: ink(0.08) }} />
+      <div className="flex shrink-0">
+        {brand.actions.map(({ icon, label }) => (
+          <span
+            key={label}
+            className="flex flex-1 items-center justify-center gap-1.5 py-2.5"
+          >
+            <ActionGlyph name={icon} size={14} color={ink(0.55)} />
+            <span className="text-xs font-semibold" style={{ color: ink(0.55) }}>
+              {label}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Mobile `FeedEmptyPlaceholder` (dev build 174) — the empty state shared by
+ * every feed renderer: a circular icon chip (the app paints it with its
+ * primary gradient; the preview uses the site foreground at low opacity so it
+ * reads on any theme) over "Nothing here!" copy, instead of a silent gap.
+ * English-only like the rest of the preview placeholder copy.
+ */
+function FeedEmptyPlaceholder({
+  glyph,
+}: {
+  glyph: "video" | "tiktok" | PostPlatform;
+}) {
+  return (
+    <div className="flex flex-col items-center px-4 py-[5px] text-center">
+      <span className="mb-5 flex size-10 items-center justify-center rounded-full bg-foreground/10 text-foreground">
+        {glyph === "video" ? (
+          <svg
+            width={20}
+            height={20}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
+            <rect x="2" y="6" width="14" height="12" rx="2" />
+          </svg>
+        ) : glyph === "tiktok" ? (
+          <svg width={20} height={20} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 1 1-1.84-2.48V9.77a5.99 5.99 0 1 0 4.93 5.9V9.4a7.34 7.34 0 0 0 4.28 1.38V7.7a4.28 4.28 0 0 1-3.22-1.88z" />
+          </svg>
+        ) : (
+          <BrandGlyph platform={glyph} size={20} stroke="currentColor" />
+        )}
+      </span>
+      <p className="mb-3 text-base font-bold text-foreground">Nothing here!</p>
+      <p className="mb-5 text-xs text-muted-foreground">
+        There are no posts to show yet.
+      </p>
     </div>
   );
 }
@@ -943,13 +1242,21 @@ function PostCard({
         </div>
       )}
 
-      {/* media — 4:3 for Facebook, square for Instagram */}
-      <div
-        className="relative w-full bg-black/10"
-        style={{ aspectRatio: brand.aspect }}
-      >
-        {item?.thumbnail_url ? <FeedImage src={item.thumbnail_url} /> : null}
-      </div>
+      {/* media — 4:3 for Facebook, square for Instagram. A Page post with no
+          `full_picture` is ordinary text-only content, not a failure —
+          rendering the image slot anyway showed an empty box on every one of
+          them (mobile fix, dev build 174). Placeholder mode keeps the slot. */}
+      {!live || item.thumbnail_url ? (
+        <div
+          className="relative w-full bg-black/10"
+          style={{ aspectRatio: brand.aspect }}
+        >
+          {item?.thumbnail_url ? <FeedImage src={item.thumbnail_url} /> : null}
+        </div>
+      ) : null}
+      {/* Neither caption nor media: keep the card a card rather than letting
+          it collapse onto the affordance row (SizedBox(height: 44)). */}
+      {live && !caption && !item.thumbnail_url ? <div className="h-11" /> : null}
 
       <div className="h-px" style={{ backgroundColor: ink(0.08) }} />
 
@@ -1031,9 +1338,11 @@ function ActionGlyph({
 function BrandGlyph({
   platform,
   size,
+  stroke = "#ffffff",
 }: {
   platform: PostPlatform;
   size: number;
+  stroke?: string;
 }) {
   return (
     <svg
@@ -1041,7 +1350,7 @@ function BrandGlyph({
       height={size}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#ffffff"
+      stroke={stroke}
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
