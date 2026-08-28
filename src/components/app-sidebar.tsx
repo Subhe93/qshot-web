@@ -9,6 +9,7 @@ import {
   CalendarCheck,
   ShieldCheck,
   Link2,
+  BookUser,
 } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useAuthStore } from "@/stores/auth-store";
@@ -25,6 +26,7 @@ const NAV = [
   { href: "/dashboard", labelKey: "profiles", svg: "/nav/portfolio.svg" },
   { href: "/qr-codes", labelKey: "qrCodes", svg: "/nav/qr_code.svg" },
   { href: "/links", labelKey: "smartLinks", Icon: Link2 },
+  { href: "/contacts", labelKey: "contacts", Icon: BookUser },
   { href: "/bookings", labelKey: "bookings", Icon: CalendarCheck },
   { href: "/admin", labelKey: "admin", Icon: ShieldCheck },
   { href: "/settings", labelKey: "settings", Icon: Settings },
