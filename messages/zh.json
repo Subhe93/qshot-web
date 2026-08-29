@@ -82,7 +82,10 @@
       "settings": "Settings"
     },
     "deleteTitle": "Delete website",
-    "deleteDesc": "This will permanently delete this website and its content. This can't be undone."
+    "deleteDesc": "This will permanently delete this website and its content. This can't be undone.",
+    "downloadPng": "下载 PNG",
+    "downloadSvg": "下载 SVG",
+    "qrColor": "二维码颜色"
   },
   "aiWizard": {
     "businessName": "企业名称",

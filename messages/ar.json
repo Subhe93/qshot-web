@@ -82,7 +82,10 @@
       "settings": "الإعدادات"
     },
     "deleteTitle": "حذف الموقع",
-    "deleteDesc": "سيؤدي هذا إلى حذف الموقع ومحتواه نهائيًا. لا يمكن التراجع."
+    "deleteDesc": "سيؤدي هذا إلى حذف الموقع ومحتواه نهائيًا. لا يمكن التراجع.",
+    "downloadPng": "تحميل PNG",
+    "downloadSvg": "تحميل SVG",
+    "qrColor": "لون الـQR"
   },
   "aiWizard": {
     "businessName": "اسم النشاط التجاري",

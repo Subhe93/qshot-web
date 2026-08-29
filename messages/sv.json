@@ -82,7 +82,10 @@
       "settings": "Settings"
     },
     "deleteTitle": "Delete website",
-    "deleteDesc": "This will permanently delete this website and its content. This can't be undone."
+    "deleteDesc": "This will permanently delete this website and its content. This can't be undone.",
+    "downloadPng": "Ladda ner PNG",
+    "downloadSvg": "Ladda ner SVG",
+    "qrColor": "QR-färg"
   },
   "aiWizard": {
     "businessName": "Företagsnamn",

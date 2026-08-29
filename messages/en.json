@@ -82,7 +82,10 @@
       "settings": "Settings"
     },
     "deleteTitle": "Delete website",
-    "deleteDesc": "This will permanently delete this website and its content. This can't be undone."
+    "deleteDesc": "This will permanently delete this website and its content. This can't be undone.",
+    "downloadPng": "Download PNG",
+    "downloadSvg": "Download SVG",
+    "qrColor": "QR color"
   },
   "aiWizard": {
     "businessName": "Business name",
