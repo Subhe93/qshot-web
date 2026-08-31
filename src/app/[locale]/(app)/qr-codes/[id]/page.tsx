@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
+  downloadQrFile,
   listQrCodes,
   deleteQrCode,
   getLaunchUrl,
@@ -26,22 +27,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
-/** Fetch a CDN file as a blob, falling back to opening it in a new tab. */
-async function downloadFile(url: string, filename: string) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error();
-    const blob = await res.blob();
-    const href = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = href;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(href);
-  } catch {
-    window.open(url, "_blank", "noopener");
-  }
-}
 
 export default function QrDetailPage() {
   const params = useParams();
@@ -237,7 +222,7 @@ export default function QrDetailPage() {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => downloadFile(pngUrl, `${item.name || "qrcode"}.png`)}
+          onClick={() => downloadQrFile(pngUrl, `${item.name || "qrcode"}.png`)}
         >
           <Download className="size-4" />
           PNG
@@ -245,7 +230,7 @@ export default function QrDetailPage() {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => downloadFile(svgUrl, `${item.name || "qrcode"}.svg`)}
+          onClick={() => downloadQrFile(svgUrl, `${item.name || "qrcode"}.svg`)}
         >
           <Download className="size-4" />
           SVG

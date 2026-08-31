@@ -10,15 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AttributeField } from "@/components/qr/attribute-field";
 import { QrTypeIcon } from "@/components/qr/qr-type-icon";
-import { StyleEditor } from "@/components/qr/style-editor";
+import { ArtisanStyleEditor } from "@/components/qr/artisan-style-editor";
 import {
-  DEFAULT_CUSTOMIZES,
   listQrCodes,
   listQrConfigurations,
-  type Customizes,
   type QrConfig,
   type QrType,
 } from "@/lib/api/qrcodes";
+import { defaultQrStyle, styleToWire } from "@/lib/qr/artisan-style";
 
 type Step = "type" | "data" | "style";
 
@@ -33,7 +32,11 @@ export default function NewQrPage() {
   const [config, setConfig] = useState<QrConfig | null>(null);
   const [name, setName] = useState("");
   const [data, setData] = useState<Record<string, unknown>>({});
-  const [customizes, setCustomizes] = useState<Customizes>(DEFAULT_CUSTOMIZES);
+  // The v1 platform payload, kept in WIRE form (styleFromWire tolerates both
+  // v1 and legacy stored blobs when editing).
+  const [customizes, setCustomizes] = useState<Record<string, unknown>>(() =>
+    styleToWire(defaultQrStyle()),
+  );
   const [editId, setEditId] = useState<string | undefined>();
 
   // Step 1 — available QR types (configurations) for the selected static/dynamic tab
@@ -53,14 +56,32 @@ export default function NewQrPage() {
       });
       if (cancelled) return;
       const item = list.find((q) => q._id === editParam);
-      const cfg =
-        item && typeof item.qrCode === "object" ? item.qrCode : null;
-      if (!item || !cfg) return;
+      if (!item) return;
+      // `qrCode` is the full config object on the index route, but some
+      // responses carry the bare id string — resolve it from the catalog
+      // instead of silently leaving the page on its spinner forever.
+      let cfg = typeof item.qrCode === "object" ? item.qrCode : null;
+      if (!cfg && typeof item.qrCode === "string") {
+        for (const kind of ["static", "dynamic"] as const) {
+          const configs = await queryClient.fetchQuery({
+            queryKey: ["qr-configs", kind],
+            queryFn: () => listQrConfigurations(kind),
+          });
+          cfg = configs.find((c) => c._id === item.qrCode) ?? null;
+          if (cfg) break;
+        }
+        if (cancelled) return;
+      }
+      if (!cfg) return;
       setConfig(cfg);
       setQrType(cfg.qr_type === "dynamic" ? "dynamic" : "static");
       setName(item.name ?? "");
       setData(item.data ?? {});
-      setCustomizes(item.customizes ?? DEFAULT_CUSTOMIZES);
+      // Stored blobs pass through VERBATIM — the artisan editor parses both
+      // v1 payloads and legacy flat blobs (and maps the legacy one).
+      setCustomizes(
+        (item.customizes as Record<string, unknown>) ?? styleToWire(defaultQrStyle()),
+      );
       setEditId(item._id);
       setStep("data");
     })();
@@ -81,7 +102,7 @@ export default function NewQrPage() {
     }
     setData(seed);
     setName("");
-    setCustomizes(DEFAULT_CUSTOMIZES);
+    setCustomizes(styleToWire(defaultQrStyle()));
     setStep("data");
   }
 
@@ -151,7 +172,7 @@ export default function NewQrPage() {
         )}
 
         {step === "style" && config && (
-          <StyleEditor
+          <ArtisanStyleEditor
             config={config}
             qrType={qrType}
             name={name}
@@ -159,6 +180,10 @@ export default function NewQrPage() {
             customizes={customizes}
             editId={editId}
             onCustomizes={setCustomizes}
+            // A NEW dynamic record is created on entering the style step (the
+            // server mints the short link on create) — remember its id so a
+            // second save updates instead of duplicating.
+            onCreatedId={setEditId}
           />
         )}
       </div>

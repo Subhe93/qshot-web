@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import {
+  downloadQrFile,
   cdnUrl,
   deleteQrCode,
   getLaunchUrl,
@@ -26,22 +27,6 @@ const ICON = {
   edit: "/qr/icons/icon_edit.svg",
 };
 
-/** Fetches a CDN file as a blob, falling back to opening it in a new tab. */
-async function downloadFile(url: string, filename: string) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error();
-    const blob = await res.blob();
-    const href = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = href;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(href);
-  } catch {
-    window.open(url, "_blank", "noopener");
-  }
-}
 
 export function SavedQrCard({
   item,
@@ -258,14 +243,14 @@ export function SavedQrCard({
             <FormatButton
               label="PNG"
               onClick={() => {
-                downloadFile(pngUrl, `${item.name || "qrcode"}.png`);
+                downloadQrFile(pngUrl, `${item.name || "qrcode"}.png`);
                 setShowDownload(false);
               }}
             />
             <FormatButton
               label="SVG"
               onClick={() => {
-                downloadFile(svgUrl, `${item.name || "qrcode"}.svg`);
+                downloadQrFile(svgUrl, `${item.name || "qrcode"}.svg`);
                 setShowDownload(false);
               }}
             />

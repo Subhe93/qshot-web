@@ -1,5 +1,11 @@
+import { HTTPError } from "ky";
 import { api } from "./client";
 import type { ApiResponse } from "@/lib/types/api";
+import {
+  parseQrPreview,
+  type QrPreviewResult,
+  type QrWarning,
+} from "@/lib/qr/artisan-style";
 
 /** CDN base for stored assets (icons, generated png/svg). Mirrors mobile `Links.storage`. */
 const CDN_BASE = "https://cdn.qshot.com/";
@@ -142,129 +148,106 @@ export async function listQrConfigurations(type: QrType = "static") {
 }
 
 // ---------------------------------------------------------------------------
-// Customizes (style payload) — mirrors mobile Customizes.
-// ---------------------------------------------------------------------------
-
-export interface Customizes {
-  foregroundColor: string;
-  eyeInternalColor: string;
-  eyeExternalColor: string;
-  backgroundColor: string;
-  module: string;
-  finder: string;
-  finderDot: string;
-  shape: string;
-  frameColor: string;
-  logoUrl: string;
-  logoPositionX: string;
-  logoPositionY: string;
-  logoRotate: string;
-  advancedShape: string;
-  text: string;
-  textColor: string;
-  fontFamily: string;
-  textSize: number;
-  fontVariant: string;
-  advancedShapeDropShadow: boolean;
-  advancedShapeFrameColor: string;
-}
-
-/** Default style, matching mobile `Customizes.newInstance()`. */
-export const DEFAULT_CUSTOMIZES: Customizes = {
-  foregroundColor: "#000000",
-  eyeInternalColor: "#000000",
-  eyeExternalColor: "#000000",
-  backgroundColor: "#FFFFFF",
-  module: "square",
-  finder: "default",
-  finderDot: "default",
-  shape: "none",
-  frameColor: "#000000",
-  logoUrl: "",
-  logoPositionX: "0.5",
-  logoPositionY: "0.5",
-  logoRotate: "0.0",
-  advancedShape: "none",
-  text: "Scan Me",
-  textColor: "#000000",
-  fontFamily: "Roboto",
-  textSize: 5,
-  fontVariant: "",
-  advancedShapeDropShadow: false,
-  advancedShapeFrameColor: "#000000",
-};
-
-/** Selectable style options, matching the mobile enums. */
-export const MODULE_OPTIONS = [
-  "square",
-  "dots",
-  "diamond",
-  "fish",
-  "fourTriangles",
-  "horizontal-lines",
-  "rhombus",
-  "roundness",
-  "star-5",
-  "star-7",
-  "tree",
-  "triangle",
-  "triangle-end",
-  "vertical-lines",
-] as const;
-
-export const FINDER_OPTIONS = [
-  "default",
-  "circle",
-  "circle-dots",
-  "eye-shaped",
-  "octagon",
-  "rounded-corners",
-  "water-drop",
-  "whirlpool",
-  "zigzag",
-] as const;
-
-export const FINDER_DOT_OPTIONS = [
-  "default",
-  "circle",
-  "eye-shaped",
-  "octagon",
-  "rounded-corners",
-  "water-drop",
-  "whirlpool",
-  "zigzag",
-] as const;
-
-// ---------------------------------------------------------------------------
 // Preview + create — mirrors mobile QrDataSource.generate / create.
 // ---------------------------------------------------------------------------
 
 export interface QrDataPayload {
   type: string; // the config `tag`
   data: Record<string, unknown>;
-  customizes: Customizes;
+  /** The v1 platform payload — build it with `styleToWire`, never by hand. */
+  customizes: Record<string, unknown>;
 }
 
-/** Endpoints differ between static and dynamic QR codes (mirrors the two mobile data sources). */
+/**
+ * QR Artisan v1 endpoints (mobile Links.*V1; CONTRACT-qr-artisan.md §1).
+ * The LEGACY table is kept for exactly one caller: renaming a record whose
+ * `engine` is "legacy" — a v1 edit MIGRATES and re-renders such a record,
+ * which a rename must never do (mobile RenameQrcodeUseCase, a504fa72).
+ */
 const ENDPOINTS = {
   static: {
-    preview: "qr-code/user/preview",
-    create: "qr-code/user/create",
-    edit: "qr-code/user/edit",
+    preview: "v1/qr-code/user/preview",
+    create: "v1/qr-code/user/create",
+    edit: "v1/qr-code/user/edit",
   },
   dynamic: {
-    preview: "qr-code-dynamic/user/preview",
-    create: "qr-code-dynamic/user/create",
-    edit: "qr-code-dynamic/user/update",
+    preview: "v1/qr-code-dynamic/user/preview",
+    create: "v1/qr-code-dynamic/user/create",
+    edit: "v1/qr-code-dynamic/user/update",
   },
 } as const;
 
-/** POST .../preview → returns the rendered SVG markup as plain text. */
+const LEGACY_ENDPOINTS = {
+  static: { edit: "qr-code/user/edit" },
+  dynamic: { edit: "qr-code-dynamic/user/update" },
+} as const;
+
+/**
+ * POST v1 .../preview → JSON with the image AND a scannability verdict
+ * (was: raw SVG text on the legacy route). The preview REPORTS, it never
+ * blocks — an error-severity design still carries its svg. Unauthenticated.
+ * Always include `qrcode` when known: several catalog entries share
+ * `type:"text"` and the server disambiguates on it alone.
+ */
 export async function previewQrCode(
-  payload: QrDataPayload,
+  payload: QrDataPayload & { qrcode?: string },
   qrType: QrType = "static",
-): Promise<string> {
-  return api.post(ENDPOINTS[qrType].preview, { json: payload }).text();
+): Promise<QrPreviewResult> {
+  const res = await api
+    .post(ENDPOINTS[qrType].preview, { json: payload })
+    .json<ApiResponse<unknown>>();
+  return parseQrPreview(res.data);
+}
+
+/** Dynamic preview body is ONLY `{id, customizes}` — the server always
+ *  replaces the content with the short link (CONTRACT §2.2). */
+export async function previewDynamicQr(
+  id: string,
+  customizes: Record<string, unknown>,
+): Promise<QrPreviewResult> {
+  const res = await api
+    .post(ENDPOINTS.dynamic.preview, { json: { id, customizes } })
+    .json<ApiResponse<unknown>>();
+  return parseQrPreview(res.data);
+}
+
+/**
+ * The v1 save gate: create/edit reject unscannable designs with
+ * `400 { error: { code: "qr_unreadable", warnings } }`. Other 400s carry an
+ * error OBJECT or a plain STRING — read all shapes tolerantly. Null when the
+ * error is not a QR-unreadable rejection.
+ */
+export interface QrUnreadableError {
+  message: string;
+  warnings: QrWarning[];
+}
+
+export async function readQrUnreadable(e: unknown): Promise<QrUnreadableError | null> {
+  if (!(e instanceof HTTPError)) return null;
+  try {
+    const body = (await e.response.clone().json()) as {
+      error?:
+        | string
+        | {
+            code?: string;
+            message?: string;
+            warnings?: { severity?: string; code?: string; message?: string }[];
+          };
+    };
+    const err = body?.error;
+    if (err == null || typeof err === "string") return null;
+    if (err.code !== "qr_unreadable") return null;
+    return {
+      message: err.message ?? "",
+      warnings: (err.warnings ?? []).map((w) => ({
+        severity: w.severity === "error" ? "error" : "warning",
+        code: w.code ?? "",
+        message: w.message ?? "",
+      })),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export interface UserQr {
@@ -276,11 +259,70 @@ export interface UserQr {
   user: string;
   type: string;
   data: Record<string, unknown>;
-  customizes: Customizes;
+  /**
+   * Stored VERBATIM — v1 platform payloads and legacy flat blobs both live
+   * here. Parse with `styleFromWire` (tolerant, maps legacy); when an
+   * operation must NOT restyle (rename of a legacy record) this raw object is
+   * posted back untouched through the legacy route.
+   */
+  customizes: Record<string, unknown>;
   pngImage: string;
   svgImage: string;
+  /** "radiolingo-v1" | "legacy" — absent on old responses. */
+  engine?: string;
+  /** "static" | "dynamic" — absent on old responses. */
+  qrType?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * v1 edits keep the S3 keys STABLE, so every cache keyed on the bare URL
+ * (browser, CDN edge) keeps serving the OLD design after a restyle. Version
+ * the URL by updatedAt (mobile a504fa72) — and derive download filenames from
+ * the pathname, never the full URL, so `?v=` can't leak into them.
+ */
+function versionedUrl(path: string, qr: UserQr): string {
+  if (!path) return "";
+  const stamp = Date.parse(qr.updatedAt || qr.createdAt || "") || 0;
+  return `${cdnUrl(path)}?v=${stamp}`;
+}
+
+export function qrPngUrl(qr: UserQr): string {
+  return versionedUrl(qr.pngImage, qr);
+}
+
+export function qrSvgUrl(qr: UserQr): string {
+  return versionedUrl(qr.svgImage, qr);
+}
+
+/** Is this record still on the legacy engine? (absent engine = legacy-era) */
+export function isLegacyQr(qr: UserQr): boolean {
+  return qr.engine !== "radiolingo-v1";
+}
+
+/**
+ * Rename WITHOUT restyling. A legacy record must go through the LEGACY route
+ * with its stored `customizes` verbatim — the v1 route would migrate and
+ * re-render it, visibly changing a design the user may already have in print.
+ * A v1 record renames through v1 with its stored payload as-is.
+ */
+export async function renameQrCode(qr: UserQr, name: string): Promise<UserQr> {
+  const qrType: QrType = qr.qrType === "dynamic" ? "dynamic" : "static";
+  const qrcode = typeof qr.qrCode === "object" ? qr.qrCode._id : qr.qrCode;
+  const payload = {
+    id: qr._id,
+    name,
+    qrcode,
+    type: qr.type,
+    data: qr.data ?? {},
+    customizes: qr.customizes ?? {},
+  };
+  const path = isLegacyQr(qr)
+    ? LEGACY_ENDPOINTS[qrType].edit
+    : ENDPOINTS[qrType].edit;
+  const res = await api.post(path, { json: payload }).json<ApiResponse<{ userQr: UserQr }>>();
+  return res.data?.userQr ?? { ...qr, name };
 }
 
 export interface CreateQrPayload extends QrDataPayload {
@@ -358,5 +400,28 @@ export function getLaunchUrl(qr: UserQr): string | null {
         : null;
     default:
       return null;
+  }
+}
+
+/**
+ * Download a stored QR image. The URL must be the VERSIONED one
+ * (`qrPngUrl`/`qrSvgUrl`) so a restyle never serves a stale cache; the
+ * filename is derived by the caller from the record, never from the URL.
+ */
+export async function downloadQrFile(url: string, filename: string): Promise<void> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(String(res.status));
+    const blob = await res.blob();
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(href), 10_000);
+  } catch {
+    window.open(url, "_blank", "noopener");
   }
 }
