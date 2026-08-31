@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { QRCodeCanvas } from "qrcode.react";
+import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 import {
   Share2,
   QrCode,
@@ -31,6 +31,7 @@ import {
 import { useEditorStore } from "@/stores/editor-store";
 import { useRouter } from "@/i18n/navigation";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { ImageUploader } from "./hero/CoverTab";
@@ -844,6 +845,20 @@ function ShareSheet({
 }
 
 // ── QR ─────────────────────────────────────────────────────────
+/** App ink (AppColors.black) — the QR's default colour. */
+const QR_DEFAULT_COLOR = "#1f1f26";
+/** Preset inks offered before the custom picker. Dark enough to scan. */
+const QR_COLOR_PRESETS = [
+  "#1f1f26",
+  "#000000",
+  "#1877f2",
+  "#0f766e",
+  "#7c3aed",
+  "#dc2626",
+  "#d97706",
+  "#be185d",
+];
+
 function QrSheet({
   url,
   onClose,
@@ -854,7 +869,11 @@ function QrSheet({
   t: ReturnType<typeof useTranslations>;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
-  function download() {
+  const svgWrap = useRef<HTMLDivElement>(null);
+  const [qrColor, setQrColor] = useState(QR_DEFAULT_COLOR);
+  const [colorOpen, setColorOpen] = useState(false);
+
+  function downloadPng() {
     const canvas = wrap.current?.querySelector("canvas");
     if (!canvas) return;
     const a = document.createElement("a");
@@ -862,6 +881,38 @@ function QrSheet({
     a.download = "qrcode.png";
     a.click();
   }
+
+  /**
+   * Vector export for print/design tools (Illustrator, Figma, InDesign):
+   * a standalone SVG 1.1 document — XML prolog, the SVG namespace on the root
+   * (React omits it, and without it Illustrator opens a blank artboard),
+   * explicit px width/height plus a viewBox so it scales without blur, plain
+   * `<path fill>` geometry (no CSS, no `<style>`, no foreignObject) and a
+   * two-module quiet zone so the code stays scannable when placed on a
+   * coloured layout. The ink is the colour the user picked.
+   */
+  function downloadSvg() {
+    const svg = svgWrap.current?.querySelector("svg");
+    if (!svg) return;
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("version", "1.1");
+    const size = clone.getAttribute("height") ?? clone.getAttribute("width") ?? "1024";
+    clone.setAttribute("width", `${size}px`);
+    clone.setAttribute("height", `${size}px`);
+    clone.removeAttribute("role");
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
+      new XMLSerializer().serializeToString(clone);
+    const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = "qrcode.svg";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(href), 10_000);
+  }
+
   return (
     <BottomSheet title={t("qrCode")} onClose={onClose}>
       <div className="flex flex-col items-center gap-4">
@@ -869,12 +920,79 @@ function QrSheet({
           ref={wrap}
           className="rounded-2xl border border-border bg-white p-5"
         >
-          <QRCodeCanvas value={url} size={200} level="M" fgColor="#1f1f26" />
+          <QRCodeCanvas value={url} size={200} level="M" fgColor={qrColor} />
         </div>
-        <Button variant="gradient" className="w-full" onClick={download}>
-          <Download className="size-4" />
-          {t("download")}
-        </Button>
+        {/* Off-screen vector twin used only for the SVG export — same
+            data, same error level, plus a quiet zone; the size is
+            nominal (vector). */}
+        <div ref={svgWrap} className="hidden" aria-hidden>
+          <QRCodeSVG
+            value={url}
+            size={1024}
+            level="M"
+            fgColor={qrColor}
+            bgColor="#ffffff"
+            marginSize={2}
+          />
+        </div>
+
+        {/* SVG step: pick the ink colour (previewed live above), then
+            download. Presets first, a custom picker at the end. */}
+        {colorOpen && (
+          <div className="w-full rounded-xl border border-border bg-card p-3">
+            <p className="mb-2 text-xs font-semibold text-foreground">{t("qrColor")}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              {QR_COLOR_PRESETS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-label={c}
+                  onClick={() => setQrColor(c)}
+                  className={cn(
+                    "size-8 rounded-full border-2",
+                    qrColor.toLowerCase() === c.toLowerCase()
+                      ? "border-foreground"
+                      : "border-transparent",
+                  )}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+              <label
+                className="relative flex size-8 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border"
+                style={{
+                  background:
+                    "conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)",
+                }}
+                aria-label={t("qrColor")}
+              >
+                <input
+                  type="color"
+                  value={qrColor}
+                  onChange={(e) => setQrColor(e.target.value)}
+                  className="absolute inset-0 size-full cursor-pointer opacity-0"
+                />
+              </label>
+              <span className="ms-auto font-mono text-xs text-muted-foreground" dir="ltr">
+                {qrColor.toUpperCase()}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="grid w-full grid-cols-2 gap-2">
+          <Button variant="gradient" className="w-full" onClick={downloadPng}>
+            <Download className="size-4" />
+            {t("downloadPng")}
+          </Button>
+          <Button
+            variant={colorOpen ? "gradient" : "outline"}
+            className="w-full"
+            onClick={() => (colorOpen ? downloadSvg() : setColorOpen(true))}
+          >
+            <Download className="size-4" />
+            {t("downloadSvg")}
+          </Button>
+        </div>
       </div>
     </BottomSheet>
   );
