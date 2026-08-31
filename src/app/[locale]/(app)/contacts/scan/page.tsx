@@ -331,7 +331,7 @@ function ScanFailureCard({
     LIMIT_REACHED: "scanLimitReachedNoNumbers",
   };
   const known = KEY[failure.code];
-  const message = known ? t(known) : failure.serverMessage || t("genericError");
+  const message = failure.serverMessage || (known ? t(known) : t("genericError"));
 
   // (label, action) pairs, primary first — the mobile table. On the web
   // "retake" and "choose another" are both the picker, so they collapse.
