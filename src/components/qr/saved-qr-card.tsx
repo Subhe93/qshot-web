@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import {
   downloadQrFile,
+  shareQrImage,
   cdnUrl,
   deleteQrCode,
   getLaunchUrl,
@@ -77,6 +78,9 @@ export function SavedQrCard({
   }
 
   async function share() {
+    // The QR IS the image — share the PNG file first (agent issue #5); only
+    // when file sharing is unsupported fall back to sharing the launch URL.
+    if (await shareQrImage(item, launchUrl)) return;
     const url = launchUrl ?? pngUrl;
     if (typeof navigator !== "undefined" && navigator.share) {
       try {

@@ -18,6 +18,7 @@ import {
 import { Link, useRouter } from "@/i18n/navigation";
 import {
   downloadQrFile,
+  shareQrImage,
   listQrCodes,
   deleteQrCode,
   getLaunchUrl,
@@ -115,6 +116,9 @@ export default function QrDetailPage() {
     }
   }
   async function share() {
+    // The QR IS the image — share the PNG file first (agent issue #5); only
+    // when file sharing is unsupported fall back to sharing the launch URL.
+    if (item && (await shareQrImage(item, launchUrl))) return;
     const url = launchUrl ?? pngUrl;
     if (typeof navigator !== "undefined" && navigator.share) {
       try {

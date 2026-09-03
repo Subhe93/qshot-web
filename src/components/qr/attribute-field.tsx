@@ -9,6 +9,18 @@ import { InstructionsDialog } from "./instructions-dialog";
 import { PhoneField } from "./phone-field";
 import { QrFormField } from "./qr-form-field";
 
+/**
+ * The catalog's label, defended: the backend has shipped literal placeholder
+ * labels like "<Label>" (agent issue #2 — the WiFi "hidden" toggle). Anything
+ * that looks like an unfilled template falls back to a humanised tag.
+ */
+function attributeLabel(attr: QrAttribute): string {
+  const label = (attr.label ?? "").trim();
+  if (label && !/^<.*>$/.test(label)) return label;
+  const tag = (attr.tag ?? "").replace(/[_-]+/g, " ").trim();
+  return tag ? tag.charAt(0).toUpperCase() + tag.slice(1) : label;
+}
+
 /** Light gradient tint used by the mobile field icon boxes. */
 const GRADIENT_TINT =
   "linear-gradient(135deg, rgba(195,137,255,0.1), rgba(68,136,255,0.1))";
@@ -60,7 +72,7 @@ export function AttributeField({
     hasHelp && showHelp ? (
       <InstructionsDialog
         instructions={attr.instructions!}
-        title={attr.label}
+        title={attributeLabel(attr)}
         onClose={() => setShowHelp(false)}
       />
     ) : null;
@@ -70,7 +82,7 @@ export function AttributeField({
     const on = Boolean(value);
     return (
       <div className="flex items-center justify-between">
-        <span className="text-sm">{attr.label}</span>
+        <span className="text-sm">{attributeLabel(attr)}</span>
         <button
           type="button"
           role="switch"
@@ -94,7 +106,7 @@ export function AttributeField({
   if (attr.type === "selection") {
     return (
       <div>
-        <span className={FIELD_LABEL}>{attr.label}</span>
+        <span className={FIELD_LABEL}>{attributeLabel(attr)}</span>
         <div className="flex flex-wrap gap-2">
           {(c.values ?? []).map((v) => {
             const active = String(value ?? "") === v;
@@ -123,7 +135,7 @@ export function AttributeField({
   if (attr.type === "phone") {
     return (
       <div>
-        <span className={FIELD_LABEL}>{attr.label}</span>
+        <span className={FIELD_LABEL}>{attributeLabel(attr)}</span>
         <PhoneField
           value={String(value ?? "")}
           placeholder={c.hint ?? ""}
@@ -138,7 +150,7 @@ export function AttributeField({
   if (attr.type === "file") {
     return (
       <div>
-        <span className={FIELD_LABEL}>{attr.label}</span>
+        <span className={FIELD_LABEL}>{attributeLabel(attr)}</span>
         <FileField
           value={typeof value === "string" ? value : ""}
           accept={c.accepted_file_types ?? undefined}
@@ -155,7 +167,7 @@ export function AttributeField({
   if (attr.type === "form") {
     return (
       <div>
-        <span className={FIELD_LABEL}>{attr.label}</span>
+        <span className={FIELD_LABEL}>{attributeLabel(attr)}</span>
         <QrFormField value={value} onChange={onChange} />
         {errorNode}
         {help}
@@ -168,7 +180,7 @@ export function AttributeField({
   if (multiline) {
     return (
       <div>
-        <span className={FIELD_LABEL}>{attr.label}</span>
+        <span className={FIELD_LABEL}>{attributeLabel(attr)}</span>
         <div className="relative">
           <Textarea
             value={String(value ?? "")}
@@ -191,7 +203,7 @@ export function AttributeField({
   // ---- single-line text (string / file) — mobile FancyTextField style -----
   return (
     <div>
-      <span className={FIELD_LABEL}>{attr.label}</span>
+      <span className={FIELD_LABEL}>{attributeLabel(attr)}</span>
       <div
         className={`flex h-11 items-center rounded-[10px] border bg-white ps-3 ${
           hasHelp ? "pe-1.5" : "pe-3"

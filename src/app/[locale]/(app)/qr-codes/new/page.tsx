@@ -359,13 +359,33 @@ function DataForm({
     v === "" ||
     (Array.isArray(v) && v.length === 0);
 
+  /**
+   * Normalise what the user typed before validating (agent issue #3): every
+   * string is trimmed (the mobile contract stores trimmed text), and a
+   * Telegram username sheds decorative @s — "Sbd778@" and "@Sbd778" both mean
+   * Sbd778, and the backend validator rejects the raw forms.
+   */
+  function normalized(): Record<string, unknown> {
+    const out: Record<string, unknown> = { ...data };
+    for (const attr of config.attributes) {
+      const v = out[attr.tag];
+      if (typeof v !== "string") continue;
+      let clean = v.trim();
+      if (config.tag === "telegram" && attr.tag === "username") {
+        clean = clean.replace(/^@+/, "").replace(/@+$/, "");
+      }
+      out[attr.tag] = clean;
+    }
+    return out;
+  }
+
   // Mirrors the mobile QrFormBuilder validators: required (RequiredValidator) +
   // a regex `customization.validator` (PatternValidator) for filled values.
-  function validate(): boolean {
+  function validate(clean: Record<string, unknown>): boolean {
     const next: Record<string, "required" | "invalid"> = {};
     if (!name.trim()) next.__name = "required";
     for (const attr of config.attributes) {
-      const v = data[attr.tag];
+      const v = clean[attr.tag];
       const c = attr.customization ?? {};
       if (c.required && isEmpty(v)) {
         next[attr.tag] = "required";
@@ -444,7 +464,11 @@ function DataForm({
           variant="gradient"
           className="w-full"
           onClick={() => {
-            if (validate()) onNext();
+            const clean = normalized();
+            if (validate(clean)) {
+              onData(clean);
+              onNext();
+            }
           }}
         >
           {t("next")}

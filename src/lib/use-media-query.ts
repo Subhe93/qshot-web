@@ -7,10 +7,14 @@ export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
   useEffect(() => {
     const m = window.matchMedia(query);
-    setMatches(m.matches);
+    // Deferred: state updates must not run synchronously in an effect body.
+    const handle = setTimeout(() => setMatches(m.matches), 0);
     const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
     m.addEventListener("change", handler);
-    return () => m.removeEventListener("change", handler);
+    return () => {
+      clearTimeout(handle);
+      m.removeEventListener("change", handler);
+    };
   }, [query]);
   return matches;
 }

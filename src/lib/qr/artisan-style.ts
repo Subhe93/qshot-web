@@ -687,6 +687,29 @@ export const FRAME_BRUSH_SLOTS: Record<QrFrameKind, string[]> = {
 
 export const FRAME_TEXT_MAX_LENGTH = 120; // platform allows 200; app caps 120
 
+/**
+ * Frames whose caption sits on a LIGHT card — dark ink is readable there.
+ * Everywhere else the caption area is dark and the default must be white,
+ * or the text renders black-on-black (agent issue #8; the set mirrors the
+ * measurement behind mobile's thumbnail generator, 602fc362).
+ */
+export const FRAME_LIGHT_CARD_KINDS: ReadonlySet<string> = new Set([
+  "coupon",
+  "easel",
+  "envelope",
+  "label",
+  "mug",
+  "ornate",
+  "phone",
+  "script",
+  "ticket",
+]);
+
+/** The readable default caption colour for a frame kind. */
+export function frameCaptionDefaultColor(kind: QrFrameKind): QrHexColor {
+  return FRAME_LIGHT_CARD_KINDS.has(kind) ? "#111827" : "#ffffff";
+}
+
 export type QrTextPosition = "above" | "below" | "insideBottom";
 
 export interface QrFrameText {
@@ -726,7 +749,7 @@ export function defaultFrame(kind: QrFrameKind = "ticket"): QrFrameSpec {
     kind,
     mode: "boundingBox",
     borderBrush: null,
-    text: defaultFrameText(),
+    text: defaultFrameText({ color: frameCaptionDefaultColor(kind) }),
     options: {},
   };
 }
@@ -745,9 +768,20 @@ function filterFrameOptions(
   return out;
 }
 
-/** Switch the kind, stripping any option the new kind rejects (mobile withKind). */
+/** Switch the kind, stripping any option the new kind rejects (mobile
+ *  withKind). A caption colour the user never touched (it still equals the
+ *  OLD kind's default) follows the new kind's readable default, so switching
+ *  from a light card to a dark one can't leave black-on-black text. */
 export function frameWithKind(frame: QrFrameSpec, kind: QrFrameKind): QrFrameSpec {
-  return { ...frame, kind, options: filterFrameOptions(kind, frame.options) };
+  const untouched = frame.text.color === frameCaptionDefaultColor(frame.kind);
+  return {
+    ...frame,
+    kind,
+    text: untouched
+      ? { ...frame.text, color: frameCaptionDefaultColor(kind) }
+      : frame.text,
+    options: filterFrameOptions(kind, frame.options),
+  };
 }
 
 export function frameToWire(frame: QrFrameSpec): Record<string, unknown> {

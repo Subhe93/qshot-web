@@ -403,16 +403,30 @@ export function getLaunchUrl(qr: UserQr): string | null {
   }
 }
 
+/** Fetch a stored QR image as a Blob, riding out the CDN's missing CORS
+ *  headers by falling back to the same-origin `/api/qr-download` proxy. */
+async function fetchQrBlob(url: string, filename: string): Promise<Blob> {
+  try {
+    const res = await fetch(url);
+    if (res.ok) return await res.blob();
+  } catch {
+    // CORS/network — fall through to the proxy.
+  }
+  const proxied = `/api/qr-download?url=${encodeURIComponent(url)}&name=${encodeURIComponent(filename)}`;
+  const res = await fetch(proxied);
+  if (!res.ok) throw new Error(String(res.status));
+  return res.blob();
+}
+
 /**
- * Download a stored QR image. The URL must be the VERSIONED one
- * (`qrPngUrl`/`qrSvgUrl`) so a restyle never serves a stale cache; the
- * filename is derived by the caller from the record, never from the URL.
+ * Download a stored QR image (agent issue #7: this must end in the browser's
+ * SAVE dialog, never an image opening in a tab). The URL must be the
+ * VERSIONED one (`qrPngUrl`/`qrSvgUrl`) so a restyle never serves a stale
+ * cache; the filename comes from the record, never from the URL.
  */
 export async function downloadQrFile(url: string, filename: string): Promise<void> {
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(String(res.status));
-    const blob = await res.blob();
+    const blob = await fetchQrBlob(url, filename);
     const href = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = href;
@@ -422,6 +436,42 @@ export async function downloadQrFile(url: string, filename: string): Promise<voi
     a.remove();
     setTimeout(() => URL.revokeObjectURL(href), 10_000);
   } catch {
-    window.open(url, "_blank", "noopener");
+    // Last resort: the same-origin proxy link carries Content-Disposition,
+    // so even a plain navigation downloads instead of rendering inline.
+    const a = document.createElement("a");
+    a.href = `/api/qr-download?url=${encodeURIComponent(url)}&name=${encodeURIComponent(filename)}`;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+}
+
+/**
+ * Share a QR as its IMAGE (agent issue #5): the Web Share API gets the PNG
+ * file itself, with the launch URL as accompanying text — sharing a QR code
+ * means sharing the scannable image, not a bare link. Falls back to the
+ * caller's text-share path when file sharing isn't supported.
+ * Returns true when the image share sheet was opened.
+ */
+export async function shareQrImage(
+  qr: UserQr,
+  launchUrl: string | null,
+): Promise<boolean> {
+  if (typeof navigator === "undefined" || !navigator.share) return false;
+  try {
+    const filename = `${qr.name || "qr"}.png`;
+    const blob = await fetchQrBlob(qrPngUrl(qr), filename);
+    const file = new File([blob], filename, { type: blob.type || "image/png" });
+    if (navigator.canShare && !navigator.canShare({ files: [file] })) return false;
+    await navigator.share({
+      files: [file],
+      title: qr.name,
+      ...(launchUrl ? { text: launchUrl } : {}),
+    });
+    return true;
+  } catch (e) {
+    // AbortError = the user closed the sheet; that IS a handled share.
+    return e instanceof Error && e.name === "AbortError";
   }
 }
