@@ -1160,6 +1160,18 @@
     "empty": "Create a website first to enable booking."
   },
   "admin": {
+    "banner": {
+      "title": "Banner promocional",
+      "desc": "Controlar o banner do QShot neste perfil",
+      "sheetDesc": "Escolha quando o banner do QShot aparece na página pública deste perfil.",
+      "auto": "Automático",
+      "autoDesc": "Conforme o plano — aparece apenas em perfis gratuitos",
+      "always": "Sempre",
+      "alwaysDesc": "Aparece independentemente do plano",
+      "never": "Nunca",
+      "neverDesc": "Nunca aparece, mesmo no plano gratuito",
+      "done": "Modo do banner atualizado"
+    },
     "title": "Controlo de perfis",
     "subtitle": "Ferramentas de admin — pesquise um perfil ou faça a gestão de domínios, planos e pedidos.",
     "open": "Abrir",

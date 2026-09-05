@@ -1160,6 +1160,18 @@
     "empty": "Create a website first to enable booking."
   },
   "admin": {
+    "banner": {
+      "title": "Promobanner",
+      "desc": "Styr QShot-banneret på denne profilen",
+      "sheetDesc": "Velg når QShot-banneret vises på denne profilens offentlige side.",
+      "auto": "Auto",
+      "autoDesc": "Følg planen — vises kun på gratisprofiler",
+      "always": "Alltid",
+      "alwaysDesc": "Vises uansett plan",
+      "never": "Aldri",
+      "neverDesc": "Vises aldri, selv på gratisplanen",
+      "done": "Bannermodus oppdatert"
+    },
     "title": "Profilkontroll",
     "subtitle": "Adminverktøy — søk etter en profil eller administrer domener, planer og forespørsler.",
     "open": "Åpne",

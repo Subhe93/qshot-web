@@ -30,6 +30,8 @@ const PATHS = {
   cloudflareIndex: "q-profile-domain-control/cloudflare-domains/index",
   cloudflareCreate: "q-profile-domain-control/cloudflare-domains/create",
   cloudflareDelete: "q-profile-domain-control/cloudflare-domains/delete",
+  // Promo-banner control (backend spec 2026-09-05): PATCH + JSON body.
+  bannerMode: "dashboard/profile/banner",
 } as const;
 
 // NOTE ON ENCODING: the mobile Dio client sends every POST as JSON
@@ -65,6 +67,9 @@ export interface AdminSearchResult {
   profiles: AdminProfileSummary[];
 }
 
+/** Promo-banner visibility on a public profile (new profile-table field). */
+export type BannerMode = "auto" | "always" | "never";
+
 /** A single profile's admin view. Schemaless `info`/`settings` from the backend. */
 export interface AdminProfile {
   id: string;
@@ -74,6 +79,8 @@ export interface AdminProfile {
   verified?: boolean;
   verifiedAt?: string | null;
   email?: string | null;
+  /** Absent on older rows — treat as "auto". */
+  bannerMode?: BannerMode;
   [key: string]: unknown;
 }
 
@@ -220,6 +227,19 @@ export async function moveProfile(
 }
 
 /** POST activate-company — JSON `{ email }`. Converts a personal account. */
+/**
+ * PATCH dashboard/profile/banner — set a profile's promo-banner mode.
+ * "auto" = plan decides (free shows it), "always"/"never" override the plan.
+ */
+export async function setProfileBannerMode(
+  profileId: string,
+  bannerMode: BannerMode,
+): Promise<void> {
+  await api
+    .patch(PATHS.bannerMode, { json: { profileId, bannerMode } })
+    .json<ApiResponse<{ bannerMode?: BannerMode; message?: string }>>();
+}
+
 export async function activateCompany(email: string): Promise<void> {
   await api.post(PATHS.activateCompany, { json: { email } });
 }

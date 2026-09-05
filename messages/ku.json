@@ -1160,6 +1160,18 @@
     "empty": "Create a website first to enable booking."
   },
   "admin": {
+    "banner": {
+      "title": "Bannera reklamê",
+      "desc": "Kontrola bannera QShot li ser vê profîlê",
+      "sheetDesc": "Hilbijêre kengî bannera QShot li ser rûpela giştî ya vê profîlê xuya bibe.",
+      "auto": "Otomatîk",
+      "autoDesc": "Li gorî planê — tenê li ser profîlên belaş xuya dibe",
+      "always": "Her dem",
+      "alwaysDesc": "Xuya dibe, plan çi be jî",
+      "never": "Tu car",
+      "neverDesc": "Tu car xuya nabe, li ser plana belaş jî",
+      "done": "Moda bannerê hat nûvekirin"
+    },
     "title": "Kontrola profîlan",
     "subtitle": "Amûrên rêvebir — li profîlekê bigere an domain, plan û daxwazan birêve bibe.",
     "open": "Veke",

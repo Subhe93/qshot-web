@@ -1160,6 +1160,18 @@
     "empty": "Create a website first to enable booking."
   },
   "admin": {
+    "banner": {
+      "title": "Bannière promo",
+      "desc": "Contrôler la bannière QShot sur ce profil",
+      "sheetDesc": "Choisissez quand la bannière QShot apparaît sur la page publique de ce profil.",
+      "auto": "Auto",
+      "autoDesc": "Selon le forfait — visible uniquement sur les profils gratuits",
+      "always": "Toujours",
+      "alwaysDesc": "Visible quel que soit le forfait",
+      "never": "Jamais",
+      "neverDesc": "Jamais visible, même avec le forfait gratuit",
+      "done": "Mode de bannière mis à jour"
+    },
     "title": "Contrôle des profils",
     "subtitle": "Outils d'admin — recherchez un profil ou gérez les domaines, forfaits et demandes.",
     "open": "Ouvrir",

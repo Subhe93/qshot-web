@@ -1160,6 +1160,18 @@
     "empty": "Create a website first to enable booking."
   },
   "admin": {
+    "banner": {
+      "title": "推广横幅",
+      "desc": "控制此档案上的 QShot 横幅",
+      "sheetDesc": "选择 QShot 横幅何时出现在此档案的公开页面上。",
+      "auto": "自动",
+      "autoDesc": "跟随计划 — 仅在免费档案上显示",
+      "always": "始终",
+      "alwaysDesc": "无论什么计划都显示",
+      "never": "从不",
+      "neverDesc": "从不显示，即使是免费计划",
+      "done": "横幅模式已更新"
+    },
     "title": "资料管理",
     "subtitle": "管理员工具 — 搜索资料或管理域名、套餐和请求。",
     "open": "打开",

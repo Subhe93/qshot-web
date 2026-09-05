@@ -2,15 +2,17 @@
 
 import { use, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
   Building2,
+  Check,
   Copy,
   CreditCard,
   Globe,
   Info,
   Loader2,
+  Megaphone,
   ShieldCheck,
   User,
   UserRoundCog,
@@ -38,7 +40,9 @@ import { cdnUrl } from "@/lib/api/qrcodes";
 import {
   activateCompany,
   getProfile,
+  setProfileBannerMode,
   type AdminProfile,
+  type BannerMode,
   type ProfileSettings,
 } from "@/lib/api/admin";
 
@@ -69,6 +73,7 @@ export default function AdminProfilePage({
     | "move"
     | "subscription"
     | "company"
+    | "banner"
   >(null);
 
   // Mobile settings are NESTED objects, not flat strings.
@@ -178,6 +183,13 @@ export default function AdminProfilePage({
               accent="#5856d6"
               onClick={() => setSheet("company")}
             />
+            <AdminCard
+              Icon={Megaphone}
+              title={t("banner.title")}
+              description={t("banner.desc")}
+              accent="#c389ff"
+              onClick={() => setSheet("banner")}
+            />
           </AdminGrid>
 
           {sheet === "domains" && (
@@ -204,6 +216,13 @@ export default function AdminProfilePage({
           )}
           {sheet === "company" && (
             <CompanySheet onClose={() => setSheet(null)} />
+          )}
+          {sheet === "banner" && (
+            <BannerSheet
+              profile={profile}
+              queryName={name}
+              onClose={() => setSheet(null)}
+            />
           )}
         </>
       )}
@@ -244,6 +263,83 @@ function SubscriptionSheet({ onClose }: { onClose: () => void }) {
   return (
     <BottomSheet title={t("plans.title")} onClose={onClose}>
       <PlanCards single />
+    </BottomSheet>
+  );
+}
+
+// ─── Promo-banner mode (PATCH dashboard/profile/banner) ───────────────────────
+
+const BANNER_MODES: BannerMode[] = ["auto", "always", "never"];
+
+function BannerSheet({
+  profile,
+  queryName,
+  onClose,
+}: {
+  profile: AdminProfile;
+  queryName: string;
+  onClose: () => void;
+}) {
+  const t = useTranslations("admin");
+  const queryClient = useQueryClient();
+  // Absent field on older rows = "auto" (backend default).
+  const current: BannerMode = profile.bannerMode ?? "auto";
+  const [status, setStatus] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: (mode: BannerMode) => setProfileBannerMode(profile.id, mode),
+    onSuccess: () => {
+      setStatus(t("banner.done"));
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "profile", queryName],
+      });
+    },
+    onError: async (e) => {
+      setStatus(await apiErrorMessage(e, t("search.error")));
+    },
+  });
+
+  return (
+    <BottomSheet title={t("banner.title")} onClose={onClose}>
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">{t("banner.sheetDesc")}</p>
+        {BANNER_MODES.map((mode) => {
+          const active = current === mode;
+          return (
+            <button
+              key={mode}
+              type="button"
+              disabled={mutation.isPending}
+              onClick={() => {
+                setStatus(null);
+                mutation.mutate(mode);
+              }}
+              className={`flex w-full items-center gap-3 rounded-xl border p-3.5 text-start transition-colors ${
+                active
+                  ? "border-primary bg-primary/5"
+                  : "border-border bg-card hover:border-primary/40"
+              }`}
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-foreground">
+                  {t(`banner.${mode}`)}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {t(`banner.${mode}Desc`)}
+                </span>
+              </span>
+              {mutation.isPending && mutation.variables === mode ? (
+                <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+              ) : (
+                active && <Check className="size-4 shrink-0 text-primary" />
+              )}
+            </button>
+          );
+        })}
+        {status && (
+          <p className="text-center text-sm text-muted-foreground">{status}</p>
+        )}
+      </div>
     </BottomSheet>
   );
 }
