@@ -217,6 +217,9 @@ export interface ProfileSummary {
   type?: string;
   thumbnail_url?: string;
   user_name?: string;
+  /** Server plan flag: false = this site exceeds the current plan (mobile
+      WebsiteModel.status) — render blurred with a lock. Absent = true. */
+  status?: boolean;
   [key: string]: unknown;
 }
 

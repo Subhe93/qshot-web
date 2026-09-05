@@ -45,6 +45,9 @@ import {
 } from "./sheet-kit";
 import { ColorPickerField } from "@/components/ui/color-picker";
 import { PlatformSelectorSheet } from "./PlatformSelectorSheet";
+import { usePlan } from "@/lib/plan/use-plan";
+import { PLAN_FEATURES } from "@/lib/plan/features";
+import { useUpgradeDialog } from "@/components/plan/upgrade-dialog";
 import { SocialItemEditor } from "./SocialItemEditor";
 import { LayoutPicker } from "./LayoutPicker";
 
@@ -71,6 +74,18 @@ export function SocialBlockEditor({ block }: { block: SocialLinksBlock }) {
   const editing = links.find((l) => l.id === editingId) ?? null;
   const variant = block.icon_type === "darkFilled" ? "dark" : "colored";
 
+  // Plan gate (mobile social_links_selector_sheet): adding the Nth link is
+  // count-gated by add_social_link_count against the current link count.
+  const plan = usePlan();
+  const showUpgrade = useUpgradeDialog((s) => s.show);
+  const tryAdd = () => {
+    if (plan.isCountAvailable(PLAN_FEATURES.addSocialLinkCount, links.length)) {
+      setAdding(true);
+    } else {
+      showUpgrade();
+    }
+  };
+
   function addPlatform(p: SocialPlatform) {
     const item: SocialLinkItem = { id: nanoid(), type: p.name, link: "" };
     setLinks([...links, item]);
@@ -92,7 +107,7 @@ export function SocialBlockEditor({ block }: { block: SocialLinksBlock }) {
         <div className="space-y-2">
           <button
             type="button"
-            onClick={() => setAdding(true)}
+            onClick={tryAdd}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
           >
             <Plus className="size-4" />

@@ -98,7 +98,8 @@ export function LockedPlaceholder({ title, body }: { title: string; body: string
       </span>
       <p className="text-lg font-bold text-foreground">{title}</p>
       <p className="mt-2 text-sm text-muted-foreground">{body}</p>
-      <Link href="/settings">
+      {/* Was /settings (a dead end) — the plan comparison page now exists. */}
+      <Link href="/upgrade">
         <Button variant="gradient" className="mt-5">
           {t("upgrade")}
         </Button>

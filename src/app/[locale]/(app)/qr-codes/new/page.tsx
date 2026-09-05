@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, LayoutGrid, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, LayoutGrid, Loader2, Lock, Sparkles } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ import {
   type QrType,
 } from "@/lib/api/qrcodes";
 import { defaultQrStyle, styleToWire } from "@/lib/qr/artisan-style";
+import { usePlan } from "@/lib/plan/use-plan";
+import { PLAN_FEATURES } from "@/lib/plan/features";
+import { useUpgradeDialog } from "@/components/plan/upgrade-dialog";
 
 type Step = "type" | "data" | "style";
 
@@ -44,6 +47,31 @@ export default function NewQrPage() {
     queryKey: ["qr-configs", qrType],
     queryFn: () => listQrConfigurations(qrType),
   });
+
+  // Plan gate (mobile qrcode_selector_sheet): the static/dynamic ceiling reads
+  // the account usage counters, and each config row is additionally gated by
+  // its own permissionCode. Editing an existing QR is never count-gated — the
+  // gate lives only in the type picker.
+  const plan = usePlan();
+  const showUpgrade = useUpgradeDialog((s) => s.show);
+  const configAllowed = (c: QrConfig): boolean => {
+    const acc = plan.account;
+    const countOk =
+      qrType === "static"
+        ? plan.isCountAvailable(
+            PLAN_FEATURES.staticQrCodeCount,
+            acc?.qrCodeStaticCount ?? 0,
+          )
+        : plan.isCountAvailable(
+            PLAN_FEATURES.dynamicQrCodeCount,
+            acc?.qrCodeDynamicCount ?? 0,
+          );
+    if (!countOk) return false;
+    if (!c.permissionCode) return true;
+    if (c.permissionCode === PLAN_FEATURES.staticQrCodeCount) return true; // countOk covered it
+    if (c.permissionCode === PLAN_FEATURES.dynamicQrCodeCount) return true;
+    return plan.isAvailable(c.permissionCode);
+  };
 
   // Edit mode (?edit=<id>): load the saved QR and prefill the editor.
   useEffect(() => {
@@ -152,6 +180,8 @@ export default function NewQrPage() {
               configs={configsQuery.data ?? []}
               qrType={qrType}
               onPick={pickType}
+              allowed={configAllowed}
+              onLocked={showUpgrade}
               errorText={t("loadError")}
               dynamicLabel={t("dynamic")}
               t={t}
@@ -262,6 +292,8 @@ function TypePicker({
   configs,
   qrType,
   onPick,
+  allowed,
+  onLocked,
   errorText,
   dynamicLabel,
   t,
@@ -271,6 +303,8 @@ function TypePicker({
   configs: QrConfig[];
   qrType: QrType;
   onPick: (c: QrConfig) => void;
+  allowed: (c: QrConfig) => boolean;
+  onLocked: () => void;
   errorText: string;
   dynamicLabel: string;
   t: ReturnType<typeof useTranslations>;
@@ -300,15 +334,18 @@ function TypePicker({
     <div className="grid gap-3 sm:grid-cols-2">
       {configs.map((c) => {
         const loc = localizeQrType(t, c.name, c.description);
+        // Locked rows stay visible (mobile parity: lock icon, tap → upgrade
+        // dialog) — a plan gate never hides the feature.
+        const ok = allowed(c);
         return (
           <button
             key={c._id}
             type="button"
-            onClick={() => onPick(c)}
-            className="shadow-soft flex w-full items-start gap-3 rounded-xl border border-border bg-card p-4 text-start transition-colors hover:border-primary"
+            onClick={() => (ok ? onPick(c) : onLocked())}
+            className={`shadow-soft flex w-full items-start gap-3 rounded-xl border border-border bg-card p-4 text-start transition-colors hover:border-primary ${ok ? "" : "opacity-60"}`}
           >
             <QrTypeIcon icon={c.icon} className="size-8 shrink-0" />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-semibold">{loc.name}</span>
                 {qrType === "dynamic" && (
@@ -319,6 +356,11 @@ function TypePicker({
               </div>
               <p className="mt-0.5 text-sm text-muted-foreground">{loc.desc}</p>
             </div>
+            {!ok && (
+              <span className="brand-gradient flex size-7 shrink-0 items-center justify-center rounded-full text-white">
+                <Lock className="size-3.5" />
+              </span>
+            )}
           </button>
         );
       })}

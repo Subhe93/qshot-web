@@ -10,6 +10,8 @@ import { ProfileSlider, CreateCard } from "@/components/dashboard/profile-slider
 import { ProfileCard } from "@/components/profile-card";
 import { CreateWebsiteWizard } from "@/components/builder/CreateWebsiteWizard";
 import { AiWebsiteWizard } from "@/components/dashboard/AiWebsiteWizard";
+import { usePlan } from "@/lib/plan/use-plan";
+import { useUpgradeDialog } from "@/components/plan/upgrade-dialog";
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
@@ -22,9 +24,24 @@ export default function DashboardPage() {
   const [creating, setCreating] = useState(false);
   const [aiCreating, setAiCreating] = useState(false);
 
-  // Deep-link to the create wizard via /dashboard#new.
+  // Plan gate (mobile getCountAvailable): the per-user override wins, else
+  // portfolios_max_count vs the live count. Every create entry point — both
+  // header buttons, the empty state, the slider card, the #new deep link —
+  // funnels through tryCreate.
+  const plan = usePlan();
+  const showUpgrade = useUpgradeDialog((s) => s.show);
+  const profileCount = plan.account?.profileCounts ?? items.length;
+  const tryCreate = (start: () => void) => {
+    if (plan.websiteCountAvailable(profileCount)) start();
+    else showUpgrade();
+  };
+
+  // Deep-link to the create wizard via /dashboard#new. (setState deferred out
+  // of the effect body — react-hooks/set-state-in-effect.)
   useEffect(() => {
-    if (window.location.hash.startsWith("#new")) setCreating(true);
+    if (!window.location.hash.startsWith("#new")) return;
+    const id = setTimeout(() => setCreating(true), 0);
+    return () => clearTimeout(id);
   }, []);
 
   return (
@@ -38,7 +55,7 @@ export default function DashboardPage() {
             <>
               <button
                 type="button"
-                onClick={() => setAiCreating(true)}
+                onClick={() => tryCreate(() => setAiCreating(true))}
                 className="relative flex h-11 items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
               >
                 <Sparkles className="size-4" />
@@ -49,7 +66,7 @@ export default function DashboardPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setCreating(true)}
+                onClick={() => tryCreate(() => setCreating(true))}
                 className="brand-gradient flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-medium text-white hover:opacity-90"
               >
                 <Plus className="size-4" />
@@ -83,7 +100,7 @@ export default function DashboardPage() {
             <p className="text-muted-foreground">{t("empty")}</p>
             <button
               type="button"
-              onClick={() => setCreating(true)}
+              onClick={() => tryCreate(() => setCreating(true))}
               className="brand-gradient mt-4 inline-flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-medium text-white hover:opacity-90"
             >
               <Plus className="size-4" />
@@ -96,7 +113,7 @@ export default function DashboardPage() {
           <>
             {/* Mobile/tablet: keep the full-height horizontal slider. */}
             <div className="h-full lg:hidden">
-              <ProfileSlider items={items} onCreate={() => setCreating(true)} />
+              <ProfileSlider items={items} onCreate={() => tryCreate(() => setCreating(true))} />
             </div>
             {/* Desktop: a 3-per-row card grid; each card is a 1:2 portrait. */}
             <div className="hidden auto-rows-min grid-cols-3 gap-5 pb-4 lg:grid">
@@ -106,7 +123,7 @@ export default function DashboardPage() {
                 </div>
               ))}
               <div className="aspect-[1/1.7]">
-                <CreateCard onClick={() => setCreating(true)} />
+                <CreateCard onClick={() => tryCreate(() => setCreating(true))} />
               </div>
             </div>
           </>

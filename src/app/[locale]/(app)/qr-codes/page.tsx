@@ -15,6 +15,7 @@ import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/page-header";
 import { listQrCodes, type UserQr } from "@/lib/api/qrcodes";
 import { SavedQrCard, type QrView } from "@/components/qr/saved-qr-card";
+import { PlanLockedOverlay } from "@/components/plan/locked-overlay";
 import { cn } from "@/lib/utils";
 
 type SortOrder = "newest" | "oldest";
@@ -149,13 +150,27 @@ export default function QrCodesPage() {
           view === "gallery" ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((q, i) => (
-                <SavedQrCard key={q._id ?? i} item={q} notify={setToast} view="gallery" />
+                // status:false = the server marked this QR over-plan after a
+                // downgrade (mobile parity) — blurred with a lock.
+                <PlanLockedOverlay
+                  key={q._id ?? i}
+                  available={q.status !== false}
+                  className="rounded-xl"
+                >
+                  <SavedQrCard item={q} notify={setToast} view="gallery" />
+                </PlanLockedOverlay>
               ))}
             </div>
           ) : (
             <div className="space-y-2.5">
               {items.map((q, i) => (
-                <SavedQrCard key={q._id ?? i} item={q} notify={setToast} view="list" />
+                <PlanLockedOverlay
+                  key={q._id ?? i}
+                  available={q.status !== false}
+                  className="rounded-xl"
+                >
+                  <SavedQrCard item={q} notify={setToast} view="list" />
+                </PlanLockedOverlay>
               ))}
             </div>
           )

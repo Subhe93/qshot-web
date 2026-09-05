@@ -1330,6 +1330,20 @@
       "noMetadata": "Ingen forhåndsvisning tilgjengelig for denne lenken."
     }
   },
+  "plan": {
+    "upgrade": "Oppgrader",
+    "upgradeToAccess": "Oppgrader for å få tilgang",
+    "upgradePlan": "Oppgrader planen din",
+    "upgradePlanDesc": "Ubegrensede nettsider & QR-tilpasning",
+    "cancelAnytime": "Avslutt når som helst",
+    "upgradeBody": "Lås opp denne funksjonen ved å oppgradere planen din og nyt hele opplevelsen!",
+    "purchaseNote": "Abonnementer kjøpes og administreres via QShot-mobilappen.",
+    "mostPopular": "Mest populær",
+    "currentPlan": "Din nåværende plan",
+    "loadFailed": "Kunne ikke laste planene",
+    "retry": "Prøv igjen",
+    "close": "Lukk"
+  },
   "contacts": {
     "addBack": "Legg til tilbake",
     "addBackNotNotified": "Personen ble ikke varslet. Del kortet ditt slik at de også har ditt.",

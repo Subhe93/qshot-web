@@ -1330,6 +1330,20 @@
       "noMetadata": "Ji bo vê girêdanê pêşdîtin tune."
     }
   },
+  "plan": {
+    "upgrade": "Nûve bike",
+    "upgradeToAccess": "Ji bo Gihîştinê Nûve Bike",
+    "upgradePlan": "Plana xwe nûve bike",
+    "upgradePlanDesc": "Malperên bêsînor & xwerûkirina QR",
+    "cancelAnytime": "Her Dem Betal Bike",
+    "upgradeBody": "Bi nûvekirina plana xwe vê taybetmendiyê veke û ji ezmûna tevahî kêfê bike!",
+    "purchaseNote": "Abonetî bi rêya sepana mobîl a QShot têne kirîn û birêvebirin.",
+    "mostPopular": "Herî populer",
+    "currentPlan": "Plana te ya niha",
+    "loadFailed": "Plan nehatin barkirin",
+    "retry": "Dîsa biceribîne",
+    "close": "Bigire"
+  },
   "contacts": {
     "addBack": "Tu jî lê zêde bike",
     "addBackNotNotified": "Ev kes nehat agahdarkirin. Karta xwe parve bike da ku ya te jî li cem wî hebe.",

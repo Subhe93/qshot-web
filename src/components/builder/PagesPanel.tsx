@@ -41,6 +41,9 @@ import {
 } from "@/lib/api/pages";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { usePlan } from "@/lib/plan/use-plan";
+import { PLAN_FEATURES } from "@/lib/plan/features";
+import { useUpgradeDialog } from "@/components/plan/upgrade-dialog";
 
 /**
  * Pages panel — mirrors the mobile PagesSettingsFragment: a fixed Home row, then
@@ -64,6 +67,18 @@ export function PagesPanel({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [editing, setEditing] = useState<WebPage | "new" | null>(null);
 
+  // Plan gate (mobile pages_settings_fragment passes count+1 — one slot
+  // stricter than the QR gate; replicated verbatim, CONTRACT §9.2).
+  const plan = usePlan();
+  const showUpgrade = useUpgradeDialog((s) => s.show);
+  const tryAddPage = () => {
+    if (plan.isCountAvailable(PLAN_FEATURES.websitePagesCount, pages.length + 1)) {
+      setEditing("new");
+    } else {
+      showUpgrade();
+    }
+  };
+
   const reload = useCallback(async () => {
     setLoading(true);
     try {
@@ -75,8 +90,13 @@ export function PagesPanel({
     }
   }, [profileId]);
 
+  // Initial load, deferred out of the effect body
+  // (react-hooks/set-state-in-effect).
   useEffect(() => {
-    reload();
+    const id = setTimeout(() => {
+      void reload();
+    }, 0);
+    return () => clearTimeout(id);
   }, [reload]);
 
   const sensors = useSensors(
@@ -173,7 +193,7 @@ export function PagesPanel({
       {/* Add page */}
       <button
         type="button"
-        onClick={() => setEditing("new")}
+        onClick={tryAddPage}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-primary/40 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
       >
         <Plus className="size-4" /> {t("addWebpage")}

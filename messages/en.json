@@ -1330,6 +1330,20 @@
       "noMetadata": "No preview available for this link."
     }
   },
+  "plan": {
+    "upgrade": "Upgrade",
+    "upgradeToAccess": "Upgrade to Access",
+    "upgradePlan": "Upgrade your plan",
+    "upgradePlanDesc": "Limitless portfolios & QR customization",
+    "cancelAnytime": "Cancel Anytime",
+    "upgradeBody": "Unlock this feature by upgrading your plan and enjoy the full experience!",
+    "purchaseNote": "Subscriptions are purchased and managed through the QShot mobile app.",
+    "mostPopular": "Most popular",
+    "currentPlan": "Your current plan",
+    "loadFailed": "Couldn't load plans",
+    "retry": "Retry",
+    "close": "Close"
+  },
   "contacts": {
     "addBack": "Add back",
     "addBackNotNotified": "They weren't told. Share your card so they have yours too.",

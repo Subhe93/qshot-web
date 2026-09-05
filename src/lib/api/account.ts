@@ -9,12 +9,24 @@ export interface AccountUser {
   isAdmin?: boolean;
   isCompany?: boolean;
   verifiedAt?: string | null;
+  /** Per-user website-count overrides (0 = not set → the plan decides).
+      Selected by `plan.free` — see lib/plan/features.ts websiteCountAvailable. */
+  maxFreeProfilesCount?: number;
+  maxPremProfilesCount?: number;
+}
+
+/** One entry of plan.planFeatures[] — value vocabulary "Yes"/"No"/"Multiple"/numeric string. */
+export interface PlanFeature {
+  value?: string;
+  feature?: { code?: string; name?: string };
 }
 
 export interface AccountPlan {
   name?: string;
   free?: boolean;
   color?: string; // hex without '#', e.g. "FFAF05"
+  /** The plan's feature grants, flattened by lib/plan/features.ts into code → value. */
+  planFeatures?: PlanFeature[];
 }
 
 /**

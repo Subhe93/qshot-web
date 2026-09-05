@@ -1330,6 +1330,20 @@
       "noMetadata": "Aucun aperçu disponible pour ce lien."
     }
   },
+  "plan": {
+    "upgrade": "Mettre à niveau",
+    "upgradeToAccess": "Mettre à niveau pour accéder",
+    "upgradePlan": "Mettre à niveau votre forfait",
+    "upgradePlanDesc": "Sites web illimités & personnalisation QR",
+    "cancelAnytime": "Annuler à tout moment",
+    "upgradeBody": "Débloquez cette fonctionnalité en mettant à niveau votre forfait et profitez de l'expérience complète !",
+    "purchaseNote": "Les abonnements s'achètent et se gèrent via l'application mobile QShot.",
+    "mostPopular": "Le plus populaire",
+    "currentPlan": "Votre forfait actuel",
+    "loadFailed": "Impossible de charger les forfaits",
+    "retry": "Réessayer",
+    "close": "Fermer"
+  },
   "contacts": {
     "addBack": "Ajouter en retour",
     "addBackNotNotified": "Cette personne n'a pas été prévenue. Partagez votre carte pour qu'elle ait aussi la vôtre.",

@@ -5,6 +5,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { AppShell } from "@/components/app-shell";
+import { UpgradePlanDialog } from "@/components/plan/upgrade-dialog";
 
 export default function AppLayout({
   children,
@@ -34,5 +35,10 @@ export default function AppLayout({
     );
   }
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <AppShell>
+      {children}
+      <UpgradePlanDialog />
+    </AppShell>
+  );
 }

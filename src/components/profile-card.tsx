@@ -38,6 +38,7 @@ import { Hero } from "@/components/builder/preview/Hero";
 import { BlockView } from "@/components/builder/preview/BlockView";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { PlanLockedOverlay } from "@/components/plan/locked-overlay";
 import type { Profile, ProfileSummary } from "@/lib/types/profile";
 import type { Block } from "@/lib/types/blocks";
 
@@ -146,6 +147,9 @@ export function ProfileCard({ profile }: { profile: ProfileSummary }) {
   }
 
   return (
+    // Server plan flag (mobile WebsiteModel.status): false = this site exceeds
+    // the current plan — blur it with a lock, tap opens the upgrade dialog.
+    <PlanLockedOverlay available={profile.status !== false} className="h-full rounded-[22px]">
     <div className="flex h-full flex-col overflow-hidden rounded-[22px] bg-white shadow-soft">
       {/* Live preview — a div (not a button) because the rendered website blocks
           contain their own <button>/<a> elements; nesting a button in a button is
@@ -392,6 +396,7 @@ export function ProfileCard({ profile }: { profile: ProfileSummary }) {
         </BottomSheet>
       )}
     </div>
+    </PlanLockedOverlay>
   );
 }
 

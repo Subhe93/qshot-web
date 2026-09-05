@@ -1330,6 +1330,20 @@
       "noMetadata": "此链接暂无预览。"
     }
   },
+  "plan": {
+    "upgrade": "升级",
+    "upgradeToAccess": "升级以访问",
+    "upgradePlan": "升级您的计划",
+    "upgradePlanDesc": "无限网站和二维码定制",
+    "cancelAnytime": "随时取消",
+    "upgradeBody": "升级您的计划以解锁此功能，享受完整体验！",
+    "purchaseNote": "订阅通过 QShot 移动应用购买和管理。",
+    "mostPopular": "最受欢迎",
+    "currentPlan": "您当前的计划",
+    "loadFailed": "无法加载计划",
+    "retry": "重试",
+    "close": "关闭"
+  },
   "contacts": {
     "addBack": "回加",
     "addBackNotNotified": "对方未收到通知。把你的名片分享给对方，让对方也拥有你的名片。",

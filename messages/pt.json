@@ -1330,6 +1330,20 @@
       "noMetadata": "Nenhuma prévia disponível para este link."
     }
   },
+  "plan": {
+    "upgrade": "Upgrade",
+    "upgradeToAccess": "Atualize para Acessar",
+    "upgradePlan": "Atualize seu plano",
+    "upgradePlanDesc": "Sites ilimitados e personalização de QR",
+    "cancelAnytime": "Cancele a qualquer momento",
+    "upgradeBody": "Desbloqueie este recurso atualizando seu plano e aproveite a experiência completa!",
+    "purchaseNote": "As assinaturas são compradas e gerenciadas pelo aplicativo móvel QShot.",
+    "mostPopular": "Mais popular",
+    "currentPlan": "Seu plano atual",
+    "loadFailed": "Não foi possível carregar os planos",
+    "retry": "Tentar novamente",
+    "close": "Fechar"
+  },
   "contacts": {
     "addBack": "Adicionar de volta",
     "addBackNotNotified": "Esta pessoa não foi avisada. Partilhe o seu cartão para que ela também tenha o seu.",

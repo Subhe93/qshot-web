@@ -1330,6 +1330,20 @@
       "noMetadata": "Nessuna anteprima disponibile per questo link."
     }
   },
+  "plan": {
+    "upgrade": "Aggiorna",
+    "upgradeToAccess": "Aggiorna per accedere",
+    "upgradePlan": "Aggiorna il tuo piano",
+    "upgradePlanDesc": "Siti web illimitati e personalizzazione QR",
+    "cancelAnytime": "Annulla in qualsiasi momento",
+    "upgradeBody": "Sblocca questa funzione aggiornando il tuo piano e goditi l'esperienza completa!",
+    "purchaseNote": "Gli abbonamenti si acquistano e si gestiscono tramite l'app mobile QShot.",
+    "mostPopular": "Il più popolare",
+    "currentPlan": "Il tuo piano attuale",
+    "loadFailed": "Impossibile caricare i piani",
+    "retry": "Riprova",
+    "close": "Chiudi"
+  },
   "contacts": {
     "addBack": "Aggiungi a tua volta",
     "addBackNotNotified": "Questa persona non è stata avvisata. Condividi il tuo biglietto così avrà anche il tuo.",

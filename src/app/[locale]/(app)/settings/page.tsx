@@ -165,6 +165,20 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
+
+          {/* Free plan → the plan comparison page (the settings.upgrade string
+              shipped translated ahead of this UI; it finally has a home). */}
+          {plan?.free && (
+            <button
+              type="button"
+              onClick={() => router.push("/upgrade")}
+              className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-white/15 px-4 py-3 text-start transition-colors hover:bg-white/25"
+            >
+              <Star className="size-5 shrink-0" />
+              <p className="flex-1 font-bold">{t("upgrade")}</p>
+              <ChevronRight className="size-4 rtl:rotate-180" />
+            </button>
+          )}
         </div>
 
         {/* Stats */}

@@ -1,11 +1,25 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Lock } from "lucide-react";
 import { BLOCK_CATALOG } from "@/lib/builder/catalog";
 import { useEditorStore } from "@/stores/editor-store";
 import { BrandIcon, BrandIconDefs } from "@/components/ui/brand-icon";
-import type { Block } from "@/lib/types/blocks";
+import { usePlan } from "@/lib/plan/use-plan";
+import { PLAN_FEATURES } from "@/lib/plan/features";
+import { useUpgradeDialog } from "@/components/plan/upgrade-dialog";
+import type { Block, BlockType } from "@/lib/types/blocks";
+
+/**
+ * Plan-gated block types (mobile block_selector_sheet). NOTE: mobile's
+ * form_widget reads add_social_feed for the lead form by mistake — the
+ * selector itself uses add_lead_form, which is what we mirror (CONTRACT §9.1).
+ */
+const BLOCK_FEATURE: Partial<Record<BlockType, string>> = {
+  SocialFeedModule: PLAN_FEATURES.addSocialFeed,
+  FormModule: PLAN_FEATURES.addLeadForm,
+  BookingModule: PLAN_FEATURES.addBooking,
+};
 
 /**
  * Add-block content, mirroring the mobile BlockSelectorSheet: "rich" blocks as
@@ -15,10 +29,20 @@ import type { Block } from "@/lib/types/blocks";
 export function AddBlockMenu({ onAdded }: { onAdded?: () => void }) {
   const t = useTranslations("builder");
   const addBlock = useEditorStore((s) => s.addBlock);
+  const plan = usePlan();
+  const showUpgrade = useUpgradeDialog((s) => s.show);
   const rich = BLOCK_CATALOG.filter((e) => e.kind === "rich");
   const basic = BLOCK_CATALOG.filter((e) => e.kind === "basic");
 
-  const add = (make: () => Block) => {
+  const blockAllowed = (type: BlockType) => {
+    const code = BLOCK_FEATURE[type];
+    return !code || plan.isAvailable(code);
+  };
+  const add = (type: BlockType, make: () => Block) => {
+    if (!blockAllowed(type)) {
+      showUpgrade();
+      return;
+    }
     addBlock(make());
     onAdded?.();
   };
@@ -29,27 +53,38 @@ export function AddBlockMenu({ onAdded }: { onAdded?: () => void }) {
 
       {/* Rich blocks — list rows with description */}
       <div className="space-y-2">
-        {rich.map((e) => (
-          <button
-            key={e.type}
-            type="button"
-            onClick={() => add(e.make)}
-            className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors hover:border-primary/40 hover:bg-surface"
-          >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface">
-              <BrandIcon icon={e.icon} size={20} />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold text-foreground">
-                {t(`blocks.${e.labelKey}`)}
+        {rich.map((e) => {
+          const ok = blockAllowed(e.type);
+          return (
+            <button
+              key={e.type}
+              type="button"
+              onClick={() => add(e.type, e.make)}
+              className={`flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors hover:border-primary/40 hover:bg-surface ${ok ? "" : "opacity-60"}`}
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface">
+                <BrandIcon icon={e.icon} size={20} />
               </span>
-              <span className="block truncate text-xs text-muted-foreground">
-                {t(`blockDesc.${e.labelKey}`)}
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-foreground">
+                  {t(`blocks.${e.labelKey}`)}
+                </span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  {t(`blockDesc.${e.labelKey}`)}
+                </span>
               </span>
-            </span>
-            <ChevronRight className="size-4 shrink-0 text-muted-foreground/50 rtl:rotate-180" />
-          </button>
-        ))}
+              {ok ? (
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground/50 rtl:rotate-180" />
+              ) : (
+                // Plan-locked (mobile parity): the row stays visible, the lock
+                // explains itself, tapping opens the upgrade dialog.
+                <span className="brand-gradient flex size-6 shrink-0 items-center justify-center rounded-full text-white">
+                  <Lock className="size-3" />
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Basic blocks — round brand-gradient icon buttons, pinned to the bottom
@@ -65,7 +100,7 @@ export function AddBlockMenu({ onAdded }: { onAdded?: () => void }) {
             <button
               key={e.type}
               type="button"
-              onClick={() => add(e.make)}
+              onClick={() => add(e.type, e.make)}
               className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl py-2 transition-colors hover:bg-surface"
             >
               <span className="flex size-11.5 items-center justify-center rounded-full bg-card shadow-[0_4px_16px_rgba(0,0,0,0.10)] ring-1 ring-border/60">

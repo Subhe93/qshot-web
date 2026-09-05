@@ -1330,6 +1330,20 @@
       "noMetadata": "Ingen förhandsvisning tillgänglig för den här länken."
     }
   },
+  "plan": {
+    "upgrade": "Uppgradera",
+    "upgradeToAccess": "Uppgradera för att få tillgång",
+    "upgradePlan": "Uppgradera din plan",
+    "upgradePlanDesc": "Obegränsade webbplatser & QR-anpassning",
+    "cancelAnytime": "Avsluta när som helst",
+    "upgradeBody": "Lås upp den här funktionen genom att uppgradera din plan och njut av hela upplevelsen!",
+    "purchaseNote": "Prenumerationer köps och hanteras via QShot-mobilappen.",
+    "mostPopular": "Mest populär",
+    "currentPlan": "Din nuvarande plan",
+    "loadFailed": "Kunde inte läsa in planerna",
+    "retry": "Försök igen",
+    "close": "Stäng"
+  },
   "contacts": {
     "addBack": "Lägg till tillbaka",
     "addBackNotNotified": "Hen fick ingen avisering. Dela ditt kort så att hen också har ditt.",
