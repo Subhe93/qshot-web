@@ -4,6 +4,16 @@
  * the browser. Calls the OpenAI Chat Completions API via REST (no SDK), with
  * vision (logo/cover images) + JSON output, validates with Zod, and returns the
  * strict wire payload { settings, modules } for the builder.
+ *
+ * Provider status (checked 2026-09-17 against developers.openai.com):
+ *  - Chat Completions is NOT deprecated (the Assistants API was, 2026-08-26);
+ *    the Responses API is only "recommended for new projects". Staying put.
+ *  - Text/vision model: `gpt-5.6-terra` (1M context, vision, JSON mode,
+ *    $2/$12 per 1M tokens — cheaper input than gpt-4o's $2.50). The gpt-5/6
+ *    families reject a custom `temperature` (only the default 1 is allowed)
+ *    and take `reasoning_effort` instead — see `callOpenAI`.
+ *  - Image model: `gpt-image-2.5-flare` (see images.ts) — `gpt-image-1` is
+ *    deprecated with shutdown 2026-12-01.
  */
 
 import { NextResponse } from "next/server";
@@ -65,9 +75,19 @@ async function geocodeAddress(
 }
 
 // Strong vision model — it reliably follows the rich schema (image-backed cards,
-// gallery, location). gpt-4o-mini under-uses those. Override with OPENAI_MODEL.
-const MODEL = process.env.OPENAI_MODEL || "gpt-4o";
+// gallery, location, hand-written embed sections). Small models under-use
+// those. Override with OPENAI_MODEL (e.g. "gpt-5.6-luna" for a cheaper tier or
+// "gpt-4o" to go back to the previous default).
+const MODEL = process.env.OPENAI_MODEL || "gpt-5.6-terra";
+// gpt-5/6 only: how much the model thinks before answering. "low" keeps the
+// generation fast; "medium" buys a bit more layout/copy quality.
+const REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT || "low";
 const ENDPOINT = "https://api.openai.com/v1/chat/completions";
+
+/** gpt-5.x / gpt-6.x / o-series: reasoning models with a fixed temperature. */
+function isReasoningModel(model: string): boolean {
+  return /^(?:gpt-5|gpt-6|o\d)/i.test(model);
+}
 
 // Hard cap on generated images per site (orchestrated here; transform stays pure).
 // Kept low so total generation time stays reasonable (each image is the slow part).
@@ -138,20 +158,39 @@ type ContentPart =
   | { type: "image_url"; image_url: { url: string } };
 
 async function callOpenAI(key: string, content: ContentPart[]): Promise<string> {
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: "user", content }],
-      // JSON mode — the prompt already instructs "Return ONLY a JSON object".
-      response_format: { type: "json_object" },
-      temperature: 0.8,
-    }),
-  });
+  const base: Record<string, unknown> = {
+    model: MODEL,
+    messages: [{ role: "user", content }],
+    // JSON mode — the prompt already instructs "Return ONLY a JSON object".
+    response_format: { type: "json_object" },
+  };
+  // Model-family tuning. Verified 2026-09-17: gpt-5.6-terra answers
+  // `unsupported_value` (HTTP 400) to temperature≠1 and accepts
+  // `reasoning_effort`; gpt-4o/4.1 accept temperature and have no reasoning.
+  const tuned: Record<string, unknown> = isReasoningModel(MODEL)
+    ? { ...base, reasoning_effort: REASONING_EFFORT }
+    : { ...base, temperature: 0.8 };
+
+  const post = (body: Record<string, unknown>) =>
+    fetch(ENDPOINT, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+  let res = await post(tuned);
+  if (res.status === 400) {
+    // A model outside the two known families (via OPENAI_MODEL) may reject one
+    // of the tuning knobs — retry once with the bare request before failing.
+    const detail = await res.text().catch(() => "");
+    if (!/unsupported_(?:value|parameter)/i.test(detail)) {
+      throw new Error(`openai_400: ${detail.slice(0, 200)}`);
+    }
+    res = await post(base);
+  }
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
     throw new Error(`openai_${res.status}: ${detail.slice(0, 200)}`);
@@ -292,6 +331,8 @@ export async function POST(req: Request) {
           alt: parsed.data.businessName,
         };
       }
+      // The cover is a wide banner in every hero style — render it landscape.
+      parsed.data.hero.cover.size = "1536x1024";
     }
 
     // Server orchestration (best-effort): generate+upload images and geocode
@@ -303,7 +344,9 @@ export async function POST(req: Request) {
       resolveLocationBlocks(parsed.data, auth),
     ]);
 
-    const { settings, blocks } = transformWebsite(parsed.data, assets);
+    const { settings, blocks } = transformWebsite(parsed.data, assets, {
+      language: promptInput.language,
+    });
     if (blocks.length === 0) {
       return NextResponse.json({ error: "ai_empty_output" }, { status: 422 });
     }

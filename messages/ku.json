@@ -1343,6 +1343,9 @@
     }
   },
   "plan": {
+    "planActivated": "Tu niha li ser {planName} yî! Taybetmendiyên te amade ne.",
+    "planChanged": "Plana te bû {planName}.",
+    "planRenewed": "{planName} hat dirêjkirin.",
     "upgrade": "Nûve bike",
     "upgradeToAccess": "Ji bo Gihîştinê Nûve Bike",
     "upgradePlan": "Plana xwe nûve bike",

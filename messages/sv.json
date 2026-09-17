@@ -1343,6 +1343,9 @@
     }
   },
   "plan": {
+    "planActivated": "Du är på {planName}! Dina funktioner är redo.",
+    "planChanged": "Din plan har ändrats till {planName}.",
+    "planRenewed": "{planName} förlängd.",
     "upgrade": "Uppgradera",
     "upgradeToAccess": "Uppgradera för att få tillgång",
     "upgradePlan": "Uppgradera din plan",

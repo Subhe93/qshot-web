@@ -1343,6 +1343,9 @@
     }
   },
   "plan": {
+    "planActivated": "أنت الآن على باقة {planName}! ميزاتك جاهزة.",
+    "planChanged": "تغيّرت باقتك إلى {planName}.",
+    "planRenewed": "تم تمديد باقة {planName}.",
     "upgrade": "ترقية",
     "upgradeToAccess": "الترقية للوصول",
     "upgradePlan": "ترقية خطتك",

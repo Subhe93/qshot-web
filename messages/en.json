@@ -1343,6 +1343,9 @@
     }
   },
   "plan": {
+    "planActivated": "You're on {planName}! Your features are ready.",
+    "planChanged": "Your plan changed to {planName}.",
+    "planRenewed": "{planName} extended.",
     "upgrade": "Upgrade",
     "upgradeToAccess": "Upgrade to Access",
     "upgradePlan": "Upgrade your plan",

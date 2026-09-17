@@ -18,6 +18,12 @@
  *  - external_links items gain an optional `image` (image-backed cards).
  * Image generation is capped at 4 per site and orchestrated by route.ts;
  * transform stays pure/sync and consumes `fileName`/`place`.
+ *
+ * v3 (2026-09-17):
+ *  - `embed` kind: AI-written animated HTML+CSS "signature sections" →
+ *    EmbedModule (custom). Sanitised/scoped server-side (embed-html.ts).
+ *  - layout choice exposed for gallery / reviews / products (only values the
+ *    Nuxt renderer dispatches).
  */
 
 import { z } from "zod";
@@ -83,6 +89,8 @@ const imageSpec = z.object({
   alt: z.string().optional(),
   /** Filled by the server after generation/upload — never by the model. */
   fileName: z.string().optional(),
+  /** Set by the server (e.g. a landscape hero cover) — never by the model. */
+  size: z.string().optional(),
 });
 
 export type AiImageSpec = z.infer<typeof imageSpec>;
@@ -147,18 +155,23 @@ const externalLinksBlock = z.object({
     .min(1),
 });
 
-/** Image gallery — 2–6 images, grid or carousel. */
+/**
+ * Image gallery — 2–6 images. Layouts are the subset of `ImagesLayoutType`
+ * that BOTH the Nuxt renderer (components/home/Modules.vue) and the web
+ * builder preview draw well for generated photos.
+ */
 const galleryBlock = z.object({
   kind: z.literal("gallery"),
   title: z.string().optional(),
-  layout: z.enum(["grid", "carousel"]).optional(),
+  layout: z.enum(["grid", "carousel", "cards", "swiper"]).optional(),
   images: z.array(imageSpec).min(2).max(6),
 });
 
-/** Customer reviews / testimonials — 2–5 items. */
+/** Customer reviews / testimonials — 2–5 items. Layouts = `ReviewsLayoutType`. */
 const reviewsBlock = z.object({
   kind: z.literal("reviews"),
   title: z.string().optional(),
+  layout: z.enum(["cards", "testimonial", "list"]).optional(),
   items: z
     .array(
       z.object({
@@ -181,10 +194,15 @@ const locationBlock = z.object({
   place: z.object({}).passthrough().optional(),
 });
 
-/** Products / services with optional per-item image. */
+/**
+ * Products / services with optional per-item image. Layouts are the
+ * `ProductsLayoutType` values the Nuxt renderer actually dispatches (it has no
+ * "list" branch, so that one is deliberately absent).
+ */
 const productsBlock = z.object({
   kind: z.literal("products"),
   title: z.string().optional(),
+  layout: z.enum(["grid", "grid2", "shop", "promo", "banner", "swiper"]).optional(),
   items: z
     .array(
       z.object({
@@ -212,6 +230,19 @@ const formBlock = z.object({
     .optional(),
 });
 
+/**
+ * Signature section — a hand-written, animated HTML+CSS micro-section rendered
+ * through an `EmbedModule` (configuration "custom"). The model writes the raw
+ * snippet in `html`; the server sanitises + scopes it (see embed-html.ts) and
+ * drops the block when it is unusable. `purpose` is advisory (helps the model
+ * vary the sections; not stored).
+ */
+const embedBlock = z.object({
+  kind: z.literal("embed"),
+  purpose: z.string().optional(),
+  html: z.string().min(40),
+});
+
 const dividerBlock = z.object({ kind: z.literal("divider") });
 
 const spacerBlock = z.object({
@@ -231,6 +262,7 @@ export const aiBlockSchema = z.discriminatedUnion("kind", [
   locationBlock,
   productsBlock,
   formBlock,
+  embedBlock,
   dividerBlock,
   spacerBlock,
 ]);

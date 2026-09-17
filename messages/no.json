@@ -1343,6 +1343,9 @@
     }
   },
   "plan": {
+    "planActivated": "Du er på {planName}! Funksjonene dine er klare.",
+    "planChanged": "Planen din er endret til {planName}.",
+    "planRenewed": "{planName} forlenget.",
     "upgrade": "Oppgrader",
     "upgradeToAccess": "Oppgrader for å få tilgang",
     "upgradePlan": "Oppgrader planen din",

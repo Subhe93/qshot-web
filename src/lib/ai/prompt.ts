@@ -3,6 +3,10 @@
  * string describing the task + the exact intermediate JSON schema the model must
  * emit (see src/lib/ai/schema.ts). The logo + cover images are attached as
  * separate parts by the route, so the model can infer brand colors/mood.
+ *
+ * 2026-09-17: adds the SIGNATURE SECTIONS guide ("embed" blocks — animated
+ * HTML+CSS sections the model writes itself, sanitised by embed-html.ts) and
+ * exposes gallery / reviews / products layout choices.
  */
 
 export interface PromptInput {
@@ -53,6 +57,52 @@ You NEVER write image URLs, file paths, base64, or asset ids — the server gene
 from your prompt, uploads it, and fills the rest in. At most ~4 images total will be used across the
 whole site, so spend them where they add the most impact (hero cover, gallery, top service/product cards).`;
 
+const EMBED_GUIDE = `SIGNATURE SECTIONS ("embed" blocks) — hand-written animated HTML + CSS:
+An "embed" block is a small, self-contained, ANIMATED micro-section you write yourself in raw HTML + CSS.
+The site renders it inline between the standard blocks. Its job is to give the page a designed, memorable
+"wow" moment that no stock block can — it must feel made for THIS brand (its colors, mood, industry), never
+like a generic widget. Include 2-3 embed blocks per site, each with a DIFFERENT purpose. Patterns:
+- "banner"  (place it as the FIRST block, right under the hero): a slow-moving gradient / mesh background in
+  the brand colors with 2-3 floating soft orbs or shapes, one bold on-brand promise line, and a small
+  animated pill/badge (e.g. "Since 2012", "Open today", "Certified"). Subtle, premium, not loud.
+- "stats"   : 3-4 key numbers (years, happy clients, rating, projects, dishes...) in a row; each number
+  rises and fades in with a stagger and gets a thin animated underline or ring. Numbers may be plausible
+  estimates ("10+", "2k+", "4.9★").
+- "ticker"  : an infinite horizontal marquee of services / values / menu items / keywords separated by a
+  dot or a tiny inline SVG, in brand colors (great for cafes, salons, agencies, shops).
+- "steps"   : 3-4 "how it works" steps with a progress line that draws itself and staggered rising cards.
+- "cards"   : 2-3 highlight cards with a shimmering light sweep across the border and a gentle hover lift.
+- "ribbon"  : a pulsing glow around a strong call-to-action phrase or offer (text only, no real link needed).
+Pick what fits: a ticker for a cafe menu, steps for an agency/clinic, stats for a contractor, a ribbon for a
+seasonal offer... Tune the MOTION to the mood: calm and slow (6-12s loops, 600-900ms reveals) for luxury /
+wellness / editorial; quicker and bolder for fitness / tech / events. Everything must still look great at rest.
+Technical rules (mandatory — the server DROPS any embed that breaks them):
+- "html" is ONE self-contained snippet: exactly one <style>...</style> followed by the markup. No <html>,
+  <head> or <body>, no <script>, no <link>, no <iframe>, no <img> with external URLs, no external fonts,
+  no @import. Icons only as small inline <svg> or unicode symbols. Everything is CSS-only.
+- Animation with @keyframes + animation/transition only. The first frame must not be empty — use
+  "animation-fill-mode: both" and start from opacity 0.001 or a visible state, never leave content invisible.
+- Prefix EVERY class name and EVERY @keyframes name with the block's own prefix "qsN-" where N is the
+  embed's number on this page (first embed: qs1-, second: qs2-, third: qs3-). Never style bare tags or
+  globals (no "div{}", "h2{}", "*{}", "body{}", ":root{}"); put CSS variables on the root element's class.
+- Fluid, mobile-first layout: the root element is "width:100%"; use max-width:100%, rem/em/%/clamp(),
+  flex/grid with wrap; no fixed pixel widths above 320px; no horizontal overflow; no position:fixed.
+  The section renders in a column of roughly 320-900px; height is whatever the content needs
+  (typically 120-360px). Use border-radius (1-1.5rem) so it sits well with the rounded cards around it.
+- Typography: on the root element set
+  font-family: '<the same font you chose in "font", written as its family name, e.g. Poppins>', system-ui,
+  -apple-system, 'Segoe UI', sans-serif.
+- Colors: use the brand hex colors (brand.primary / secondary / background / text) so the section reads as
+  part of the same site. Dark, gradient or light surfaces are all fine as long as text contrast stays high.
+- Motion accessibility: include "@media (prefers-reduced-motion: reduce) { ... }" that swaps movement for
+  a gentle opacity fade-in (do NOT simply remove all animation — the section must still feel alive).
+- RTL: when the target language is right-to-left (Arabic, Kurdish, Persian, Urdu, Hebrew) the server sets
+  dir="rtl" on the wrapper — keep layouts symmetric and use logical properties (margin-inline, text-align:
+  start) so they mirror correctly.
+- Keep each embed under ~5000 characters. Inside the HTML use SINGLE quotes for attributes so the JSON
+  string stays valid; escape nothing else.
+- All visible text is real, specific, on-brand copy in the target language.`;
+
 const SCHEMA_GUIDE = `Return ONLY a JSON object (no markdown, no commentary) with this shape:
 {
   "businessName": string,                       // concise brand name inferred from the description
@@ -90,20 +140,26 @@ const SCHEMA_GUIDE = `Return ONLY a JSON object (no markdown, no commentary) wit
       "items": [ { "title": string, "url": string, "description": string,
                    "image": { "prompt": string, "alt": string } } ] },  // "image" optional
     // gallery: a strip/grid of photos for visually-driven businesses (cafes, salons, studios, hotels...).
-    { "kind": "gallery", "title": string, "layout": "grid|carousel",
+    // layout: "grid" (tiles) | "carousel" (one wide photo at a time) | "cards" (tall cards) | "swiper" (horizontal strip).
+    { "kind": "gallery", "title": string, "layout": "grid|carousel|cards|swiper",
       "images": [ { "prompt": string, "alt": string } ] },              // 2-6 ImageSpecs
     // reviews / testimonials: social proof. 3-5 short, believable quotes (AT LEAST 3).
-    { "kind": "reviews", "title": string,
+    // layout: "cards" (grid of quote cards, default) | "testimonial" (one big spotlight quote at a time) | "list".
+    { "kind": "reviews", "title": string, "layout": "cards|testimonial|list",
       "items": [ { "author": string, "role": string, "rating": number, "text": string } ] }, // rating 1-5
     // location: an address + map. The server resolves the map from "address" — you only write the address.
     { "kind": "location", "title": string, "address": string },
     // products: a catalog of items with optional price + per-item image.
-    { "kind": "products", "title": string,
+    // layout: "grid" (default image cards) | "grid2" (compact two-column) | "shop" (storefront cards with prominent
+    // price — menus, e-commerce) | "promo" (large promo tiles) | "banner" (wide rows) | "swiper" (horizontal slider).
+    { "kind": "products", "title": string, "layout": "grid|grid2|shop|promo|banner|swiper",
       "items": [ { "name": string, "price": string, "description": string,
                    "image": { "prompt": string, "alt": string } } ] },  // "image" optional
     // form: a contact form. OMIT "fields" for a standard Name/Email/Phone/Message form.
     { "kind": "form", "title": string,
       "fields": [ { "label": string, "type": "text|paragraph|choices|rating", "required": boolean } ] }, // "fields" optional
+    // embed: a SIGNATURE SECTION — hand-written animated HTML+CSS (see the SIGNATURE SECTIONS guide).
+    { "kind": "embed", "purpose": "banner|stats|ticker|steps|cards|ribbon|other", "html": string },
     { "kind": "divider" },
     { "kind": "spacer", "space": number }
   ]
@@ -114,21 +170,31 @@ const RULES = `Rules:
 - COPY DEPTH — write SUBSTANTIAL text, not one-liners. Every "paragraph" block is 2-4 full sentences (~45-85 words) of concrete, specific content. About / Mission / Vision / Why-choose-us each get their own rich paragraph. Feature-card and product "description" fields are a complete sentence (not 3-4 words). Fill the page like a real, content-rich professional landing page — several paragraphs of real substance across the site.
 - Headline (hero.title): short and punchy (max ~8 words). Tagline: one concrete value proposition. Avoid clichés.
 - Pick the "style" that best fits the industry and mood of the images/description, and a "font" from the allowlist whose personality matches that industry/mood.
-- Build a PROFESSIONAL, MODERN landing page — aim for 8-12 blocks in a strong, intentional order:
+- Build a PROFESSIONAL, MODERN landing page — aim for 10-16 blocks in a strong, intentional order:
+  0) SIGNATURE BANNER: an "embed" block with purpose "banner" as the VERY FIRST block (right under the
+     hero) — the animated brand moment (see SIGNATURE SECTIONS).
   1) ABOUT: header (e.g. "About") + paragraph — who they are / their value prop.
   2) SERVICES as IMAGE-BACKED FEATURE CARDS: header "Services"/"What we offer" + an external_links block
      with layout "largeGrid" or "promo", 3-6 cards, each with a title + 1-line description AND an "image"
      ImageSpec. This is the visual centerpiece — always include it for businesses with services/products.
-  3) GALLERY (for visual businesses — food, beauty, interiors, travel, fashion, fitness): a "gallery" block
+  3) SECOND SIGNATURE SECTION: an "embed" block with purpose "stats", "ticker" or "steps" (whichever fits
+     the business best) between the services and the social proof.
+  4) GALLERY (for visual businesses — food, beauty, interiors, travel, fashion, fitness): a "gallery" block
      of 2-6 photos that showcase the work/space/products.
-  4) TESTIMONIALS: a "reviews" block with AT LEAST 3 (3-5) short, believable quotes (author, optional role, rating).
-  5) WHY CHOOSE US: a header + a rich paragraph (or a benefits feature-card grid) on what sets them apart.
-  6) CTA: a strong call-to-action "buttons" block (Book/Order/Contact/Get a quote).
-  7) CONTACT: ALWAYS include a "form" block (a contact form — omit "fields" for the standard
+  5) TESTIMONIALS: a "reviews" block with AT LEAST 3 (3-5) short, believable quotes (author, optional role, rating).
+  6) WHY CHOOSE US: a header + a rich paragraph (or a benefits feature-card grid) on what sets them apart.
+  7) CTA: an optional third "embed" (purpose "ribbon" or "cards") right before a strong call-to-action
+     "buttons" block (Book/Order/Contact/Get a quote).
+  8) CONTACT: ALWAYS include a "form" block (a contact form — omit "fields" for the standard
      Name/Email/Phone/Message) + a "buttons" block (call/email) + a "location" block (ONLY when an address is
      given, renders a map) + a "social" block.
   Separate major sections with a divider or spacer for rhythm. Use "products" instead of (or alongside)
-  feature cards for shops/menus with priced items.
+  feature cards for shops/menus with priced items, and pick the layout that fits ("shop" for priced menus /
+  catalogs, "promo" or "banner" for a few hero offers).
+- SIGNATURE SECTIONS: 2-3 "embed" blocks per site, each a different purpose, following EVERY technical
+  rule in the SIGNATURE SECTIONS guide (self-contained <style> + markup, "qsN-" prefixes, CSS-only
+  animation, fluid width, brand colors + chosen font, reduced-motion fade). They are part of the design —
+  write them with the same care as the copy.
 - COMPLETENESS — represent EVERYTHING concrete the description states; do NOT summarize a long list down to a
   few. If it names multiple offerings (e.g. several degree programs, a full menu, a service catalog),
   include them ALL, grouped into logical sections (e.g. a separate "Bachelor's Programs" block AND a
@@ -202,6 +268,8 @@ export function buildPrompt(input: PromptInput): string {
     FONT_GUIDE,
     "",
     IMAGE_GUIDE,
+    "",
+    EMBED_GUIDE,
     "",
     SCHEMA_GUIDE,
     "",

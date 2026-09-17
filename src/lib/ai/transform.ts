@@ -25,6 +25,15 @@ import type {
 } from "@/lib/types/blocks";
 import type { HeroStyle, WebsiteSettings } from "@/lib/types/profile";
 import { aiBlockSchema, type AiImageSpec, type AiWebsite } from "./schema";
+import { prepareEmbedHtml } from "./embed-html";
+
+/** Languages whose generated pages (and embed sections) run right-to-left. */
+const RTL_LANGS = new Set(["ar", "ku", "fa", "ur", "he"]);
+
+export function directionFor(language?: string): "ltr" | "rtl" {
+  const base = (language ?? "").toLowerCase().split(/[-_]/)[0];
+  return RTL_LANGS.has(base) ? "rtl" : "ltr";
+}
 
 /**
  * Map the AI font allowlist key (schema.FONTS) → the exact Google family-name
@@ -189,9 +198,12 @@ const HERO_STYLE_SET: Record<HeroStyle, true> = {
 export function transformBlocks(
   rawBlocks: unknown[],
   brandPrimary?: number,
+  opts: { dir?: "ltr" | "rtl" } = {},
 ): Block[] {
   const accentBg = brandPrimary ? softTint(brandPrimary, 0.1) : undefined;
   const dividerColor = brandPrimary ? softTint(brandPrimary, 0.35) : 0xffe4e7ed;
+  const dir = opts.dir ?? "ltr";
+  let embedIndex = 0;
 
   // Apply a soft brand-tinted background to a section when the model flags it.
   const tint = (accent?: boolean) =>
@@ -295,7 +307,7 @@ export function transformBlocks(
         out.push({
           id: nanoid(),
           type: "ImageModule",
-          layout_type: b.layout === "grid" ? "grid" : "carousel",
+          layout_type: b.layout ?? "carousel",
           items,
         });
         break;
@@ -314,7 +326,7 @@ export function transformBlocks(
           id: nanoid(),
           type: "ReviewsModule",
           title: b.title ?? "",
-          layout_type: "cards",
+          layout_type: b.layout ?? "cards",
           reviews,
           ...tint(true),
         });
@@ -349,8 +361,41 @@ export function transformBlocks(
           id: nanoid(),
           type: "ProductsModule",
           title: b.title ?? "",
-          layout_type: "grid",
+          layout_type: b.layout ?? "grid",
           items,
+        });
+        break;
+      }
+
+      case "embed": {
+        // AI-written animated HTML+CSS section → custom EmbedModule. The
+        // snippet is sanitised + scoped (embed-html.ts); an unusable one is
+        // dropped so it can never break the page. Mirrors the builder's own
+        // "custom" embed, which writes the markup to BOTH `url` and `html`
+        // (the server schema requires both non-empty).
+        const html = prepareEmbedHtml(b.html, { index: ++embedIndex, dir });
+        if (!html) {
+          embedIndex--;
+          break;
+        }
+        out.push({
+          id: nanoid(),
+          type: "EmbedModule",
+          configuration: "custom",
+          data: {
+            url: html,
+            html,
+            author_name: null,
+            author_url: null,
+            provider_name: null,
+            provider_url: null,
+            title: null,
+            description: null,
+            width: null,
+            height: null,
+            thumbnailUrl: null,
+            aspectRatio: null,
+          },
         });
         break;
       }
@@ -409,10 +454,11 @@ export function transformBlocks(
 export function transformWebsite(
   ai: AiWebsite,
   assets: AiAssets,
+  opts: { language?: string } = {},
 ): { settings: WebsiteSettings; blocks: Block[] } {
   const brandPrimary = toArgb(ai.brand?.primary);
   return {
     settings: buildSettings(ai, assets),
-    blocks: transformBlocks(ai.blocks, brandPrimary),
+    blocks: transformBlocks(ai.blocks, brandPrimary, { dir: directionFor(opts.language) }),
   };
 }

@@ -1343,6 +1343,9 @@
     }
   },
   "plan": {
+    "planActivated": "Vous êtes sur {planName} ! Vos fonctionnalités sont prêtes.",
+    "planChanged": "Votre forfait est passé à {planName}.",
+    "planRenewed": "{planName} prolongé.",
     "upgrade": "Mettre à niveau",
     "upgradeToAccess": "Mettre à niveau pour accéder",
     "upgradePlan": "Mettre à niveau votre forfait",

@@ -1343,6 +1343,9 @@
     }
   },
   "plan": {
+    "planActivated": "Sei su {planName}! Le tue funzionalità sono pronte.",
+    "planChanged": "Il tuo piano è cambiato in {planName}.",
+    "planRenewed": "{planName} esteso.",
     "upgrade": "Aggiorna",
     "upgradeToAccess": "Aggiorna per accedere",
     "upgradePlan": "Aggiorna il tuo piano",

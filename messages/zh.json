@@ -1343,6 +1343,9 @@
     }
   },
   "plan": {
+    "planActivated": "您已升级到 {planName}！功能已就绪。",
+    "planChanged": "您的计划已更改为 {planName}。",
+    "planRenewed": "{planName} 已续期。",
     "upgrade": "升级",
     "upgradeToAccess": "升级以访问",
     "upgradePlan": "升级您的计划",

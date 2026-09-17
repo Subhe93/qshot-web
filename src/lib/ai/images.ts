@@ -1,17 +1,26 @@
 /**
  * Server-side image generation for the AI website generator. Turns an
- * ImageSpec `prompt` into a real CDN asset: calls OpenAI gpt-image-1 (base64
- * PNG), uploads the bytes via q-profile/image/create, and returns the stored
- * `file_name` (CDN key). Best-effort throughout — a failed image never throws,
- * it just leaves `fileName` undefined so the page still renders.
+ * ImageSpec `prompt` into a real CDN asset: calls the OpenAI Images API
+ * (base64 JPEG), uploads the bytes via q-profile/image/create, and returns the
+ * stored `file_name` (CDN key). Best-effort throughout — a failed image never
+ * throws, it just leaves `fileName` undefined so the page still renders.
+ *
+ * Model: `gpt-image-2.5-flare` (fast tier of the current generation). The
+ * original `gpt-image-1` is deprecated by OpenAI with shutdown on 2026-12-01
+ * (developers.openai.com/api/docs/deprecations), so it must not be the default
+ * any more. Override with OPENAI_IMAGE_MODEL. Verified 2026-09-17: the same
+ * request body (size/quality/output_format/output_compression) works on the
+ * new model; a 1024² low-quality JPEG is ~100 KB and ~200 output tokens.
  *
  * Node runtime only (uses global Buffer/File). Dependency-free: plain `fetch`
  * + the existing `uploadImage` helper.
  */
 
 const OPENAI_IMAGES_URL = "https://api.openai.com/v1/images/generations";
-// 1024 is gpt-image-1's smallest square. Keep files light + generation fast:
-// low quality + JPEG compression cuts file size ~10x and speeds each render.
+const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2.5-flare";
+// Smallest square. Keep files light + generation fast: low quality + JPEG
+// compression cuts file size ~10x and speeds each render. Callers may pass a
+// landscape size (e.g. "1536x1024") for wide hero covers.
 const DEFAULT_SIZE = "1024x1024";
 const IMAGE_QUALITY = "low"; // low | medium | high | auto
 const OUTPUT_FORMAT = "jpeg"; // jpeg → far smaller than PNG
@@ -103,7 +112,7 @@ export async function generateImage(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-image-1",
+        model: IMAGE_MODEL,
         prompt: `${prompt.trim()} ${STYLE_SUFFIX}`,
         size: opts?.size ?? DEFAULT_SIZE,
         quality: IMAGE_QUALITY,
@@ -132,15 +141,15 @@ export async function generateImage(
  * beyond the cap are left untouched.
  */
 export async function resolveImageSpecs(
-  specs: Array<{ prompt: string; fileName?: string }>,
+  specs: Array<{ prompt: string; fileName?: string; size?: string }>,
   cap: number,
   auth?: string,
 ): Promise<void> {
   if (!auth) return;
   const slice = specs.slice(0, Math.max(0, cap));
-  // Limit concurrency: gpt-image-1 tolerates parallelism, but the CDN upload
+  // Limit concurrency: the Images API tolerates parallelism, but the CDN upload
   // drops connections under load. 3-in-flight + retry balances speed + reliability.
   await pool(slice, 3, async (spec) => {
-    spec.fileName = await generateImage(spec.prompt, auth);
+    spec.fileName = await generateImage(spec.prompt, auth, { size: spec.size });
   });
 }

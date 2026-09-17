@@ -25,6 +25,9 @@ export interface AccountPlan {
   name?: string;
   free?: boolean;
   color?: string; // hex without '#', e.g. "FFAF05"
+  /** Plan rank (mobile Plan.order) — used only to tell upgrade from downgrade
+      when the plan changes live; read defensively, may be absent. */
+  order?: number;
   /** The plan's feature grants, flattened by lib/plan/features.ts into code → value. */
   planFeatures?: PlanFeature[];
 }
