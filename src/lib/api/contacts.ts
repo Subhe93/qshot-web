@@ -1,5 +1,5 @@
 import { HTTPError } from "ky";
-import { api } from "./client";
+import { api, httpErrorBody } from "./client";
 
 /**
  * Contacts feature — API layer. Mirrors the mobile data sources under
@@ -55,7 +55,7 @@ export async function readContactsError(e: unknown): Promise<ContactsError> {
   if (e instanceof ContactsError) return e;
   if (e instanceof HTTPError) {
     try {
-      const body = (await e.response.clone().json()) as {
+      const body = (await httpErrorBody(e)) as {
         error?: {
           code?: string;
           message?: string;
@@ -667,52 +667,135 @@ export async function deleteContactCardImage(
 
 export interface ContactEvent {
   _id: string;
-  name?: string;
+  name: string;
   startedAt?: string;
   endsAt?: string;
   endedAt?: string | null;
-  active?: boolean;
+  /** Mobile: read from `isActive`; when absent, "not ended yet". */
+  isActive: boolean;
+  tagId?: string;
   contactsCount?: number;
-  summary?: { total?: number; sources?: Record<string, number> };
-  [key: string]: unknown;
 }
 
+/**
+ * Mobile `ContactEvent.fromJson` — only `name` and `endsAt` are documented on
+ * the wire; every other key is read tolerantly and may be absent.
+ */
+function readContactEvent(raw: unknown): ContactEvent | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const j = raw as Record<string, unknown>;
+  const text = (v: unknown) => (typeof v === "string" ? v : v == null ? "" : String(v));
+  const date = (v: unknown) =>
+    typeof v === "string" && v && !Number.isNaN(Date.parse(v)) ? v : undefined;
+  const endedAt = date(j.endedAt) ?? null;
+  const count = typeof j.contactsCount === "number" ? j.contactsCount
+    : typeof j.contactsCount === "string" && j.contactsCount !== "" ? Number(j.contactsCount)
+    : undefined;
+  return {
+    _id: text(j._id ?? j.id),
+    name: text(j.name),
+    startedAt: date(j.startedAt ?? j.createdAt),
+    endsAt: date(j.endsAt),
+    endedAt,
+    isActive: j.isActive == null ? endedAt == null : j.isActive === true || j.isActive === "true",
+    tagId: typeof j.tagId === "string" && j.tagId ? j.tagId : undefined,
+    contactsCount: count != null && Number.isFinite(count) ? count : undefined,
+  };
+}
+
+/** Newest first (mobile `_sorted`) — the server order is not documented. */
+export function sortContactEvents(events: ContactEvent[]): ContactEvent[] {
+  const when = (e: ContactEvent) => e.startedAt ?? e.endsAt;
+  return [...events].sort((a, b) => {
+    const l = when(a);
+    const r = when(b);
+    if (!l || !r) return 0;
+    return Date.parse(r) - Date.parse(l);
+  });
+}
+
+/** History in server order — callers sort with `sortContactEvents`. */
 export async function listContactEvents(): Promise<ContactEvent[]> {
-  const d = unwrap<{ events?: ContactEvent[] } | ContactEvent[]>(
-    await api.get("contact-events").json(),
-  );
-  return Array.isArray(d) ? d : (d.events ?? []);
+  const d = unwrap<{ events?: unknown[] } | unknown[]>(await api.get("contact-events").json());
+  const list = Array.isArray(d) ? d : Array.isArray(d?.events) ? d.events : [];
+  return list.map(readContactEvent).filter((e): e is ContactEvent => e != null);
 }
 
+/**
+ * The session running now, or null. `data.event` is `null` when nothing is
+ * active — the key is present, not absent (mobile: verified live). Falling
+ * back to the envelope object here once rendered a phantom "active" session
+ * with no name and no id (`POST /contact-events/undefined/end`).
+ */
 export async function getActiveContactEvent(): Promise<ContactEvent | null> {
-  const d = unwrap<{ event?: ContactEvent | null } | ContactEvent | null>(
-    await api.get("contact-events/active").json(),
+  const d = unwrap<unknown>(await api.get("contact-events/active").json());
+  if (!d || typeof d !== "object") return null;
+  const data = d as Record<string, unknown>;
+  const event =
+    "event" in data
+      ? readContactEvent(data.event)
+      : // No named key: a bare event object, or an empty `data` for "none".
+        Object.keys(data).length === 0
+        ? null
+        : readContactEvent(data);
+  // An event without an id cannot be ended or opened — it is no session.
+  return event && event._id ? event : null;
+}
+
+/** `endsAt` is optional — the server applies a default when omitted. UTC ISO. */
+export async function startContactEvent(name: string, endsAt?: string): Promise<ContactEvent> {
+  const d = unwrap<Record<string, unknown>>(
+    await api.post("contact-events/start", { json: endsAt ? { name, endsAt } : { name } }).json(),
   );
-  if (d == null) return null;
-  return ((d as { event?: ContactEvent | null }).event ?? d) as ContactEvent | null;
+  const event = readContactEvent(d?.event);
+  if (!event?._id) throw new Error("contact-events/start: no event in response");
+  return event;
 }
 
-export async function startContactEvent(
-  name: string,
-  endsAt?: string,
-): Promise<ContactEvent> {
-  const d = unwrap<{ event?: ContactEvent } | ContactEvent>(
-    await api.post("contact-events/start", { json: { name, endsAt } }).json(),
-  );
-  return ((d as { event?: ContactEvent }).event ?? d) as ContactEvent;
+/** Mobile `ContactEventDetails` — the wire shape is undocumented; parsed tolerantly. */
+export interface ContactEventDetails {
+  event: ContactEvent;
+  contacts: Contact[];
+  /** source → count */
+  summary: Record<string, number>;
+  total: number;
 }
 
-export async function getContactEvent(
-  id: string,
-): Promise<{ event?: ContactEvent; contacts?: Contact[]; summary?: unknown }> {
-  return unwrap(await api.get(`contact-events/${id}`).json());
+export async function getContactEvent(id: string): Promise<ContactEventDetails> {
+  const d = unwrap<Record<string, unknown>>(await api.get(`contact-events/${id}`).json());
+  const data = d && typeof d === "object" ? d : {};
+  const event =
+    readContactEvent(data.event && typeof data.event === "object" ? data.event : data) ??
+    { _id: id, name: "", isActive: false };
+  const contacts = Array.isArray(data.contacts) ? (data.contacts as Contact[]) : [];
+  const summaryRaw =
+    data.summary && typeof data.summary === "object" ? (data.summary as Record<string, unknown>) : {};
+  const sourcesRaw =
+    summaryRaw.sources && typeof summaryRaw.sources === "object"
+      ? (summaryRaw.sources as Record<string, unknown>)
+      : summaryRaw.bySource && typeof summaryRaw.bySource === "object"
+        ? (summaryRaw.bySource as Record<string, unknown>)
+        : summaryRaw;
+  const summary: Record<string, number> = {};
+  for (const [key, value] of Object.entries(sourcesRaw)) {
+    if (key === "total" || typeof value === "boolean") continue;
+    const n = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+    if (Number.isFinite(n)) summary[key] = n;
+  }
+  const totalRaw = summaryRaw.total;
+  const total =
+    typeof totalRaw === "number" ? totalRaw
+    : typeof totalRaw === "string" && Number.isFinite(Number(totalRaw)) ? Number(totalRaw)
+    : event.contactsCount ?? contacts.length;
+  return { event, contacts, summary, total };
 }
 
+/** Ends the session; returns it as stored (`isActive == false`). */
 export async function endContactEvent(id: string): Promise<ContactEvent> {
-  const d = unwrap<{ event?: ContactEvent } | ContactEvent>(
-    await api.post(`contact-events/${id}/end`).json(),
-  );
-  return ((d as { event?: ContactEvent }).event ?? d) as ContactEvent;
+  const d = unwrap<Record<string, unknown>>(await api.post(`contact-events/${id}/end`).json());
+  const event = readContactEvent(d?.event);
+  if (!event?._id) throw new Error("contact-events/end: no event in response");
+  return { ...event, isActive: false };
 }
 
 // ─── Display helpers (mobile `contact_display.dart` semantics) ──────────────

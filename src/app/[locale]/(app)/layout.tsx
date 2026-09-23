@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { AppShell } from "@/components/app-shell";
 import { UpgradePlanDialog } from "@/components/plan/upgrade-dialog";
 import { PlanLiveUpdates } from "@/components/plan/plan-live-updates";
+import { ContactSaveToast } from "@/components/contacts/save-toast";
 
 export default function AppLayout({
   children,
@@ -55,6 +56,7 @@ export default function AppLayout({
       {children}
       <UpgradePlanDialog />
       <PlanLiveUpdates />
+      <ContactSaveToast />
     </AppShell>
   );
 }

@@ -271,6 +271,8 @@ function AddedMeList() {
       // notified:false ⇒ offer "share your card" instead of implying they know.
       setError(res.notified === false ? t("addBackNotNotified") : null);
       void queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      // An add-back is a save too — the active session banner count follows.
+      void queryClient.invalidateQueries({ queryKey: ["contact-event-active"] });
     },
     onError: async (e) => {
       const err = await readContactsError(e);

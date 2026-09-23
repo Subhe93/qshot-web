@@ -12,14 +12,10 @@ import {
   Calendar,
   Download,
   Loader2,
-  Mail,
-  MessageCircle,
-  Phone,
   Plus,
   ScanLine,
   Search,
   Settings2,
-  Star,
   Tags,
   Users,
 } from "lucide-react";
@@ -28,33 +24,27 @@ import { Button } from "@/components/ui/button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import {
   FC,
-  callablePhone,
-  contactDisplayName,
-  dialNumber,
   downloadBulkExport,
+  endContactEvent,
   entBool,
+  getActiveContactEvent,
   getContactsSummary,
   listContactTags,
   listContacts,
-  primaryEmail,
-  primaryPhone,
   readContactsError,
   toggleFavorite,
-  whatsappNumber,
   type Contact,
 } from "@/lib/api/contacts";
 import {
-  ContactAvatar,
   GateBoundary,
   TagChip,
   resolveGate,
   useContactsEntitlements,
 } from "@/components/contacts/shared";
-import {
-  QUICK_ACTION_FALLBACK_ORDER,
-  quickActionPref,
-  type ContactQuickAction,
-} from "@/lib/contacts-prefs";
+import { ContactRow } from "@/components/contacts/contact-row";
+import { EventBanner } from "@/components/contacts/event-banner";
+import { useContactSaveToast } from "@/components/contacts/save-toast";
+import { quickActionPref, type ContactQuickAction } from "@/lib/contacts-prefs";
 import { cn } from "@/lib/utils";
 
 /**
@@ -151,6 +141,33 @@ function Book() {
     },
   });
 
+  // Event banner (mobile contacts_fragment `_buildEventBanner`, §14.1): no
+  // session → nothing; active session → the banner with End. Only asked for
+  // when the plan has event mode at all.
+  const eventMode = entBool(ent.data, FC.eventMode);
+  const activeEventQ = useQuery({
+    queryKey: ["contact-event-active"],
+    queryFn: getActiveContactEvent,
+    enabled: eventMode,
+  });
+  const activeEvent = eventMode ? (activeEventQ.data ?? null) : null;
+  const showToast = useContactSaveToast((s) => s.show);
+  const endM = useMutation({
+    mutationFn: (id: string) => endContactEvent(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["contact-event-active"] });
+      void queryClient.invalidateQueries({ queryKey: ["contact-events"] });
+      void queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      void queryClient.invalidateQueries({ queryKey: ["contacts-summary"] });
+    },
+    // A failed End from the banner is said out loud — the banner would
+    // otherwise just stop spinning with the session still running.
+    onError: async (e) => {
+      const err = await readContactsError(e);
+      showToast({ message: err.message || t("genericError") });
+    },
+  });
+
   function resetTo(next: {
     q?: string;
     favorite?: boolean;
@@ -217,6 +234,20 @@ function Book() {
         </button>
       </div>
 
+      {/* Active session banner */}
+      {activeEvent && (
+        <div className="mt-4">
+          <EventBanner
+            event={activeEvent}
+            busy={endM.isPending}
+            onTap={() => router.push("/contacts/events")}
+            // Mobile ends straight from the banner (no dialog); only the
+            // Events screen confirms.
+            onEnd={() => !endM.isPending && endM.mutate(activeEvent._id)}
+          />
+        </div>
+      )}
+
       {/* Search */}
       <div className="mt-4 flex h-11 items-center gap-2 rounded-xl border border-input bg-card px-3">
         <Search className="size-4 text-muted-foreground" />
@@ -235,6 +266,17 @@ function Book() {
           label={t("filterAll")}
           onClick={() => resetTo({ favorite: false, tag: null, source: null })}
         />
+        {/* The user's OWN tags come right after All (mobile v2.4.0 chip
+            order), in catalogue order and only when the plan has tags. */}
+        {entBool(ent.data, FC.tagsEnabled) &&
+          (tags.data ?? []).map((tag) => (
+            <TagChip
+              key={tag._id}
+              tag={tag}
+              active={tagId === tag._id}
+              onClick={() => resetTo({ tag: tagId === tag._id ? null : tag._id })}
+            />
+          ))}
         <FilterChip
           active={favorite}
           label={t("filterFavourites")}
@@ -255,14 +297,6 @@ function Book() {
             active={source === value}
             label={t(key)}
             onClick={() => resetTo({ source: source === value ? null : value })}
-          />
-        ))}
-        {(tags.data ?? []).map((tag) => (
-          <TagChip
-            key={tag._id}
-            tag={tag}
-            active={tagId === tag._id}
-            onClick={() => resetTo({ tag: tagId === tag._id ? null : tag._id })}
           />
         ))}
       </div>
@@ -316,6 +350,7 @@ function Book() {
       </div>
 
       {exportOpen && <ExportSheet onClose={() => setExportOpen(false)} />}
+
     </>
   );
 }
@@ -386,106 +421,6 @@ function FilterChip({
     >
       {label}
     </button>
-  );
-}
-
-/**
- * One book row — avatar, name, company · phone, the one-tap action and the
- * favourite star. The action is the user's DEVICE preference (mobile
- * ContactQuickAction), falling back call → WhatsApp → email when the chosen
- * one has nothing to act on; a fax-only contact never shows a call button,
- * and a row with nothing to act on shows no dead icon at all.
- */
-function ContactRow({
-  contact,
-  quickAction,
-  onOpen,
-  onToggleFavorite,
-}: {
-  contact: Contact;
-  quickAction: ContactQuickAction;
-  onOpen: () => void;
-  onToggleFavorite: () => void;
-}) {
-  const t = useTranslations("contacts");
-  const name = contactDisplayName(contact) || t("unnamed");
-  const phone = primaryPhone(contact);
-  const call = callablePhone(contact);
-  const email = primaryEmail(contact);
-  const subtitle = [contact.company, phone?.number].filter(Boolean).join(" · ");
-
-  // The preferred action first, then the fixed fallback order.
-  const order: ContactQuickAction[] = [
-    quickAction,
-    ...QUICK_ACTION_FALLBACK_ORDER.filter((a) => a !== quickAction),
-  ];
-  let action: { href: string; Icon: typeof Phone; label: string } | null = null;
-  for (const kind of order) {
-    if (kind === "call" && call) {
-      action = { href: `tel:${dialNumber(call)}`, Icon: Phone, label: t("call") };
-      break;
-    }
-    if (kind === "whatsapp" && call) {
-      action = {
-        href: `https://wa.me/${whatsappNumber(call)}`,
-        Icon: MessageCircle,
-        label: t("whatsapp"),
-      };
-      break;
-    }
-    if (kind === "email" && email) {
-      action = { href: `mailto:${email.address}`, Icon: Mail, label: t("email") };
-      break;
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-3 border-b border-border px-3 py-2.5 last:border-b-0 hover:bg-muted/50">
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex min-w-0 flex-1 items-center gap-3 text-start"
-      >
-        <ContactAvatar contact={contact} size={40} />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-foreground">
-            {name}
-          </span>
-          {subtitle && (
-            <span className="block truncate text-xs text-muted-foreground" dir="auto">
-              {subtitle}
-            </span>
-          )}
-        </span>
-      </button>
-      {action && (
-        <a
-          href={action.href}
-          target={action.href.startsWith("http") ? "_blank" : undefined}
-          rel="noreferrer"
-          aria-label={action.label}
-          className="shrink-0 rounded-full border border-border p-2 text-foreground hover:bg-muted"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <action.Icon className="size-4" />
-        </a>
-      )}
-      <button
-        type="button"
-        aria-label={t("filterFavourites")}
-        onClick={onToggleFavorite}
-        className="shrink-0 rounded-full p-2"
-      >
-        <Star
-          className={cn(
-            "size-4",
-            contact.isFavorite
-              ? "fill-amber-400 text-amber-400"
-              : "text-muted-foreground",
-          )}
-        />
-      </button>
-    </div>
   );
 }
 

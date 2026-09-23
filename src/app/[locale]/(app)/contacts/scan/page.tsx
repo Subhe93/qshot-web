@@ -36,6 +36,7 @@ import {
   resolveGate,
   useContactsEntitlements,
 } from "@/components/contacts/shared";
+import { useContactSaveToast } from "@/components/contacts/save-toast";
 import { cn } from "@/lib/utils";
 
 /**
@@ -476,6 +477,7 @@ function ScanReview({
   const t = useTranslations("contacts");
   const router = useRouter();
   const queryClient = useQueryClient();
+  const showToast = useContactSaveToast((s) => s.show);
   const job = result.job;
 
   const [fields, setFields] = useState<ContactWriteBody>(() => ({
@@ -527,7 +529,17 @@ function ScanReview({
       });
       void queryClient.invalidateQueries({ queryKey: ["contacts"] });
       void queryClient.invalidateQueries({ queryKey: ["contacts-summary"] });
-      router.push(`/contacts/${res.contact._id}`);
+      // Mobile re-reads the active session after every save (banner count).
+      void queryClient.invalidateQueries({ queryKey: ["contact-event-active"] });
+      // Mobile v2.4.0 `_confirmSaved`: the save ends back on the book with
+      // ONE toast — the list behind it is the real confirmation, the old
+      // confirmation screen was a speed bump. (No share-back branch on web.)
+      showToast({
+        message: res.alreadyExisted ? t("alreadySaved") : t("saved"),
+        actionLabel: t("scanViewContact"),
+        actionHref: `/contacts/${res.contact._id}`,
+      });
+      router.push("/contacts");
     } catch (e) {
       const err = await readContactsError(e);
       if (err.status === 409 && err.duplicates?.length) {

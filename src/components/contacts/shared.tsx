@@ -195,6 +195,48 @@ export function TagChip({
   );
 }
 
+// ─── Event-mode helpers ─────────────────────────────────────────────────────
+
+/**
+ * Mobile `formatMoment` (core/utils/moment_format.dart): time only when the
+ * moment is today, else "MMM d, h:mm" — in the next-intl locale.
+ */
+export function formatMoment(locale: string, moment: Date | string): string {
+  const d = typeof moment === "string" ? new Date(moment) : moment;
+  const now = new Date();
+  const sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  return sameDay
+    ? new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(d)
+    : formatDateTime(locale, d);
+}
+
+/** Always "MMM d, h:mm" — mobile `DateFormat.MMMd(locale).add_jm()`. */
+export function formatDateTime(locale: string, moment: Date | string): string {
+  const d = typeof moment === "string" ? new Date(moment) : moment;
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(d);
+}
+
+/**
+ * "{n} contacts" with the mobile plural rule (`BulkStrings.evContacts`):
+ * 1 → evContactsOne, 11+ → evContactsMany, else evContacts.
+ */
+export function contactsCountLabel(
+  t: ReturnType<typeof useTranslations>,
+  n: number,
+): string {
+  if (n === 1) return t("evContactsOne");
+  if (n >= 11) return t("evContactsMany", { n });
+  return t("evContacts", { n });
+}
+
 // ─── Source label key ───────────────────────────────────────────────────────
 
 export const SOURCE_LABEL_KEY: Record<string, string> = {

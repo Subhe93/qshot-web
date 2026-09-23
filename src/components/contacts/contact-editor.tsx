@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import {
@@ -15,29 +15,39 @@ import {
   contactTagIds,
   createContact,
   entLimit,
-  listContactTags,
   mergeContacts,
   readContactsError,
+  setContactTags,
   updateContact,
   type Contact,
   type ContactEmail,
   type ContactPhone,
+  type ContactTag,
   type ContactWebsite,
   type ContactWriteBody,
 } from "@/lib/api/contacts";
 import {
   EMAIL_LABEL_KEY,
   PHONE_LABEL_KEY,
-  TagChip,
   useContactsEntitlements,
 } from "@/components/contacts/shared";
+import { ContactTagsRow } from "@/components/contacts/contact-tags-row";
+import { useContactSaveToast } from "@/components/contacts/save-toast";
 
 /**
- * Contact editor — web port of mobile `contact_editor_layout.dart`. One form
- * for create and edit. THE rule that must never break (api-spec §4.7): on
- * update, send ONLY the fields the user actually changed — every field sent
- * in PUT becomes permanently protected from live sync, so a whole-object PUT
- * would freeze everything.
+ * Contact editor — web port of mobile `contact_editor_layout.dart` +
+ * `contact_editor_cubit.dart` (v2.4.0). One form for create and edit. THE
+ * rule that must never break (api-spec §4.7): on update, send ONLY the
+ * fields the user actually changed — every field sent in PUT becomes
+ * permanently protected from live sync, so a whole-object PUT would freeze
+ * everything.
+ *
+ * Tags never travel in the PUT/create body. The assign endpoint
+ * (`POST /contact-tags/contact/:id`) REPLACES the whole list, so the
+ * selection is seeded from the contact's real tags in edit mode and one
+ * assign call runs AFTER the save, only when the set changed — an emptied
+ * set IS a change and IS sent; a tags-only edit skips the PUT entirely. A
+ * tag-assign failure is never the save's failure (mobile `_applyTags`).
  *
  * A 409 DUPLICATE_CANDIDATES on create is a question, not an error: merge
  * with an existing contact / keep both / cancel (feature-guide §6.1 — no
@@ -82,7 +92,9 @@ function cleanDraft(d: Draft): Draft {
   };
 }
 
-/** The changed subset of the draft — the ONLY thing an update may send. */
+/** The changed subset of the draft — the ONLY thing an update may send.
+ *  Tags are NOT part of it: they go through the assign endpoint after the
+ *  save, never inside the PUT body (the PUT freezes every field it gets). */
 function dirtyFields(initial: Draft, current: Draft): Partial<ContactWriteBody> {
   const out: Partial<ContactWriteBody> = {};
   const a = cleanDraft(initial);
@@ -100,8 +112,16 @@ function dirtyFields(initial: Draft, current: Draft): Partial<ContactWriteBody> 
   for (const key of ["phones", "emails", "websites"] as const) {
     if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) out[key] = b[key];
   }
-  if (JSON.stringify(a.tags) !== JSON.stringify(b.tags)) out.tags = b.tags;
   return out;
+}
+
+/** Set equality on tag ids — order never counts (mobile `setEquals`). */
+function sameTagSet(a: string[], b: string[]): boolean {
+  const sa = new Set(a);
+  const sb = new Set(b);
+  if (sa.size !== sb.size) return false;
+  for (const id of sa) if (!sb.has(id)) return false;
+  return true;
 }
 
 export function ContactEditor({ contact }: { contact?: Contact | null }) {
@@ -109,7 +129,7 @@ export function ContactEditor({ contact }: { contact?: Contact | null }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const ent = useContactsEntitlements();
-  const tagsQ = useQuery({ queryKey: ["contact-tags"], queryFn: listContactTags });
+  const showToast = useContactSaveToast((s) => s.show);
 
   const isEdit = contact != null;
   const initial = useMemo(() => draftFrom(contact), [contact]);
@@ -117,11 +137,31 @@ export function ContactEditor({ contact }: { contact?: Contact | null }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [duplicates, setDuplicates] = useState<Contact[] | null>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
   // The create id is stable across duplicate-sheet retries so the server can
   // recognise a replay (api-spec §4.4).
   const [clientRequestId] = useState(() => crypto.randomUUID());
 
   const noteMax = entLimit(ent.data, FC.noteMaxLength);
+  const noteTooLong = noteMax != null && draft.note.length > noteMax;
+
+  // Tags count as dirty on their own: a tags-only edit skips the PUT but
+  // still enables Save and the discard prompt (mobile `isDirty`).
+  const tagsChanged = !sameTagSet(initial.tags, draft.tags);
+  const dirty = Object.keys(dirtyFields(initial, draft)).length > 0 || tagsChanged;
+
+  const backHref = isEdit ? `/contacts/${contact._id}` : "/contacts";
+
+  // The in-form back arrow shows the discard sheet, but tab close/refresh
+  // can't — beforeunload is the only guard the browser offers for those.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   function patch(p: Partial<Draft>) {
     setDraft((d) => ({ ...d, ...p }));
@@ -130,33 +170,72 @@ export function ContactEditor({ contact }: { contact?: Contact | null }) {
   function invalidate() {
     void queryClient.invalidateQueries({ queryKey: ["contacts"] });
     void queryClient.invalidateQueries({ queryKey: ["contacts-summary"] });
+    // Mobile re-reads the active session after every save — the banner's
+    // contact count stays honest.
+    void queryClient.invalidateQueries({ queryKey: ["contact-event-active"] });
+  }
+
+  /**
+   * Send the chosen set when it differs from what the contact had — the
+   * assign endpoint REPLACES the whole list, so the selection was seeded
+   * from the real one. Returns whether it worked: a failure is NEVER the
+   * save's failure — the contact exists by then (mobile `_applyTags`).
+   */
+  async function applyTags(contactId: string): Promise<boolean> {
+    if (!tagsChanged || !contactId) return true;
+    try {
+      const updated = await setContactTags(contactId, draft.tags);
+      queryClient.setQueryData(["contact", contactId], updated);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async function submit(allowDuplicate = false) {
     if (saving) return;
     setSaving(true);
     setError(null);
+    setLeaveOpen(false);
     try {
       if (isEdit) {
         const body = dirtyFields(initial, draft);
-        if (Object.keys(body).length === 0) {
+        if (Object.keys(body).length === 0 && !tagsChanged) {
           router.push(`/contacts/${contact._id}`);
           return;
         }
-        const updated = await updateContact(contact._id, body);
-        queryClient.setQueryData(["contact", contact._id], updated);
+        // A tags-only save must not touch the PUT: it freezes every field
+        // it receives from live sync (mobile `_submit`).
+        if (Object.keys(body).length > 0) {
+          const updated = await updateContact(contact._id, body);
+          queryClient.setQueryData(["contact", contact._id], updated);
+        }
+        const tagsApplied = await applyTags(contact._id);
         invalidate();
+        // The contact is saved either way; only the tags missed.
+        if (!tagsApplied) showToast({ message: t("scanTagsFailed") });
         router.push(`/contacts/${contact._id}`);
       } else {
-        const clean = cleanDraft(draft);
         const res = await createContact({
-          ...clean,
+          ...cleanDraft(draft),
+          // Mobile creates first, then assigns — tags never ride the create
+          // body (§6.5). `undefined` is dropped by JSON.stringify.
+          tags: undefined,
           kind: "person",
           clientRequestId,
           ...(allowDuplicate ? { allowDuplicate: true } : {}),
         });
+        // The contact EXISTS from here on; the tag call is a follow-up
+        // whose failure must not read as a failed save.
+        const tagsApplied = await applyTags(res.contact._id);
         invalidate();
-        router.push(`/contacts/${res.contact._id}`);
+        showToast({
+          message: res.alreadyExisted ? t("alreadySaved") : t("saved"),
+          sub: tagsApplied ? undefined : t("scanTagsFailed"),
+          actionLabel: t("scanViewContact"),
+          actionHref: `/contacts/${res.contact._id}`,
+        });
+        router.push("/contacts");
       }
     } catch (e) {
       const err = await readContactsError(e);
@@ -188,17 +267,29 @@ export function ContactEditor({ contact }: { contact?: Contact | null }) {
     setSaving(true);
     setError(null);
     try {
-      const clean = cleanDraft(draft);
       const created = await createContact({
-        ...clean,
+        ...cleanDraft(draft),
+        // Tags never ride the create body — assigned after the merge.
+        tags: undefined,
         kind: "person",
         clientRequestId,
         allowDuplicate: true,
       });
       const merged = await mergeContacts(existing._id, created.contact._id);
+      const mergedId = merged._id ?? existing._id;
+      // Folding into an existing contact is still "this person now exists
+      // because of me": the tags the user picked belong on them, exactly as
+      // they would have on a fresh create (mobile `mergeInto`).
+      const tagsApplied = await applyTags(mergedId);
       invalidate();
       setDuplicates(null);
-      router.push(`/contacts/${merged._id ?? existing._id}`);
+      showToast({
+        message: t("mergedInto", {
+          name: contactDisplayName(merged) || t("unnamed"),
+        }),
+        sub: tagsApplied ? undefined : t("scanTagsFailed"),
+      });
+      router.push(`/contacts/${mergedId}`);
     } catch (e) {
       const err = await readContactsError(e);
       setDuplicates(null);
@@ -208,16 +299,26 @@ export function ContactEditor({ contact }: { contact?: Contact | null }) {
     }
   }
 
+  /** Back taps ask before dropping edits (mobile `_pop`). */
+  function requestLeave() {
+    if (!dirty) {
+      router.push(backHref);
+      return;
+    }
+    setLeaveOpen(true);
+  }
+
   return (
     <div className="mx-auto max-w-2xl p-4 sm:p-6">
       <div className="flex items-center gap-3">
-        <Link
-          href={isEdit ? `/contacts/${contact._id}` : "/contacts"}
+        <button
+          type="button"
+          onClick={requestLeave}
           className="text-muted-foreground hover:text-foreground rtl:rotate-180"
           aria-label={t("cancel")}
         >
           <ArrowLeft className="size-5" />
-        </Link>
+        </button>
         <h1 className="text-2xl font-bold">
           {isEdit ? t("editContact") : t("newContact")}
         </h1>
@@ -390,42 +491,31 @@ export function ContactEditor({ contact }: { contact?: Contact | null }) {
             dir="auto"
             className="w-full rounded-xl border border-input bg-card px-3 py-2 text-sm outline-none"
           />
-          {noteMax != null && draft.note.length > noteMax && (
+          {noteTooLong && (
             <p className="mt-1 px-1 text-xs text-error">{t("noteTooLong")}</p>
           )}
         </div>
 
-        {/* Tags */}
-        {(tagsQ.data ?? []).length > 0 && (
-          <div>
-            <p className="mb-1.5 px-1 text-[13px] font-semibold text-foreground">
-              {t("tags")}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {(tagsQ.data ?? []).map((tag) => (
-                <TagChip
-                  key={tag._id}
-                  tag={tag}
-                  active={draft.tags.includes(tag._id)}
-                  onClick={() =>
-                    patch({
-                      tags: draft.tags.includes(tag._id)
-                        ? draft.tags.filter((x) => x !== tag._id)
-                        : [...draft.tags, tag._id],
-                    })
-                  }
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Tags — the LAST form element, one always-visible row whatever the
+            plan says (mobile contact_editor_layout.dart:286). In edit mode
+            the selection was seeded from the contact, so what it submits is
+            the whole real set and an untouched row sends nothing at all. */}
+        <ContactTagsRow
+          className="mt-5!"
+          selected={draft.tags}
+          onChange={(tags) => patch({ tags })}
+          seedTags={(contact?.tags ?? []).filter(
+            (x): x is ContactTag => typeof x !== "string",
+          )}
+          disabled={saving}
+        />
 
         {error && <p className="text-sm text-error">{error}</p>}
 
         <Button
           variant="gradient"
           className="w-full"
-          disabled={saving}
+          disabled={saving || !dirty || noteTooLong}
           onClick={() => void submit()}
         >
           {saving ? <Loader2 className="size-4 animate-spin" /> : t("save")}
@@ -443,6 +533,37 @@ export function ContactEditor({ contact }: { contact?: Contact | null }) {
           }}
           onClose={() => setDuplicates(null)}
         />
+      )}
+
+      {/* Unsaved-changes prompt (mobile Utils.showDiscardChangesDialog):
+          Save / leave without saving; closing the sheet stays. */}
+      {leaveOpen && (
+        <BottomSheet title={t("unsavedChanges")} onClose={() => setLeaveOpen(false)}>
+          <div className="space-y-3 pb-4">
+            <p className="text-sm text-muted-foreground">{t("unsavedChangesMsg")}</p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                disabled={saving}
+                onClick={() => {
+                  setLeaveOpen(false);
+                  router.push(backHref);
+                }}
+              >
+                {t("unsave")}
+              </Button>
+              <Button
+                variant="gradient"
+                className="flex-1"
+                disabled={saving || noteTooLong}
+                onClick={() => void submit()}
+              >
+                {t("save")}
+              </Button>
+            </div>
+          </div>
+        </BottomSheet>
       )}
     </div>
   );
