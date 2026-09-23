@@ -413,6 +413,23 @@ function ProductItemEditor({
           />
         </div>
 
+        {/* Button label (optional) — replaces the "Open" pill text. Always
+            visible: the value survives layout switches by design. */}
+        <div>
+          <label className="mb-1 block text-xs text-muted-foreground">
+            {t("buttonText")}
+          </label>
+          <Input
+            dir={dirOf(item.button_text)}
+            value={item.button_text ?? ""}
+            placeholder="Open"
+            onChange={(e) => onChange({ button_text: e.target.value })}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {t("buttonTextHint")}
+          </p>
+        </div>
+
         {/* Currency */}
         <div>
           <label className="mb-1 block text-xs text-muted-foreground">

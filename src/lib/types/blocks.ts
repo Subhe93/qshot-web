@@ -397,6 +397,8 @@ export interface ExternalLinkItem {
   url?: string;
   thumbnail_url?: string | null;
   description?: string | null;
+  /** Optional pill label for the promo layout; empty/absent = "Open". */
+  button_text?: string;
   hidden?: boolean;
   [key: string]: unknown;
 }
@@ -420,6 +422,8 @@ export interface ProductItem {
   /** Prices are STRINGS in the mobile contract, not numbers. */
   price?: string | null;
   price_after_discount?: string | null;
+  /** Optional pill label for the promo/shop layouts; empty/absent = "Open". */
+  button_text?: string;
   hidden?: boolean;
 }
 

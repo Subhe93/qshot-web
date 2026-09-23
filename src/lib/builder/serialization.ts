@@ -23,6 +23,7 @@ import type {
   VideoLinkItem,
   VideoLinksBlock,
   ProductItem,
+  ProductsBlock,
   ReviewItem,
 } from "@/lib/types/blocks";
 import type { TemplateRef, WebsiteSettings } from "@/lib/types/profile";
@@ -109,6 +110,16 @@ function parseImageItem(raw: Raw): ImageItem {
 const asStrOrNull = (v: unknown): string | null =>
   typeof v === "string" ? v : null;
 
+/**
+ * `button_text` on the way IN (mobile `_blankToNull`): trimmed, and a blank or
+ * non-string value reads as absent — contract `docs/api/website/button-text.md`
+ * §2: "values are trimmed on both read and write".
+ */
+const asButtonText = (v: unknown): string | undefined => {
+  const text = typeof v === "string" ? v.trim() : "";
+  return text || undefined;
+};
+
 function parseExternalLinkItem(raw: Raw): ExternalLinkItem {
   // `icon` is NOT in the contract. Mobile `ExternalLinkItem.toJson()` writes
   // exactly {id, thumbnail_url, title, description, url, hidden} and the schema
@@ -138,6 +149,9 @@ function parseExternalLinkItem(raw: Raw): ExternalLinkItem {
     url: asStr(raw.url),
     thumbnail_url: asStrOrNull(raw.thumbnail_url),
     description: asStrOrNull(raw.description),
+    // Optional pill label ("Open" replacement). Trimmed on read; the editor
+    // may hold it as-typed, and serializeBlock trims / omits it on write.
+    button_text: asButtonText(raw.button_text),
     hidden: asBool(raw.hidden, false),
   };
 }
@@ -165,6 +179,9 @@ function parseProductItem(raw: Raw): ProductItem {
     // Prices are STRINGS in the mobile contract — keep as-is.
     price: asStrOrNull(raw.price),
     price_after_discount: asStrOrNull(raw.price_after_discount),
+    // Optional pill label ("Open" replacement). Trimmed on read; the editor
+    // may hold it as-typed, and serializeBlock trims / omits it on write.
+    button_text: asButtonText(raw.button_text),
     hidden: asBool(raw.hidden, false),
   };
 }
@@ -405,6 +422,20 @@ export function parseBlocks(input: unknown): Block[] {
  * If a future 422 names another field, verify it against the mobile
  * `toJson()` first, then add it here (or stop emitting it at parse time).
  */
+/**
+ * Optional per-item pill label (`button_text`) on the way OUT (mobile
+ * `_blankToNull` → `if (buttonText != null) "button_text"`): the value is
+ * TRIMMED, and an empty/whitespace one is not serialized at all — never
+ * written as `""` or `null` (`docs/api/website/button-text.md` §2).
+ */
+function stripEmptyButtonText<T extends { button_text?: string }>(it: T): T {
+  const text = typeof it.button_text === "string" ? it.button_text.trim() : "";
+  const clean = { ...it };
+  if (text) clean.button_text = text;
+  else delete clean.button_text;
+  return clean;
+}
+
 export function serializeBlock(block: Block): Record<string, unknown> {
   if (block.type === "VideoLinksModule") {
     const b = block as VideoLinksBlock;
@@ -425,8 +456,15 @@ export function serializeBlock(block: Block): Record<string, unknown> {
       links: (b.links ?? []).map((it) => {
         const clean = { ...it };
         delete clean.icon;
-        return clean;
+        return stripEmptyButtonText(clean);
       }),
+    };
+  }
+  if (block.type === "ProductsModule") {
+    const b = block as ProductsBlock;
+    return {
+      ...b,
+      items: (b.items ?? []).map(stripEmptyButtonText),
     };
   }
   return block as unknown as Record<string, unknown>;
