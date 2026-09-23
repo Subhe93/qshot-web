@@ -1,4 +1,4 @@
-import { API_BASE } from "@/lib/api/client";
+import { API_BASE, isWrapped401Body } from "@/lib/api/client";
 import { useAuthStore } from "@/stores/auth-store";
 
 /**
@@ -77,10 +77,7 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
 /** The backend hides 401 inside a 400 body: `error.description.statusCode`. */
 async function isWrapped401(res: Response): Promise<boolean> {
   try {
-    const body = (await res.json()) as {
-      error?: { description?: { statusCode?: number | string } };
-    };
-    return Number(body?.error?.description?.statusCode) === 401;
+    return isWrapped401Body(await res.json());
   } catch {
     return false;
   }

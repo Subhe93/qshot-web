@@ -1,4 +1,5 @@
-import { api as baseApi } from "./client";
+import { HTTPError } from "ky";
+import { api as baseApi, httpErrorBody } from "./client";
 import type { ApiResponse } from "@/lib/types/api";
 
 // This feature's backend currently lives on speaknet.app (separate from the main
@@ -342,9 +343,11 @@ export async function customLinksErrorMessage(
   const status = res.status;
   if (status === 400) {
     try {
-      const body = (await res.clone().json()) as {
-        error?: { description?: { message?: unknown } };
-      };
+      const body = (
+        e instanceof HTTPError ? await httpErrorBody(e) : await res.clone().json()
+      ) as {
+        error?: { description?: { message?: unknown } } | null;
+      } | null;
       const msgs = body?.error?.description?.message;
       if (Array.isArray(msgs) && msgs.length > 0) {
         return { message: String(msgs[0]), status };

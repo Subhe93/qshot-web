@@ -33,6 +33,38 @@ export const api = ky.create({
 });
 
 /**
+ * The body of a failed `api` call: an object for JSON, a string for text,
+ * `null` when empty or unreadable.
+ *
+ * ky ≥ 2 pre-reads the error body into `HTTPError.data` and CONSUMES the
+ * Response, so `e.response.json()` / `.clone()` throw "Body has already been
+ * consumed". Read `data` first; the Response path is kept for older shapes.
+ */
+export async function httpErrorBody(e: HTTPError): Promise<unknown> {
+  const data: unknown = e.data;
+  if (data !== undefined) {
+    if (typeof data !== "string") return data;
+    try {
+      return JSON.parse(data) as unknown;
+    } catch {
+      return data;
+    }
+  }
+  try {
+    return (await e.response.clone().json()) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+/** The backend hides an invalid session inside a 400 body:
+ *  `error.description.statusCode === 401`. */
+export function isWrapped401Body(body: unknown): boolean {
+  const b = body as { error?: { description?: { statusCode?: number | string } } } | null;
+  return Number(b?.error?.description?.statusCode) === 401;
+}
+
+/**
  * Human-readable message from a failed `api` call. The qshot backend returns
  * `{ error: { description: { message } } }` (e.g. "User already has an active
  * subscription."); fall back through a few shapes, then to `fallback`.
@@ -43,7 +75,7 @@ export async function apiErrorMessage(
 ): Promise<string> {
   if (e instanceof HTTPError) {
     try {
-      const body = (await e.response.clone().json()) as {
+      const body = (await httpErrorBody(e)) as {
         error?: { description?: { message?: string }; message?: string };
         message?: string;
       };

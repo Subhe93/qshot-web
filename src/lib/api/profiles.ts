@@ -1,5 +1,5 @@
 import { HTTPError } from "ky";
-import { api } from "./client";
+import { api, httpErrorBody } from "./client";
 import type { ApiResponse } from "@/lib/types/api";
 import type { Profile, ProfileSummary, WebsiteSettings, HeroStyle } from "@/lib/types/profile";
 import type { Block } from "@/lib/types/blocks";
@@ -149,13 +149,8 @@ export async function readSchemaValidationFailure(
   const status = e.response.status;
   if (status !== 422) return null;
 
-  let body: unknown;
-  try {
-    // clone(): the body may still be wanted elsewhere (apiErrorMessage does the same).
-    body = await e.response.clone().json();
-  } catch {
-    return null; // not JSON — nothing better to say than the generic message
-  }
+  // Not JSON → nothing better to say than the generic message.
+  const body = await httpErrorBody(e);
   if (!body || typeof body !== "object") return null;
 
   // Tolerate the two envelopes this backend uses: flat, or nested under

@@ -1,5 +1,5 @@
 import { HTTPError } from "ky";
-import { api } from "./client";
+import { api, httpErrorBody } from "./client";
 import type { ApiResponse } from "@/lib/types/api";
 import {
   parseQrPreview,
@@ -225,7 +225,7 @@ export interface QrUnreadableError {
 export async function readQrUnreadable(e: unknown): Promise<QrUnreadableError | null> {
   if (!(e instanceof HTTPError)) return null;
   try {
-    const body = (await e.response.clone().json()) as {
+    const body = (await httpErrorBody(e)) as {
       error?:
         | string
         | {

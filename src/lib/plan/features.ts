@@ -30,7 +30,10 @@ export function planFeatureMap(account: Account | undefined): Record<string, str
   const map: Record<string, string> = {};
   for (const f of account?.plan?.planFeatures ?? []) {
     const code = f.feature?.code;
-    if (code && typeof f.value === "string") map[code] = f.value;
+    if (!code) continue;
+    // A numeric ceiling may arrive as a JSON number; the map is strings only.
+    if (typeof f.value === "string") map[code] = f.value;
+    else if (typeof f.value === "number" && Number.isFinite(f.value)) map[code] = String(f.value);
   }
   return map;
 }

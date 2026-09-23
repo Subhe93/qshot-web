@@ -15,9 +15,10 @@ export interface AccountUser {
   maxPremProfilesCount?: number;
 }
 
-/** One entry of plan.planFeatures[] — value vocabulary "Yes"/"No"/"Multiple"/numeric string. */
+/** One entry of plan.planFeatures[] — value vocabulary "Yes"/"No"/"Multiple"/numeric string
+ *  (a number is tolerated and read as its string). */
 export interface PlanFeature {
-  value?: string;
+  value?: string | number;
   feature?: { code?: string; name?: string };
 }
 
