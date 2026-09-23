@@ -101,68 +101,63 @@ function useYoutubeTitle(url: string | undefined, enabled: boolean): string | un
 
 /**
  * The mobile VideoCard: an AspectRatio(16/9) container with a 1px black38
- * border, rounded 8px, thumbnail (cover) and a 60x60 translucent play circle.
- * The title sits at the bottom over a gradient scrim, white & semi-bold. When
- * the item has no title we fetch the YouTube title via oEmbed (mobile parity).
+ * outside outline, rounded 8px, thumbnail (cover) and a 60x60 translucent play
+ * circle. The title sits at the bottom (16px insets, soft shadow). When the
+ * item has no title we fetch the YouTube title via oEmbed (mobile parity).
  */
 function VideoCard({ item }: { item: VideoLinkItem }) {
-  const desktop = useDesktopPreview();
   const thumb = youtubeThumbnail(item.url);
   const explicit = item.title?.trim() || "";
   const fetched = useYoutubeTitle(item.url, !explicit);
   const title = explicit || fetched || "";
   return (
-    // Padding(vertical: 5) around each card.
-    <div className="py-[5px]">
-      <div
-        className="relative aspect-video w-full overflow-hidden rounded-lg"
-        style={{
-          border: "1px solid rgba(0,0,0,0.22)",
-          backgroundColor: "rgba(255,255,255,0.2)",
-        }}
-      >
-        {thumb ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb} alt="" className="absolute inset-0 size-full object-cover" />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-foreground/30">
-            <svg viewBox="0 0 24 24" width={36} height={36} fill="currentColor" aria-hidden="true">
-              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z" />
-            </svg>
-          </div>
-        )}
-
-        {/* Centered play circle: 60x60, white @20% alpha. */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className="flex size-[60px] items-center justify-center rounded-full"
-            style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-          >
-            <PlayIcon />
-          </div>
+    // Unified spacing identity (owner's request 2026-09-17): shared edge inset,
+    // 8px gaps at phone width — matches the Nuxt renderer. The card is
+    // margin-less (rhythm lives on the parents); chrome = videosLayout/Grid.vue:
+    // radius 8, 1px OUTSIDE black-38 outline (strokeAlignOutside → box-shadow),
+    // white-20 backing.
+    <div
+      className="relative aspect-video w-full overflow-hidden rounded-lg"
+      style={{
+        boxShadow: "0 0 0 1px rgba(0,0,0,0.38)",
+        backgroundColor: "rgba(255,255,255,0.2)",
+      }}
+    >
+      {thumb ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={thumb} alt="" className="absolute inset-0 size-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-foreground/30">
+          <svg viewBox="0 0 24 24" width={36} height={36} fill="currentColor" aria-hidden="true">
+            <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z" />
+          </svg>
         </div>
+      )}
 
-        {/* Title overlay. Mobile/phone canvas: bottom gradient scrim, 14px/600,
-            2 lines. Desktop = Nuxt VideoPlayer/Inline.vue .video-title: TOP bar
-            on black/50, 16px / 700 / white, single line ellipsis, pad 6/10. */}
-        {title &&
-          (desktop ? (
-            <div className="absolute inset-x-0 top-0 bg-black/50 px-2.5 py-1.5">
-              <span dir={dirOf(title)} className="block truncate font-bold text-white">
-                {title}
-              </span>
-            </div>
-          ) : (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent px-4 pb-3 pt-8">
-              <span
-                dir={dirOf(title)}
-                className="line-clamp-2 text-sm font-semibold leading-snug text-white"
-              >
-                {title}
-              </span>
-            </div>
-          ))}
+      {/* Centered play circle: 60x60, white @20% alpha. */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          className="flex size-[60px] items-center justify-center rounded-full"
+          style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+        >
+          <PlayIcon />
+        </div>
       </div>
+
+      {/* Title overlay = Nuxt VideoPlayer/Inline.vue .video-title (one style
+          at every width): bottom 16px insets, white 14px/600, 2-line clamp,
+          soft shadow instead of a background strip. */}
+      {title && (
+        <div className="absolute inset-x-4 bottom-4">
+          <span
+            dir={dirOf(title)}
+            className="line-clamp-2 text-sm font-semibold leading-[1.3] text-white"
+            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.54)" }}
+          >
+            {title}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -172,6 +167,10 @@ export function VideoLinksBlockView({ block }: { block: VideoLinksBlock }) {
   const items = (block.items ?? []).filter((it) => !it.hidden);
   const title = block.title?.trim() ?? "";
   const layout = block.layout_type ?? "list";
+  // Unified spacing identity (owner's request 2026-09-17): 8px item gaps at
+  // phone width, 16px in the desktop pane — Nuxt gap-2 lg:gap-4 / spaceBetween
+  // 8/16 on every unified strip and stack.
+  const gap = desktop ? "gap-4" : "gap-2";
 
   const body =
     items.length === 0 ? (
@@ -179,20 +178,23 @@ export function VideoLinksBlockView({ block }: { block: VideoLinksBlock }) {
         No videos yet
       </p>
     ) : layout === "list" ? (
-      // List: full-width cards, horizontal padding 24.
-      <div className="flex flex-col px-6">
+      // Unified spacing identity (owner's request 2026-09-17): shared edge
+      // inset, 8px gaps at phone width / 16px in the desktop pane — matches
+      // the Nuxt renderer (videosLayout/List.vue: full-width margin-less cards).
+      <div className={`flex flex-col ${gap}`}>
         {items.map((item, i) => (
           <VideoCard key={item.id ?? i} item={item} />
         ))}
       </div>
     ) : layout === "swiper" ? (
-      // Swiper: AspectRatio (16/9)*1.1, viewportFraction 0.9, no loop.
+      // Swiper: AspectRatio (16/9)*1.1, leading-edge start, 8px/16px slide gap
+      // (Nuxt videosLayout/Swiper.vue: slidesPerView 1.1, spaceBetween 8/16).
       <div className="w-full" style={{ aspectRatio: (16 / 9) * 1.1 }}>
-        <div className="flex h-full snap-x snap-mandatory gap-0 overflow-x-auto px-[5%] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex h-full snap-x snap-mandatory ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
           {items.map((item, i) => (
             <div
               key={item.id ?? i}
-              className="flex h-full w-[90%] shrink-0 snap-center items-center justify-center"
+              className="flex h-full w-[90%] shrink-0 snap-start items-center justify-center"
             >
               <div className="w-full">
                 <VideoCard item={item} />
@@ -202,16 +204,15 @@ export function VideoLinksBlockView({ block }: { block: VideoLinksBlock }) {
         </div>
       </div>
     ) : (
-      // Grid: horizontally scrolling row of fixed-height (148) 16:9 cards.
-      <div className="flex items-start gap-0 overflow-x-auto px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      // Grid: a FREE horizontally-scrolling strip of 138px-tall 16:9 cards
+      // (width ≈245px), 8px/16px column gap, leading-edge start, 5px vertical
+      // card margin (Nuxt videosLayout/Grid.vue).
+      <div className={`flex items-start ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
         {items.map((item, i) => (
           <div
             key={item.id ?? i}
-            className="h-[148px] shrink-0 px-1"
-            // The card has 10px vertical padding inside the 148px row, so the
-            // visible 16:9 thumbnail is (148 - 10) tall — size width to match
-            // (mobile AspectRatio inside SizedBox(height: 148)).
-            style={{ width: (148 - 10) * (16 / 9) }}
+            className="shrink-0 py-[5px]"
+            style={{ width: 138 * (16 / 9) }}
           >
             <VideoCard item={item} />
           </div>

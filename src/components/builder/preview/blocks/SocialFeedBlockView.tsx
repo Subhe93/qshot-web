@@ -381,17 +381,20 @@ function RssFeed({
   /** The live feed loaded and has no items. */
   empty: boolean;
 }) {
+  const desktop = useDesktopPreview();
   if (empty) return <FeedEmptyPlaceholder glyph="video" />;
   // One card per live item, or one placeholder per tile — same chrome either way.
   const cards: (VideoFeedItem | null)[] = items ?? tiles.map(() => null);
 
+  // Unified spacing identity (owner's request 2026-09-17): shared edge inset,
+  // 8px gaps at phone width / 16px in the desktop pane — matches the Nuxt
+  // renderer (SocialFeed/List.vue, Grid.vue, Swiper.vue).
+  const gap = desktop ? "gap-4" : "gap-2";
   if (layout === "list") {
     return (
-      <div className="flex flex-col px-5">
+      <div className={`flex flex-col ${gap}`}>
         {cards.map((item, i) => (
-          <div key={i} className="py-[5px]">
-            <VideoCard item={item} />
-          </div>
+          <VideoCard key={i} item={item} />
         ))}
       </div>
     );
@@ -399,12 +402,12 @@ function RssFeed({
 
   if (layout === "grid") {
     // A REAL grid (mobile RSSContent.grid, dev build 174): vertical, 16:9
-    // cards, 12px gutters, and the column count from the available width —
+    // cards, 8px/16px gutters, and the column count from the available width —
     // 2 / 3 / 4 / 5 at 600 / 900 / 1200px (`gridColumnsFor`). The old
     // horizontal row scrolled on the swiper's axis while promising a grid.
     return (
-      <div className="@container px-5">
-        <div className="grid grid-cols-2 gap-3 @min-[600px]:grid-cols-3 @min-[900px]:grid-cols-4 @min-[1200px]:grid-cols-5">
+      <div className="@container">
+        <div className={`grid grid-cols-2 ${gap} @min-[600px]:grid-cols-3 @min-[900px]:grid-cols-4 @min-[1200px]:grid-cols-5`}>
           {cards.map((item, i) => (
             <VideoCard key={i} item={item} />
           ))}
@@ -413,14 +416,16 @@ function RssFeed({
     );
   }
 
-  // swiper — AspectRatio (16/9 * 1.1), viewportFraction 0.9 centered card.
+  // swiper — AspectRatio (16/9 * 1.1), 90%-wide cards from the leading edge,
+  // 8px/16px slide gap (Nuxt SocialFeed/Swiper.vue: slidesPerView 1.1,
+  // spaceBetween 8/16).
   return (
     <div className="w-full" style={{ aspectRatio: (16 / 9) * 1.1 }}>
-      <div className="flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className={`flex h-full snap-x snap-mandatory ${gap} overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
         {cards.map((item, i) => (
           <div
             key={i}
-            className="flex h-full w-[90%] shrink-0 snap-center items-center justify-center px-1"
+            className="flex h-full w-[90%] shrink-0 snap-start items-center justify-center"
           >
             <div className="w-full">
               <VideoCard item={item} />
@@ -553,8 +558,12 @@ function TikTokFeed({
   /** The live feed loaded and has no items. */
   empty: boolean;
 }) {
+  const desktop = useDesktopPreview();
   if (empty) return <FeedEmptyPlaceholder glyph="tiktok" />;
   const cards: (VideoFeedItem | null)[] = items ?? tiles.map(() => null);
+  // Unified item gap (owner's request 2026-09-17): 8px at phone width, 16px
+  // in the desktop pane — matches the Nuxt renderer (SocialFeed/Tiktok/*).
+  const gap = desktop ? "gap-4" : "gap-2";
 
   if (layout === "swiper") {
     return (
@@ -572,8 +581,8 @@ function TikTokFeed({
 
   if (layout === "grid") {
     return (
-      <div className="overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex items-start gap-2">
+      <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex items-start ${gap}`}>
           {cards.map((item, i) => (
             // SizedBox(height: 220, width: 220 * 9 / 14 ≈ 141)
             <div key={i} className="h-[220px] w-[141px] shrink-0">
@@ -585,9 +594,9 @@ function TikTokFeed({
     );
   }
 
-  // list — 2-column grid, childAspectRatio 9/14, 8px gaps, horizontal 16.
+  // list — 2-column grid, childAspectRatio 9/14, 8px/16px gaps.
   return (
-    <div className="grid grid-cols-2 gap-2 px-4">
+    <div className={`grid grid-cols-2 ${gap}`}>
       {cards.map((item, i) => (
         <div key={i} style={{ aspectRatio: "9 / 14" }}>
           <TikTokCard item={item} />
@@ -806,6 +815,7 @@ function PostFeed({
   /** Live feed (unsliced); null = placeholder mode. */
   feed: PostFeedData | null;
 }) {
+  const desktop = useDesktopPreview();
   const brand = POST_BRAND[platform];
   // tiles.length is the clamped posts_count.
   const cards: (PostFeedItem | null)[] = feed
@@ -859,12 +869,16 @@ function PostFeed({
       </div>
     );
   } else {
-    body = cards.map((item, i) => (
-      // Card padding — EdgeInsets.fromLTRB(16, 0, 16, 12)
-      <div key={i} className="px-4 pb-3">
-        <PostCard platform={platform} name={name} item={item} profile={profile} />
+    // Unified spacing identity (owner's request 2026-09-17): shared edge
+    // inset, 8px gaps at phone width / 16px in the desktop pane — matches the
+    // Nuxt renderer (Posts/Feed.vue .posts-stack: margin-less cards, gap 8/16).
+    body = (
+      <div className={`flex flex-col ${desktop ? "gap-4" : "gap-2"}`}>
+        {cards.map((item, i) => (
+          <PostCard key={i} platform={platform} name={name} item={item} profile={profile} />
+        ))}
       </div>
-    ));
+    );
   }
 
   return (

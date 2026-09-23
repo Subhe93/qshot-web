@@ -21,6 +21,11 @@ function fg(alpha: number): string {
   return `color-mix(in srgb, ${FG} ${Math.round(alpha * 100)}%, transparent)`;
 }
 
+/** Per-item pill label: `button_text` when non-empty (trimmed), else "Open". */
+function pillLabel(item: ProductItem): string {
+  return item.button_text?.trim() || "Open";
+}
+
 function ProductImage({ url, className }: { url?: string | null; className?: string }) {
   if (!url) {
     return <div className={className} style={{ backgroundColor: "rgba(0,0,0,0.16)" }} />;
@@ -110,45 +115,46 @@ function SwipeItem({
 }) {
   const desktop = useDesktopPreview();
   return (
-    <div className="px-1 py-1" style={{ height: "100%" }}>
-      <div
-        className="flex h-full items-stretch overflow-hidden rounded-xl"
-        style={{ backgroundColor: fg(0.1) }}
-      >
-        {circleImage ? (
-          <div className="aspect-square h-full shrink-0 p-2.5">
-            <ProductImage url={item.thumbnail_url} className="size-full rounded-full" />
-          </div>
-        ) : (
-          <ProductImage url={item.thumbnail_url} className="aspect-square h-full shrink-0" />
-        )}
-        <div className="flex min-w-0 flex-1 flex-col justify-center px-3">
-          {/* Desktop = Nuxt ProductCard.vue .card-title: 16px / 500 / 85%, wraps. */}
-          <p
-            dir={dirOf(item.title)}
-            className={desktop ? "font-medium" : "truncate text-sm font-medium"}
-            style={{ color: fg(desktop ? 0.85 : 0.8) }}
-          >
-            {item.title}
-          </p>
-          {item.description ? (
-            // Desktop = .card-desc: 14px / 60% / clamp 3.
-            <p
-              dir={dirOf(item.description)}
-              className={desktop ? "line-clamp-3 text-sm" : "line-clamp-3 text-xs"}
-              style={{ color: fg(0.6) }}
-            >
-              {item.description}
-            </p>
-          ) : null}
-          <Price item={item} />
+    // Unified spacing identity (owner's request 2026-09-17): shared edge inset,
+    // 8px gaps at phone width — matches the Nuxt renderer. The card is
+    // margin-less (Nuxt ProductCard.vue); row/slide rhythm lives on the parents.
+    <div
+      className="flex size-full items-stretch overflow-hidden rounded-xl"
+      style={{ backgroundColor: fg(0.1) }}
+    >
+      {circleImage ? (
+        <div className="aspect-square h-full shrink-0 p-2.5">
+          <ProductImage url={item.thumbnail_url} className="size-full rounded-full" />
         </div>
-        {showArrow && (
-          <div className="flex items-center pe-3.5 ps-2">
-            <ChevronRight size={14} color={fg(0.6)} />
-          </div>
-        )}
+      ) : (
+        <ProductImage url={item.thumbnail_url} className="aspect-square h-full shrink-0" />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col justify-center px-3">
+        {/* Desktop = Nuxt ProductCard.vue .card-title: 16px / 500 / 85%, wraps. */}
+        <p
+          dir={dirOf(item.title)}
+          className={desktop ? "font-medium" : "truncate text-sm font-medium"}
+          style={{ color: fg(desktop ? 0.85 : 0.8) }}
+        >
+          {item.title}
+        </p>
+        {item.description ? (
+          // Desktop = .card-desc: 14px / 60% / clamp 3.
+          <p
+            dir={dirOf(item.description)}
+            className={desktop ? "line-clamp-3 text-sm" : "line-clamp-3 text-xs"}
+            style={{ color: fg(0.6) }}
+          >
+            {item.description}
+          </p>
+        ) : null}
+        <Price item={item} />
       </div>
+      {showArrow && (
+        <div className="flex items-center pe-3.5 ps-2">
+          <ChevronRight size={14} color={fg(0.6)} />
+        </div>
+      )}
     </div>
   );
 }
@@ -205,7 +211,7 @@ function PromoItem({
               className={desktop ? "text-sm font-semibold" : "text-xs font-semibold"}
               style={desktop ? undefined : { color: fg(0.9) }}
             >
-              Open
+              {pillLabel(item)}
             </span>
             {showArrow && <ChevronRight size={10} color={fg(0.9)} />}
           </div>
@@ -263,7 +269,7 @@ function ShopItem({ item, circleImage }: { item: ProductItem; circleImage: boole
                 : { color: fg(0.9), border: `1px solid ${fg(0.4)}` }
             }
           >
-            Open
+            {pillLabel(item)}
           </span>
         </div>
       </div>
@@ -314,7 +320,7 @@ function GridCard({ item, layout }: { item: ProductItem; layout: "grid" | "grid2
 function Swiper3Card({ item }: { item: ProductItem }) {
   const desktop = useDesktopPreview();
   return (
-    <div className="flex h-full flex-col px-1">
+    <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1">
         <ProductImage url={item.thumbnail_url} className="size-full rounded-[10px]" />
       </div>
@@ -380,15 +386,22 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
   const showArrow = !!block.show_arrow;
   const circleImage = !!block.circle_image;
   const layout = block.layout_type;
+  // Unified spacing identity (owner's request 2026-09-17): 8px item gaps at
+  // phone width, 16px in the desktop pane — Nuxt gap-2 lg:gap-4 / spaceBetween
+  // 8/16 on every unified strip, stack and grid.
+  const gap = desktop ? "gap-4" : "gap-2";
 
   let content: React.ReactNode = null;
 
   switch (layout) {
     case "list":
+      // Unified spacing identity (owner's request 2026-09-17): shared edge
+      // inset, 8px gaps at phone width / 16px in the desktop pane — matches
+      // the Nuxt renderer (layout/List.vue: margin-less 92px cards).
       content = (
-        <div className="flex flex-col">
+        <div className={`flex flex-col ${gap}`}>
           {items.map((item) => (
-            <div key={item.id} className="h-[100px] px-4">
+            <div key={item.id} className="h-[92px]">
               <SwipeItem item={item} showArrow={showArrow} circleImage={circleImage} />
             </div>
           ))}
@@ -397,11 +410,12 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
       break;
 
     case "swiper":
-      // SizedBox height 100, viewportFraction 0.9 → horizontal snap row.
+      // 92px cards, leading-edge start, 8px/16px slide gap (Nuxt
+      // layout/Swiper.vue: slidesPerView 1.1, spaceBetween 8/16, free mode).
       content = (
-        <div className="flex snap-x snap-mandatory gap-0 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex snap-x snap-mandatory ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
           {items.map((item) => (
-            <div key={item.id} className="h-[100px] w-[90%] shrink-0 snap-center">
+            <div key={item.id} className="h-[92px] w-[90%] shrink-0 snap-start">
               <SwipeItem item={item} showArrow={showArrow} circleImage={circleImage} />
             </div>
           ))}
@@ -410,13 +424,15 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
       break;
 
     case "swiper2": {
-      // height 200, two stacked cards per page (viewportFraction 0.9).
+      // Two stacked 92px cards per page + the 8px/16px gap (Nuxt
+      // layout/Swiper2.vue: grid rows 2, spaceBetween 8/16) → 192/200px pages,
+      // leading-edge start.
       const pages: ProductItem[][] = [];
       for (let i = 0; i < items.length; i += 2) pages.push(items.slice(i, i + 2));
       content = (
-        <div className="flex h-[200px] snap-x snap-mandatory gap-0 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex ${desktop ? "h-[200px]" : "h-[192px]"} snap-x snap-mandatory ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
           {pages.map((page, pi) => (
-            <div key={pi} className="flex h-full w-[90%] shrink-0 snap-center flex-col">
+            <div key={pi} className={`flex h-full w-[90%] shrink-0 snap-start flex-col ${gap}`}>
               <div className="min-h-0 flex-1">
                 <SwipeItem item={page[0]} showArrow={showArrow} circleImage={circleImage} />
               </div>
@@ -434,7 +450,7 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
 
     case "promo":
       content = (
-        <div className="flex flex-col gap-2 px-4">
+        <div className={`flex flex-col ${gap}`}>
           {items.map((item) => (
             <PromoItem
               key={item.id}
@@ -449,7 +465,7 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
 
     case "shop":
       content = (
-        <div className="flex h-[250px] gap-2 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex h-[250px] ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
           {items.map((item) => (
             <ShopItem key={item.id} item={item} circleImage={circleImage} />
           ))}
@@ -458,12 +474,13 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
       break;
 
     case "swiper3":
-      // AspectRatio 1 around the swiper; viewportFraction 0.9.
+      // AspectRatio 1 around the swiper; leading-edge start, 8px/16px slide
+      // gap (Nuxt layout/Swiper3.vue: slidesPerView 1.1, spaceBetween 8/16).
       content = (
         <div className="aspect-square w-full">
-          <div className="flex h-full snap-x snap-mandatory gap-0 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className={`flex h-full snap-x snap-mandatory ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
             {items.map((item) => (
-              <div key={item.id} className="h-full w-[90%] shrink-0 snap-center">
+              <div key={item.id} className="h-full w-[90%] shrink-0 snap-start">
                 <Swiper3Card item={item} />
               </div>
             ))}
@@ -473,24 +490,24 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
       break;
 
     case "grid":
-      // Horizontal scroll row of fixed 120px square cards.
+      // A FREE horizontally-scrolling strip of fixed 120px cards, starting at
+      // the leading edge — NOT a centered row (Nuxt layout/Grid.vue).
       content = (
-        <div className="flex justify-center pb-2.5 pt-2">
-          <div className="flex items-start gap-2 overflow-x-auto px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {items.map((item) => (
-              <div key={item.id} className="w-[120px] shrink-0">
-                <GridCard item={item} layout="grid" />
-              </div>
-            ))}
-          </div>
+        <div className={`flex items-start ${gap} overflow-x-auto pb-2.5 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
+          {items.map((item) => (
+            <div key={item.id} className="w-[120px] shrink-0">
+              <GridCard item={item} layout="grid" />
+            </div>
+          ))}
         </div>
       );
       break;
 
     case "grid2":
-      // 2-column grid, childAspectRatio 0.72, spacing 10/14.
+      // 2-column grid, childAspectRatio 0.72, 8px/16px gaps (Nuxt
+      // layout/Grid2.vue: gap-2 lg:gap-4).
       content = (
-        <div className="grid grid-cols-2 gap-x-2.5 gap-y-3.5 px-4 py-1">
+        <div className={`grid grid-cols-2 ${gap} py-1`}>
           {items.map((item) => (
             <div key={item.id} style={{ aspectRatio: "0.72" }}>
               <GridCard item={item} layout="grid2" />
@@ -502,7 +519,7 @@ export function ProductsBlockView({ block }: { block: ProductsBlock }) {
 
     case "banner":
       content = (
-        <div className="flex flex-col gap-3 px-4">
+        <div className={`flex flex-col ${gap}`}>
           {items.map((item) => (
             <BannerCard key={item.id} item={item} />
           ))}

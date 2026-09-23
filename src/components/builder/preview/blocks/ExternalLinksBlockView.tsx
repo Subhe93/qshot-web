@@ -8,7 +8,7 @@ import { useDesktopPreview, DESKTOP_BLOCK_TITLE } from "../desktop-preview";
  * Read-only preview for ExternalLinksBlock ("ExternalLinksModule"), faithful to
  * the Flutter `ExternalLinksWidget`. Renders all six layout_type variants:
  *
- *  - list      : full-width swipe cards, each 100px tall, horizontal padding 16.
+ *  - list      : full-width swipe cards, each 100px tall, 8px row gaps.
  *  - largeGrid : AspectRatio(1) swiper, viewportFraction 0.9, square card with a
  *                rounded image filling the card + title + marquee description.
  *  - swiper    : height 100, viewportFraction 0.9 swiper of swipe cards.
@@ -71,58 +71,59 @@ function SwipeItem({
   const desc = item.description ?? "";
   const desktop = useDesktopPreview();
   return (
-    // Padding(vertical: 4, horizontal: 4) around each swipe item.
-    <div className="size-full px-1 py-1">
-      <div className="flex h-full items-stretch overflow-hidden rounded-xl bg-foreground/[0.06] text-foreground">
-        {circleImage ? (
-          // Padding(10) + AspectRatio(1) + ClipOval
-          <div className="flex aspect-square h-full shrink-0 items-center justify-center p-2.5">
-            <div className="aspect-square h-full overflow-hidden rounded-full">
-              <Thumb url={item.thumbnail_url} />
-            </div>
-          </div>
-        ) : (
-          <div className="aspect-square h-full shrink-0 overflow-hidden">
+    // Unified spacing identity (owner's request 2026-09-17): shared edge inset,
+    // 8px gaps at phone width — matches the Nuxt renderer. The card is
+    // margin-less (Nuxt externalLayout/Card.vue); row/slide rhythm lives on
+    // the parents.
+    <div className="flex size-full items-stretch overflow-hidden rounded-xl bg-foreground/[0.06] text-foreground">
+      {circleImage ? (
+        // Padding(10) + AspectRatio(1) + ClipOval
+        <div className="flex aspect-square h-full shrink-0 items-center justify-center p-2.5">
+          <div className="aspect-square h-full overflow-hidden rounded-full">
             <Thumb url={item.thumbnail_url} />
           </div>
-        )}
-
-        <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 ps-3 pe-1">
-          {/* Desktop = Nuxt externalLayout/Card.vue .card-title: 16px / 500 /
-              85%, wraps (no truncate). */}
-          {title && (
-            <span
-              dir={dirOf(title)}
-              className={
-                desktop
-                  ? "font-medium text-foreground/85"
-                  : "truncate text-sm font-medium text-foreground/80"
-              }
-            >
-              {title}
-            </span>
-          )}
-          {/* Desktop = .card-desc: 14px / 60% / clamp 3. */}
-          {desc && (
-            <span
-              dir={dirOf(desc)}
-              className={
-                desktop
-                  ? "line-clamp-3 text-sm text-foreground/60"
-                  : "line-clamp-3 text-xs text-foreground/60"
-              }
-            >
-              {desc}
-            </span>
-          )}
         </div>
+      ) : (
+        <div className="aspect-square h-full shrink-0 overflow-hidden">
+          <Thumb url={item.thumbnail_url} />
+        </div>
+      )}
 
-        {showArrow && (
-          <div className="flex shrink-0 items-center ps-2 pe-3.5 text-foreground">
-            <Chevron size={14} opacity={0.6} />
-          </div>
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 ps-3 pe-1">
+        {/* Desktop = Nuxt externalLayout/Card.vue .card-title: 16px / 500 /
+            85%, wraps (no truncate). */}
+        {title && (
+          <span
+            dir={dirOf(title)}
+            className={
+              desktop
+                ? "font-medium text-foreground/85"
+                : "truncate text-sm font-medium text-foreground/80"
+            }
+          >
+            {title}
+          </span>
+        )}
+        {/* Desktop = .card-desc: 14px / 60% / clamp 3. */}
+        {desc && (
+          <span
+            dir={dirOf(desc)}
+            className={
+              desktop
+                ? "line-clamp-3 text-sm text-foreground/60"
+                : "line-clamp-3 text-xs text-foreground/60"
+            }
+          >
+            {desc}
+          </span>
         )}
       </div>
+
+      {showArrow && (
+        <div className="flex shrink-0 items-center ps-2 pe-3.5 text-foreground">
+          <Chevron size={14} opacity={0.6} />
+        </div>
+      )}
     </div>
   );
 }
@@ -181,7 +182,8 @@ function PromoItem({
               : "mt-3 inline-flex items-center gap-1.5 rounded-full bg-foreground/[0.12] py-2 ps-3.5 pe-3.5 text-xs font-semibold text-foreground/90"
           }
         >
-          Open
+          {/* Per-item pill label: button_text when non-empty (trimmed), else "Open". */}
+          {item.button_text?.trim() || "Open"}
           {showArrow && <Chevron size={10} opacity={0.9} />}
         </span>
       </div>
@@ -272,6 +274,10 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
   const layout = block.layout_type ?? "list";
   const showArrow = !!block.show_arrow;
   const circleImage = !!block.circle_image;
+  // Unified spacing identity (owner's request 2026-09-17): 8px item gaps at
+  // phone width, 16px in the desktop pane — Nuxt gap-2 lg:gap-4 / spaceBetween
+  // 8/16 on every unified strip and stack.
+  const gap = desktop ? "gap-4" : "gap-2";
 
   let body: React.ReactNode;
 
@@ -282,23 +288,26 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
       </p>
     );
   } else if (layout === "list") {
-    // Column of full-width swipe cards, each 100 tall, horizontal padding 16.
+    // Unified spacing identity (owner's request 2026-09-17): shared edge
+    // inset, 8px gaps at phone width / 16px in the desktop pane — matches the
+    // Nuxt renderer (externalLayout/List.vue: margin-less 100px cards).
     body = (
-      <div className="flex flex-col">
+      <div className={`flex flex-col ${gap}`}>
         {items.map((item, i) => (
-          <div key={item.id ?? i} className="h-[100px] px-4">
+          <div key={item.id ?? i} className="h-[100px]">
             <SwipeItem item={item} showArrow={showArrow} circleImage={circleImage} />
           </div>
         ))}
       </div>
     );
   } else if (layout === "swiper") {
-    // height 100, viewportFraction 0.9, no loop.
+    // 100px cards, leading-edge start, 8px/16px slide gap (Nuxt
+    // externalLayout/Swiper.vue: slidesPerView 1.1, spaceBetween 8/16).
     body = (
       <div className="h-[100px] w-full">
-        <div className="flex h-full snap-x snap-mandatory overflow-x-auto px-[5%] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex h-full snap-x snap-mandatory ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
           {items.map((item, i) => (
-            <div key={item.id ?? i} className="h-full w-[90%] shrink-0 snap-center">
+            <div key={item.id ?? i} className="h-full w-[90%] shrink-0 snap-start">
               <SwipeItem item={item} showArrow={showArrow} circleImage={circleImage} />
             </div>
           ))}
@@ -306,25 +315,27 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
       </div>
     );
   } else if (layout === "swiper2") {
-    // height 200, two stacked swipe items per page.
+    // Two stacked 100px cards per page + the 8px/16px gap (Nuxt
+    // externalLayout/Swiper2.vue: grid rows 2, spaceBetween 8/16) → 208/216px
+    // pages.
     const pages: ExternalLinkItem[][] = [];
     for (let i = 0; i < items.length; i += 2) pages.push(items.slice(i, i + 2));
     body = (
-      <div className="h-[200px] w-full">
-        <div className="flex h-full snap-x snap-mandatory overflow-x-auto px-[5%] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className={`${desktop ? "h-[216px]" : "h-[208px]"} w-full`}>
+        <div className={`flex h-full snap-x snap-mandatory ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
           {pages.map((pair, p) => (
             <div
               key={p}
-              className="flex h-full w-[90%] shrink-0 snap-center flex-col"
+              className={`flex h-full w-[90%] shrink-0 snap-start flex-col ${gap}`}
             >
-              <div className="h-1/2">
+              <div className="min-h-0 flex-1">
                 <SwipeItem
                   item={pair[0]}
                   showArrow={showArrow}
                   circleImage={circleImage}
                 />
               </div>
-              <div className="h-1/2">
+              <div className="min-h-0 flex-1">
                 {pair[1] ? (
                   <SwipeItem
                     item={pair[1]}
@@ -339,14 +350,15 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
       </div>
     );
   } else if (layout === "largeGrid") {
-    // AspectRatio(1) swiper, viewportFraction 0.9 — card image fills the card.
+    // AspectRatio(1) swiper — leading-edge start, 8px/16px slide gap (Nuxt
+    // externalLayout/LargeGrid.vue: slidesPerView 1.1, spaceBetween 8/16).
     body = (
       <div className="aspect-square w-full">
-        <div className="flex h-full snap-x snap-mandatory overflow-x-auto px-[5%] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex h-full snap-x snap-mandatory ${gap} overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
           {items.map((item, i) => (
             <div
               key={item.id ?? i}
-              className="flex h-full w-[90%] shrink-0 snap-center justify-center px-1"
+              className="flex h-full w-[90%] shrink-0 snap-start justify-center"
             >
               <GridCard item={item} imageMode="fill" />
             </div>
@@ -355,9 +367,10 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
       </div>
     );
   } else if (layout === "grid") {
-    // Horizontally scrolling row of 120-wide cards, padding top 8 / bottom 10.
+    // Free strip of 120-wide cards from the leading edge, 8px/16px gaps,
+    // padding top 8 / bottom 10 — no extra edge inset.
     body = (
-      <div className="flex items-start gap-2 overflow-x-auto px-6 pb-2.5 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className={`flex items-start ${gap} overflow-x-auto pb-2.5 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
         {items.map((item, i) => (
           <div key={item.id ?? i} className="shrink-0">
             <GridCard item={item} imageMode="fixed" circleImage={circleImage} />
@@ -368,7 +381,7 @@ export function ExternalLinksBlockView({ block }: { block: ExternalLinksBlock })
   } else {
     // promo
     body = (
-      <div className="flex flex-col gap-2 px-4">
+      <div className={`flex flex-col ${gap}`}>
         {items.map((item, i) => (
           <PromoItem
             key={item.id ?? i}
