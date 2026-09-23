@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 import {
   Share2,
@@ -41,7 +41,21 @@ import {
   MoveSheet,
   VerifyConfirmDialog,
 } from "@/components/admin/profile-action-sheets";
-import { checkUserName, deleteProfile } from "@/lib/api/profiles";
+import { checkUserName, deleteProfile, listProfiles } from "@/lib/api/profiles";
+import { useUpgradeDialog } from "@/components/plan/upgrade-dialog";
+import {
+  TempRedirectAction,
+  TempRedirectBanner,
+} from "@/components/temp-redirect/temp-redirect-banner";
+import { TempRedirectSheet } from "@/components/temp-redirect/temp-redirect-sheet";
+import {
+  useTempRedirect,
+  useTempRedirectGate,
+} from "@/components/temp-redirect/use-temp-redirect";
+import {
+  tempRedirectProfileHost,
+  type TempRedirectProfileSource,
+} from "@/lib/temp-redirect/targets";
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { getAccount } from "@/lib/api/account";
 import { getProfile as getAdminProfile } from "@/lib/api/admin";
@@ -59,6 +73,7 @@ type Sheet =
   | "url"
   | "share"
   | "qr"
+  | "tempRedirect"
   | "soon"
   | "delete"
   | "card"
@@ -85,6 +100,29 @@ export function WebsiteSettingsPanel() {
   const [sheet, setSheet] = useState<Sheet>(null);
   const [soonLabel, setSoonLabel] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  // Temporary redirect — same QR-tab placement as the dashboard card. The
+  // destinations come from the SAVED profile (links are read in the stored
+  // JSON shape, and it is the saved site visitors are redirected from); the
+  // list is refreshed each time the redirect sheet opens, so links added in
+  // this session show up once the builder's auto-save has run.
+  const queryClient = useQueryClient();
+  const redirectVisible = sheet === "qr" || sheet === "tempRedirect";
+  const redirect = useTempRedirect(realId ?? "", redirectVisible);
+  const redirectGate = useTempRedirectGate();
+  const showUpgrade = useUpgradeDialog((st) => st.show);
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: listProfiles,
+    enabled: !!realId && redirectVisible,
+  });
+  const savedProfile = profiles?.find((p) => (p._id ?? p.id) === realId);
+  const redirectSource: TempRedirectProfileSource = savedProfile ?? {
+    _id: realId ?? undefined,
+    name,
+    settings,
+  };
+  const redirectHost = tempRedirectProfileHost(redirectSource, SITE_DOMAIN);
 
   // Admin-only "Admin" section (mirrors the mobile website-settings admin block).
   const { data: account } = useQuery({
@@ -337,7 +375,56 @@ export function WebsiteSettingsPanel() {
       )}
 
       {sheet === "qr" && (
-        <QrSheet url={url} onClose={() => setSheet(null)} t={t} />
+        <QrSheet
+          url={url}
+          onClose={() => setSheet(null)}
+          t={t}
+          redirectSlot={
+            // A draft that was never saved has no profile to redirect yet.
+            realId ? (
+              <>
+                <TempRedirectBanner
+                  controller={redirect}
+                  gate={redirectGate}
+                  profileHost={redirectHost}
+                />
+                <TempRedirectAction
+                  gate={redirectGate}
+                  onOpen={() => {
+                    redirect.clearActionError();
+                    void queryClient.invalidateQueries({ queryKey: ["profiles"] });
+                    setSheet("tempRedirect");
+                  }}
+                  onUpgrade={() => {
+                    // The upgrade dialog sits below the sheet layer — close first.
+                    redirect.clearActionError();
+                    setSheet(null);
+                    showUpgrade();
+                  }}
+                />
+              </>
+            ) : null
+          }
+        />
+      )}
+
+      {sheet === "tempRedirect" && realId && (
+        <TempRedirectSheet
+          profile={redirectSource}
+          profileHost={redirectHost}
+          controller={redirect}
+          gate={redirectGate}
+          onClose={() => {
+            // Back to the QR tab, as mobile pops back to the share screen.
+            redirect.clearActionError();
+            setSheet("qr");
+          }}
+          onUpgrade={() => {
+            redirect.clearActionError();
+            setSheet(null);
+            showUpgrade();
+          }}
+        />
       )}
 
       {sheet === "soon" && (
@@ -863,10 +950,13 @@ function QrSheet({
   url,
   onClose,
   t,
+  redirectSlot,
 }: {
   url: string;
   onClose: () => void;
   t: ReturnType<typeof useTranslations>;
+  /** Temporary-redirect banner + action, rendered under the code. */
+  redirectSlot?: React.ReactNode;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const svgWrap = useRef<HTMLDivElement>(null);
@@ -935,6 +1025,8 @@ function QrSheet({
             marginSize={2}
           />
         </div>
+
+        {redirectSlot}
 
         {/* SVG step: pick the ink colour (previewed live above), then
             download. Presets first, a custom picker at the end. */}

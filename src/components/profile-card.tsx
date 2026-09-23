@@ -39,10 +39,21 @@ import { BlockView } from "@/components/builder/preview/BlockView";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { PlanLockedOverlay } from "@/components/plan/locked-overlay";
+import { useUpgradeDialog } from "@/components/plan/upgrade-dialog";
+import {
+  TempRedirectAction,
+  TempRedirectBanner,
+} from "@/components/temp-redirect/temp-redirect-banner";
+import { TempRedirectSheet } from "@/components/temp-redirect/temp-redirect-sheet";
+import {
+  useTempRedirect,
+  useTempRedirectGate,
+} from "@/components/temp-redirect/use-temp-redirect";
+import { tempRedirectProfileHost } from "@/lib/temp-redirect/targets";
 import type { Profile, ProfileSummary } from "@/lib/types/profile";
 import type { Block } from "@/lib/types/blocks";
 
-import { siteHost } from "@/lib/site-domain";
+import { SITE_DOMAIN, siteHost } from "@/lib/site-domain";
 /**
  * Website tile — mirrors the mobile home website card: a live preview at top,
  * an info row (logo + name + domain + unread badge), and an action toolbar.
@@ -100,6 +111,15 @@ export function ProfileCard({ profile }: { profile: ProfileSummary }) {
   // pick another (presets + a custom picker), previewed live on the code.
   const [qrColor, setQrColor] = useState(QR_DEFAULT_COLOR);
   const [qrColorOpen, setQrColorOpen] = useState(false);
+
+  // Temporary redirect — lives on the QR sheet, the web's share screen
+  // (mobile WebsiteShareLayout): the QR IS the profile URL, and the redirect
+  // changes what that URL leads to. Read while either sheet is open.
+  const [redirectOpen, setRedirectOpen] = useState(false);
+  const redirect = useTempRedirect(id, qrOpen || redirectOpen);
+  const redirectGate = useTempRedirectGate();
+  const showUpgrade = useUpgradeDialog((st) => st.show);
+  const profileHost = tempRedirectProfileHost(p, SITE_DOMAIN);
 
   function copyLink() {
     navigator.clipboard?.writeText(url);
@@ -310,6 +330,26 @@ export function ProfileCard({ profile }: { profile: ProfileSummary }) {
               />
             </div>
 
+            <TempRedirectBanner
+              controller={redirect}
+              gate={redirectGate}
+              profileHost={profileHost}
+            />
+            <TempRedirectAction
+              gate={redirectGate}
+              onOpen={() => {
+                redirect.clearActionError();
+                setQrOpen(false);
+                setRedirectOpen(true);
+              }}
+              onUpgrade={() => {
+                // The upgrade dialog sits below the sheet layer — close first.
+                redirect.clearActionError();
+                setQrOpen(false);
+                showUpgrade();
+              }}
+            />
+
             {/* SVG step: pick the ink colour (previewed live above), then
                 download. Presets first, a custom picker at the end. */}
             {qrColorOpen && (
@@ -369,6 +409,26 @@ export function ProfileCard({ profile }: { profile: ProfileSummary }) {
             </div>
           </div>
         </BottomSheet>
+      )}
+
+      {redirectOpen && (
+        <TempRedirectSheet
+          profile={p}
+          profileHost={profileHost}
+          controller={redirect}
+          gate={redirectGate}
+          onClose={() => {
+            // Back to the QR sheet, as mobile pops back to the share screen.
+            redirect.clearActionError();
+            setRedirectOpen(false);
+            setQrOpen(true);
+          }}
+          onUpgrade={() => {
+            redirect.clearActionError();
+            setRedirectOpen(false);
+            showUpgrade();
+          }}
+        />
       )}
 
       {shareOpen && (
