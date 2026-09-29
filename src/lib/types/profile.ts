@@ -10,6 +10,7 @@
 
 import type { ArgbColor, Block, ImageAlignment } from "./blocks";
 import type { ColorValue } from "@/lib/builder/color-value";
+import type { SiteTranslation } from "@/lib/site-translation";
 
 export type HeroStyle =
   | "style1"
@@ -200,6 +201,11 @@ export interface WebsiteSettings {
   template?: TemplateRef | null;
   can_save_contact?: boolean;
   index_in_google?: boolean;
+  /**
+   * Site translation (docs/CONTRACT-website-translation.md). Absent = OFF;
+   * the builder only saves it — the published site translates.
+   */
+  translation?: SiteTranslation;
   /** Website verification flag (mobile: EditorConfig.verified). Shows a verified badge next to the name. */
   verified?: boolean;
   /** Blocks may live here in legacy payloads; canonical location is info.modules. */

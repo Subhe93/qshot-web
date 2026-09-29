@@ -29,6 +29,10 @@ import type {
 import type { TemplateRef, WebsiteSettings } from "@/lib/types/profile";
 import { hexToArgb } from "./color";
 import { solidArgb } from "./color-value";
+import {
+  normaliseSiteTranslation,
+  serialiseSiteTranslation,
+} from "@/lib/site-translation";
 
 type Raw = Record<string, unknown>;
 
@@ -520,6 +524,13 @@ export function parseSettings(input: unknown): WebsiteSettings {
   const raw = (input ?? {}) as Raw;
   const out = { ...(raw as WebsiteSettings) };
   if ("template" in raw) out.template = parseTemplateRef(raw.template);
+  // `settings.translation` — tolerant read (docs/CONTRACT-website-translation.md):
+  // a non-object reads as absent, unsupported/duplicate codes are dropped.
+  if ("translation" in raw) {
+    const translation = normaliseSiteTranslation(raw.translation);
+    if (translation) out.translation = translation;
+    else delete out.translation;
+  }
   return out;
 }
 
@@ -541,6 +552,16 @@ export function serializeSettings(
     const template = { ...(settings.template as unknown as Raw) };
     delete template.brand_color;
     out.template = template;
+  }
+
+  // `translation`: `languages` is omitted when empty (never `[]`), and the
+  // whole key is omitted when the feature was never turned on, so a site that
+  // never touched it serialises exactly as before. The validator rejects
+  // unknown keys, hence nothing but `enabled` / `languages` is written.
+  if ("translation" in out) {
+    const translation = serialiseSiteTranslation(out.translation);
+    if (translation) out.translation = translation;
+    else delete out.translation;
   }
 
   // Colour contract: the solid `color_value.color` MUST be an ARGB int. The

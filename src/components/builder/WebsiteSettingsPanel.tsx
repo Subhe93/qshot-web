@@ -27,6 +27,8 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Globe,
+  Languages,
+  Lock,
 } from "lucide-react";
 import { useEditorStore } from "@/stores/editor-store";
 import { useRouter } from "@/i18n/navigation";
@@ -68,12 +70,23 @@ import {
 import { Trash2 } from "lucide-react";
 
 import { SITE_DOMAIN, siteUrl } from "@/lib/site-domain";
+import {
+  DEFAULT_SITE_LANGUAGES,
+  SITE_LANGUAGES,
+  normaliseSiteLanguages,
+  normaliseSiteTranslation,
+  resolveSiteLanguages,
+  siteLanguage,
+  siteTranslationAllowed,
+  type SiteTranslation,
+} from "@/lib/site-translation";
 type Sheet =
   | "name"
   | "url"
   | "share"
   | "qr"
   | "tempRedirect"
+  | "translation"
   | "soon"
   | "delete"
   | "card"
@@ -139,6 +152,17 @@ export function WebsiteSettingsPanel() {
   // Bound to the real settings (persisted via the builder's auto-save).
   const saveContact = settings.can_save_contact ?? false;
   const indexGoogle = settings.index_in_google ?? true;
+
+  // Site translation — the builder only SAVES the setting. The plan gate locks
+  // the row (generous while the account loads, admins bypass); it never
+  // changes or deletes what is stored.
+  const translation: SiteTranslation = normaliseSiteTranslation(
+    settings.translation,
+  ) ?? { enabled: false };
+  const translationAllowed = siteTranslationAllowed(account);
+  const translationLanguages = resolveSiteLanguages(translation)
+    .map((l) => l.label)
+    .join(" · ");
 
   // Website name (display) lives in settings.website_name; the URL is the slug `name`.
   const displayName =
@@ -266,6 +290,46 @@ export function WebsiteSettingsPanel() {
             />
           }
         />
+        {translationAllowed ? (
+          <>
+            <Row
+              icon={<Languages className="size-5" />}
+              color="#5856d6"
+              title={t("translationTitle")}
+              subtitle={t("translationDesc")}
+              right={
+                <Toggle
+                  on={translation.enabled}
+                  onToggle={() =>
+                    updateSettings({
+                      translation: { ...translation, enabled: !translation.enabled },
+                    })
+                  }
+                />
+              }
+            />
+            {translation.enabled && (
+              <Row
+                icon={<Globe className="size-5" />}
+                color="#4488ff"
+                title={t("translationLanguages")}
+                subtitle={translationLanguages}
+                subtitleDir="auto"
+                onClick={() => setSheet("translation")}
+              />
+            )}
+          </>
+        ) : (
+          // Free plan: visible but locked — opens the upgrade dialog.
+          <Row
+            icon={<Languages className="size-5" />}
+            color="#5856d6"
+            title={t("translationTitle")}
+            subtitle={t("translationLocked")}
+            right={<Lock className="size-4 text-muted-foreground" aria-hidden />}
+            onClick={() => showUpgrade()}
+          />
+        )}
         <Row
           icon={<CreditCard className="size-5" />}
           color="#ff9500"
@@ -427,6 +491,21 @@ export function WebsiteSettingsPanel() {
         />
       )}
 
+      {sheet === "translation" && (
+        <TranslationSheet
+          initial={translation.languages ?? []}
+          onSave={(languages) => {
+            const next: SiteTranslation = { enabled: translation.enabled };
+            if (languages.length > 0) next.languages = languages;
+            updateSettings({ translation: next });
+            setSheet(null);
+          }}
+          onClose={() => setSheet(null)}
+          t={t}
+          save={tc("save")}
+        />
+      )}
+
       {sheet === "soon" && (
         <BottomSheet title={soonLabel} onClose={() => setSheet(null)}>
           <div className="flex flex-col items-center gap-3 py-8 text-center">
@@ -511,6 +590,78 @@ export function WebsiteSettingsPanel() {
         onClose={() => setSheet(null)}
       />
     </div>
+  );
+}
+
+// ── Site translation: which languages the visitor's button offers ──
+function TranslationSheet({
+  initial,
+  onSave,
+  onClose,
+  t,
+  save,
+}: {
+  initial: string[];
+  onSave: (languages: string[]) => void;
+  onClose: () => void;
+  t: ReturnType<typeof useTranslations>;
+  save: string;
+}) {
+  // Selection order is the order the button will list them in.
+  const [picked, setPicked] = useState<string[]>(() =>
+    normaliseSiteLanguages(initial),
+  );
+  const toggle = (code: string) =>
+    setPicked((cur) =>
+      cur.includes(code) ? cur.filter((c) => c !== code) : [...cur, code],
+    );
+  const defaults = DEFAULT_SITE_LANGUAGES.map(
+    (code) => siteLanguage(code)?.label ?? code,
+  ).join(" · ");
+
+  return (
+    <BottomSheet
+      title={t("translationLanguages")}
+      onClose={onClose}
+      footer={
+        <div className="p-4">
+          <Button variant="gradient" className="w-full" onClick={() => onSave(picked)}>
+            {save}
+          </Button>
+        </div>
+      }
+    >
+      <p className="mb-3 text-sm text-muted-foreground">{t("translationDesc")}</p>
+      <div role="group" aria-label={t("translationLanguages")} className="flex flex-wrap gap-2">
+        {SITE_LANGUAGES.map(({ code, label }) => {
+          const on = picked.includes(code);
+          return (
+            <button
+              key={code}
+              type="button"
+              aria-pressed={on}
+              onClick={() => toggle(code)}
+              className={cn(
+                "inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors",
+                on
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-foreground hover:bg-muted/50",
+              )}
+            >
+              {/* Selected is never colour alone: a check mark + aria-pressed. */}
+              {on && <Check className="size-3.5 shrink-0" aria-hidden />}
+              <span dir="auto" lang={code}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-4 text-sm text-foreground">{t("translationDefaultsHint")}</p>
+      <p dir="auto" className="mt-1 text-xs text-muted-foreground">
+        {defaults}
+      </p>
+    </BottomSheet>
   );
 }
 
@@ -1114,12 +1265,17 @@ function Row({
   icon,
   color,
   title,
+  subtitle,
+  subtitleDir,
   onClick,
   right,
 }: {
   icon: React.ReactNode;
   color: string;
   title: string;
+  /** Optional muted second line under the title. */
+  subtitle?: string;
+  subtitleDir?: "auto";
   onClick?: () => void;
   right?: React.ReactNode;
 }) {
@@ -1136,8 +1292,16 @@ function Row({
       >
         {icon}
       </span>
-      <span className="flex-1 text-[15px] font-medium text-foreground">
+      <span className="min-w-0 flex-1 text-[15px] font-medium text-foreground">
         {title}
+        {subtitle && (
+          <span
+            dir={subtitleDir}
+            className="mt-0.5 block text-xs font-normal text-muted-foreground"
+          >
+            {subtitle}
+          </span>
+        )}
       </span>
       {right ?? (
         <ChevronRight className="size-4 text-muted-foreground rtl:rotate-180" />

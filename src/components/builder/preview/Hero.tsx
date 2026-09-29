@@ -15,7 +15,8 @@ import { colorValueToCss, solidArgb, lerpArgb, type ColorValue } from "@/lib/bui
 import { cdnUrl } from "@/lib/api/qrcodes";
 import { dirOf } from "@/lib/builder/text-direction";
 import { fontStack } from "@/lib/builder/google-fonts";
-import { BadgeCheck, Menu } from "lucide-react";
+import { BadgeCheck, Globe, Menu } from "lucide-react";
+import { translationEnabled } from "@/lib/site-translation";
 
 /**
  * Faithful port of the mobile hero rendering (Flutter ONLY as reference):
@@ -683,6 +684,11 @@ function Header({
           inline start when leading is `end`); the Nuxt front renders a
           hamburger only when sub-pages exist (none in the builder), so the
           desktop view drops it. */}
+      {/* Site translation: a STATIC stand-in for the published site's language
+          button — shown only while the setting is on; no menu, no translation. */}
+      {translationEnabled(settings) && (
+        <Globe className="size-5 shrink-0" style={{ color: fg }} aria-hidden />
+      )}
       {!desktop && <Menu className="size-5 shrink-0" style={{ color: fg }} aria-hidden />}
     </div>
   );
