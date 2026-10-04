@@ -368,6 +368,22 @@ export function restyleBlockFrom(block: Block, source: Block | undefined): Block
         background_color: s.background_color ?? block.background_color,
       };
     }
+    case "BookingModule": {
+      // Mobile `(BookingBlock b, BookingBlock s) => b.copyWith(layoutType,
+      // showPrice, showDuration, circleImage, foldable, useBackgroundColor,
+      // backgroundColor)` — style only; title and button_label are content.
+      const s = source as typeof block;
+      return {
+        ...block,
+        layout_type: s.layout_type ?? block.layout_type,
+        show_price: s.show_price ?? block.show_price,
+        show_duration: s.show_duration ?? block.show_duration,
+        circle_image: s.circle_image ?? block.circle_image,
+        foldable: s.foldable ?? block.foldable,
+        use_background_color: s.use_background_color ?? block.use_background_color,
+        background_color: s.background_color ?? block.background_color,
+      };
+    }
     default:
       return block;
   }

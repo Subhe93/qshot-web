@@ -630,10 +630,26 @@ export interface IntroductionVideoBlock extends BaseBlock {
   thumbnail_url: string;
 }
 
+/**
+ * How a `BookingModule` draws the account's public services tree (mobile
+ * `BookingLayoutType`, docs/booking-block-layouts.md §1). `list` is the default
+ * and is never written to JSON; an unknown value also reads as `list`.
+ */
+export type BookingLayoutType = "list" | "grid" | "swiper" | "promo";
+export const BOOKING_LAYOUT_TYPES: BookingLayoutType[] = ["list", "grid", "swiper", "promo"];
+
 export interface BookingBlock extends NamedBlock {
   type: "BookingModule";
   foldable?: boolean;
   button_label?: string;
+  /** Default `list`. Omitted from JSON at the default (serialization.ts). */
+  layout_type?: BookingLayoutType;
+  /** Default `true`. Written only as `false`. */
+  show_price?: boolean;
+  /** Default `true`. Written only as `false`. */
+  show_duration?: boolean;
+  /** Default `false`. Written only as `true`. */
+  circle_image?: boolean;
 }
 
 export type Block =

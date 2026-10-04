@@ -41,10 +41,22 @@
  * Exits 1 on any failure.
  */
 
-import type { Block, ButtonBlock, HeaderBlock, ImagesBlock } from "../src/lib/types/blocks";
+import type {
+  Block,
+  BookingBlock,
+  ButtonBlock,
+  HeaderBlock,
+  ImagesBlock,
+} from "../src/lib/types/blocks";
 import type { WebsiteSettings } from "../src/lib/types/profile";
 import { catalogByType } from "../src/lib/builder/catalog";
-import { genId, parseSettings, serializeSettings } from "../src/lib/builder/serialization";
+import {
+  genId,
+  parseBlock,
+  parseSettings,
+  serializeBlock,
+  serializeSettings,
+} from "../src/lib/builder/serialization";
 import { applyButtonTheme } from "../src/lib/builder/apply-button-theme";
 import { mergeUserContent } from "../src/lib/builder/template-apply";
 import { paletteFromBrand, type TemplatePalette } from "../src/lib/builder/template-palette";
@@ -57,6 +69,7 @@ import {
   createFromTemplateSite,
   loadTemplateSites,
   loadedTemplateSites,
+  restyleBlockFrom,
   restyleWithTemplateSite,
   storedTemplateSite,
   templateAccentColor,
@@ -68,6 +81,7 @@ import {
   type TemplateSite,
 } from "../src/lib/builder/website-templates";
 import rawTemplate2 from "../src/lib/builder/template-sites/template-2.json";
+import { initialOf } from "../src/lib/booking/booking-tree";
 
 let passed = 0;
 let failed = 0;
@@ -597,12 +611,136 @@ function mergeTests(): void {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Booking block — mobile `booking_block_test` + `booking_block_restyle_test`
+// (docs/booking-block-layouts.md §1, §5.1). The four layout keys default when
+// absent, are omitted at their defaults on the way out, and a template restyle
+// copies the block's STYLE only.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function bookingBlockTests(): void {
+  section("booking block");
+
+  // fromJson defaults: a pre-feature block (no layout keys) is a `list`.
+  const legacy = parseBlock({ type: "BookingModule", id: "b1", title: "Book" }) as BookingBlock;
+  check("booking: missing layout_type reads as list", legacy.layout_type, "list");
+  check("booking: missing show_price reads true", legacy.show_price, true);
+  check("booking: missing show_duration reads true", legacy.show_duration, true);
+  check("booking: missing circle_image reads false", legacy.circle_image, false);
+  check("booking: default button_label", legacy.button_label, "Book Now");
+
+  // An unknown layout (written by a newer app) degrades to list, never throws.
+  const unknown = parseBlock({ type: "BookingModule", layout_type: "mosaic" }) as BookingBlock;
+  check("booking: unknown layout_type reads as list", unknown.layout_type, "list");
+  const nul = parseBlock({ type: "BookingModule", layout_type: null, show_price: null }) as BookingBlock;
+  check("booking: null layout_type reads as list", nul.layout_type, "list");
+  check("booking: null show_price reads true", nul.show_price, true);
+
+  // toJson omits each of the four LAYOUT keys at its default (the contract
+  // keys `foldable` / `button_label` are always written — see below).
+  const fresh = serializeBlock(make<Block>("BookingModule"));
+  checkTrue("booking: fresh block writes no layout_type", !("layout_type" in fresh));
+  checkTrue("booking: fresh block writes no show_price", !("show_price" in fresh));
+  checkTrue("booking: fresh block writes no show_duration", !("show_duration" in fresh));
+  checkTrue("booking: fresh block writes no circle_image", !("circle_image" in fresh));
+  // Mobile toJson ALWAYS writes `foldable` and `button_label` (contract keys),
+  // so a legacy block gains exactly those two at their defaults — and none of
+  // the four layout keys.
+  const legacyOut = serializeBlock(legacy);
+  checkSet(
+    "booking: legacy round-trip gains only foldable + button_label, no layout key",
+    Object.keys(legacyOut),
+    ["type", "id", "title", "hide", "use_background_color", "background_color", "foldable", "button_label"],
+  );
+  // Booking-specific additions only: `hide` / `use_background_color` /
+  // `background_color` are the BaseBlock defaults EVERY parsed block gains.
+  const legacyIn = ["type", "id", "title"];
+  const baseDefaults = ["hide", "use_background_color", "background_color"];
+  checkSet(
+    "booking: a legacy 3-key block gains exactly foldable + button_label",
+    Object.keys(legacyOut).filter((k) => !legacyIn.includes(k) && !baseDefaults.includes(k)),
+    ["foldable", "button_label"],
+  );
+  check("booking: legacy gains foldable:false", legacyOut.foldable, false);
+  check("booking: legacy gains button_label:'Book Now'", legacyOut.button_label, "Book Now");
+
+  // `json['button_label'] ?? 'Book Now'`: an empty label is kept, null defaults.
+  const emptyLabel = parseBlock({ type: "BookingModule", button_label: "" }) as BookingBlock;
+  check("booking: empty button_label stays empty", emptyLabel.button_label, "");
+  const nullLabel = parseBlock({ type: "BookingModule", button_label: null }) as BookingBlock;
+  check("booking: null button_label defaults", nullLabel.button_label, "Book Now");
+
+  // Tile initial — first GRAPHEME, bidi controls skipped (Dart `characters.first`).
+  check("initial: plain", initialOf("  hair cut"), "H");
+  check("initial: arabic", initialOf("تجميل"), "ت");
+  check("initial: emoji flag not split", initialOf("🇸🇦 Riyadh"), "🇸🇦");
+  check("initial: family emoji not split", initialOf("👨‍👩‍👧 Kids"), "👨‍👩‍👧");
+  check("initial: leading RLM skipped", initialOf("‏مانيكير"), "م");
+  check("initial: leading isolate skipped", initialOf("⁧abc⁩"), "A");
+  check("initial: blank", initialOf("  ‎ "), "");
+
+  // …and writes exactly the non-default ones.
+  const custom = serializeBlock({
+    ...legacy,
+    layout_type: "grid",
+    show_price: false,
+    show_duration: false,
+    circle_image: true,
+  });
+  check("booking: non-default layout_type is written", custom.layout_type, "grid");
+  check("booking: show_price false is written", custom.show_price, false);
+  check("booking: show_duration false is written", custom.show_duration, false);
+  check("booking: circle_image true is written", custom.circle_image, true);
+
+  // The dropped web-only filters never come back out.
+  const filtered = serializeBlock(
+    parseBlock({ type: "BookingModule", service_filter: ["x"], provider_filter: ["y"] }),
+  );
+  checkTrue("booking: service_filter is dropped", !("service_filter" in filtered));
+  checkTrue("booking: provider_filter is dropped", !("provider_filter" in filtered));
+
+  // restyle copies style only (mobile booking_block_restyle_test).
+  const user: BookingBlock = {
+    ...legacy,
+    title: "Book me",
+    button_label: "Reserve",
+    layout_type: "list",
+    show_price: true,
+    show_duration: true,
+    circle_image: false,
+  };
+  const styled: BookingBlock = {
+    ...make<BookingBlock>("BookingModule"),
+    title: "TEMPLATE TITLE",
+    button_label: "TEMPLATE LABEL",
+    layout_type: "promo",
+    show_price: false,
+    show_duration: false,
+    circle_image: true,
+    foldable: true,
+    use_background_color: true,
+    background_color: 0xff112233,
+  };
+  const restyled = restyleBlockFrom(user, styled) as BookingBlock;
+  check("booking restyle: keeps title", restyled.title, "Book me");
+  check("booking restyle: keeps button_label", restyled.button_label, "Reserve");
+  check("booking restyle: keeps id", restyled.id, user.id);
+  check("booking restyle: takes layout_type", restyled.layout_type, "promo");
+  check("booking restyle: takes show_price", restyled.show_price, false);
+  check("booking restyle: takes show_duration", restyled.show_duration, false);
+  check("booking restyle: takes circle_image", restyled.circle_image, true);
+  check("booking restyle: takes foldable", restyled.foldable, true);
+  check("booking restyle: takes use_background_color", restyled.use_background_color, true);
+  check("booking restyle: takes background_color", restyled.background_color, 0xff112233);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 
 async function main(): Promise<void> {
   await templateSiteTests();
   paletteTests();
   buttonThemeTests();
   mergeTests();
+  bookingBlockTests();
   closeSection();
 
   console.log(`\n${passed} passed, ${failed} failed`);

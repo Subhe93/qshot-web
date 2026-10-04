@@ -13,6 +13,11 @@
  */
 
 import { nanoid } from "nanoid";
+import {
+  BOOKING_LAYOUT_TYPES,
+  type BookingBlock,
+  type BookingLayoutType,
+} from "@/lib/types/blocks";
 import type {
   Block,
   ButtonItem,
@@ -374,6 +379,40 @@ export function parseBlock(input: unknown): Block {
         add_review_url: asStrOrNull(raw.add_review_url),
       };
 
+    case "BookingModule": {
+      // Mobile BookingBlock.fromJson. The four layout keys fill their defaults
+      // here and are stripped again at those defaults in serializeBlock, so an
+      // untouched site serialises byte-identically.
+      //
+      // `service_filter` / `provider_filter` were a web-only idea the mobile app
+      // never adopted and has now formally dropped (there is no per-block
+      // service picker — the block always shows the whole tree). Strip them at
+      // parse time like `template.brand_color`: nothing reads them, and the
+      // deployed validator (`additionalProperties: false`) would 422 on them.
+      const rest = { ...raw };
+      delete rest.service_filter;
+      delete rest.provider_filter;
+      const layout = asStr(raw.layout_type);
+      return {
+        ...rest,
+        ...b,
+        type: "BookingModule",
+        title: asStr(raw.title),
+        foldable: asBool(raw.foldable, false),
+        // Dart `json['button_label'] ?? 'Book Now'`: only a MISSING/null label
+        // defaults — an empty string is a deliberate empty label and stays "".
+        button_label: typeof raw.button_label === "string" ? raw.button_label : "Book Now",
+        // A layout this build does not know (written by a newer app) degrades
+        // to the default instead of throwing (mobile `asNameMap()[…] ?? list`).
+        layout_type: (BOOKING_LAYOUT_TYPES as string[]).includes(layout)
+          ? (layout as BookingLayoutType)
+          : "list",
+        show_price: asBool(raw.show_price, true),
+        show_duration: asBool(raw.show_duration, true),
+        circle_image: asBool(raw.circle_image, false),
+      };
+    }
+
     // Blocks not yet edited in the web builder: keep their raw shape, only
     // ensure id + common defaults so they round-trip and render (Phase 3).
     default:
@@ -470,6 +509,23 @@ export function serializeBlock(block: Block): Record<string, unknown> {
       ...b,
       items: (b.items ?? []).map(stripEmptyButtonText),
     };
+  }
+  if (block.type === "BookingModule") {
+    // Mobile BookingBlock.toJson: each layout key is written ONLY when it
+    // differs from its default — `layout_type` unless list, `show_price: false`,
+    // `show_duration: false`, `circle_image: true` — so a site that never
+    // touched the layout settings keeps its exact existing JSON
+    // (docs/booking-block-layouts.md §1).
+    const b = block as BookingBlock;
+    const clean: Record<string, unknown> = { ...b };
+    if ((b.layout_type ?? "list") === "list") delete clean.layout_type;
+    if (b.show_price !== false) delete clean.show_price;
+    if (b.show_duration !== false) delete clean.show_duration;
+    if (b.circle_image !== true) delete clean.circle_image;
+    // Dropped by mobile; never written again (see parseBlock).
+    delete clean.service_filter;
+    delete clean.provider_filter;
+    return clean;
   }
   return block as unknown as Record<string, unknown>;
 }

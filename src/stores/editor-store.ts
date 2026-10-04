@@ -22,6 +22,8 @@ interface EditorState {
   /** The sub-page being edited (null = the home page). Sub-pages have no hero. */
   pageId: string | null;
   pageName: string;
+  /** Sub-page URL handle (`/<urlName>` on the published site); "" at home. */
+  pageUrlName: string;
   /** Cached home-page blocks while a sub-page is open, restored on exit. */
   _homeBlocks: Block[];
   dirty: boolean;
@@ -41,7 +43,12 @@ interface EditorState {
   }) => void;
   reset: () => void;
   /** Open a sub-page for editing (its modules become the active blocks). */
-  enterPage: (payload: { pageId: string; pageName: string; blocks: Block[] }) => void;
+  enterPage: (payload: {
+    pageId: string;
+    pageName: string;
+    pageUrlName: string;
+    blocks: Block[];
+  }) => void;
   /** Return to editing the home page. */
   exitToHome: () => void;
   select: (id: string | null) => void;
@@ -147,6 +154,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   heroTab: null,
   pageId: null,
   pageName: "",
+  pageUrlName: "",
   _homeBlocks: [],
   dirty: false,
   previewEnabled: false,
@@ -162,6 +170,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       heroTab: null,
       pageId: null,
       pageName: "",
+      pageUrlName: "",
       _homeBlocks: [],
       dirty,
       previewEnabled: false,
@@ -179,6 +188,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       heroTab: null,
       pageId: null,
       pageName: "",
+      pageUrlName: "",
       _homeBlocks: [],
       dirty: false,
       previewEnabled: false,
@@ -186,10 +196,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       ...NO_HISTORY,
     }),
 
-  enterPage: ({ pageId, pageName, blocks }) =>
+  enterPage: ({ pageId, pageName, pageUrlName, blocks }) =>
     set((s) => ({
       pageId,
       pageName,
+      pageUrlName,
       // Cache home blocks only when leaving the home page (not page→page).
       _homeBlocks: s.pageId === null ? s.blocks : s._homeBlocks,
       blocks,
@@ -203,6 +214,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((s) => ({
       pageId: null,
       pageName: "",
+      pageUrlName: "",
       blocks: s._homeBlocks,
       selectedId: null,
       heroTab: null,

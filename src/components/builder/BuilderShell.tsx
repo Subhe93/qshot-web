@@ -21,7 +21,9 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEditorStore, type EditorSnapshot } from "@/stores/editor-store";
+import { invalidateBookingTree } from "@/lib/booking/use-booking-tree";
 import {
   getProfile,
   saveProfile,
@@ -120,6 +122,7 @@ export function BuilderShell({
   const togglePreview = useEditorStore((s) => s.togglePreview);
   const restoreSnapshot = useEditorStore((s) => s.restoreSnapshot);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [panel, setPanel] = useState<Panel>("home");
   const [addOpen, setAddOpen] = useState(false);
@@ -176,6 +179,11 @@ export function BuilderShell({
 
   useEffect(() => {
     let active = true;
+
+    // Mobile WebsiteEditorCubit prefetches the booking tree FRESH when the
+    // editor opens (§5.2): drop any tree cached from an earlier visit so the
+    // booking blocks about to mount fetch the current services.
+    if (id !== "new") invalidateBookingTree(queryClient, id);
 
     // An AI-generated draft handed off from the wizard — load it directly so the
     // generated content shows instantly (no backend refetch race). A real id
@@ -264,7 +272,7 @@ export function BuilderShell({
     return () => {
       active = false;
     };
-  }, [id, load, adminName, adminProfileId]);
+  }, [id, load, adminName, adminProfileId, queryClient]);
 
   // Auto-open Theme gate (mobile `_maybeOpenThemeGate`): a brand-new site —
   // main page, no blocks, never templated — starts at the Theme sheet instead

@@ -136,7 +136,12 @@ export function PagesPanel({
     try {
       const res = await showPage(p._id);
       if (res) {
-        enterPage({ pageId: p._id, pageName: p.listName, blocks: res.blocks });
+        enterPage({
+          pageId: p._id,
+          pageName: p.listName,
+          pageUrlName: p.urlName,
+          blocks: res.blocks,
+        });
         onOpenPage();
       }
     } finally {

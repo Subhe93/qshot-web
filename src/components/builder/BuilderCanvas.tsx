@@ -23,6 +23,7 @@ import { useDragScroll } from "@/lib/use-drag-scroll";
 import { useCallback, useEffect, useRef } from "react";
 import { Hero } from "./preview/Hero";
 import { DesktopPreviewContext, PageBackgroundContext } from "./preview/desktop-preview";
+import { BookingProfileContext } from "./preview/booking-context";
 import { BlockView } from "./preview/BlockView";
 import { SortableBlock } from "./SortableBlock";
 import { FloatingButtonLayer } from "./FloatingButtonLayer";
@@ -51,6 +52,7 @@ export function BuilderCanvas({
     (s) => s.previewOverlay?.settings ?? s.settings,
   );
   const previewScrollSignal = useEditorStore((s) => s.previewScrollSignal);
+  const profileId = useEditorStore((s) => s.profileId);
   const onPage = useEditorStore((s) => s.pageId) !== null;
   const selectedId = useEditorStore((s) => s.selectedId);
   const lastAddedId = useEditorStore((s) => s.lastAddedId);
@@ -224,6 +226,13 @@ export function BuilderCanvas({
 
   const content = (
     <PageBackgroundContext.Provider value={pageBgArgb}>
+    {/* The booking block fetches the site's real services tree only here, on the
+        canvas — template cards and dashboard tiles (no provider) draw its
+        placeholder, like mobile `previewOnly`. A brand-new site has no profile
+        to fetch from yet. */}
+    <BookingProfileContext.Provider
+      value={profileId && profileId !== "new" ? profileId : null}
+    >
       {/* Sub-pages have only blocks — no hero/name/bio. In the desktop "full"
           frame the wrapper paints the background, so the hero stays transparent. */}
       {!onPage && (
@@ -252,6 +261,7 @@ export function BuilderCanvas({
         )}
         {isDesktop ? <div className="relative flex flex-col gap-3">{blocksInner}</div> : blocksInner}
       </div>
+    </BookingProfileContext.Provider>
     </PageBackgroundContext.Provider>
   );
 
