@@ -957,8 +957,10 @@ function NameBio({
         <Editable onEdit={onEdit} tab="bio" className="px-6 pt-1.5">
           <p
             dir={dirOf(bioText)}
-            // Mobile bio is fixed at 50% of the foreground color.
-            className={`text-sm ${textAlignClass(bioAlign)} ${!bioText ? "opacity-40" : ""}`}
+            // Mobile bio is fixed at 50% of the foreground color. Flutter's Text
+            // keeps the \n line breaks the owner typed (maxLines 4 field), and
+            // Nuxt turns them into <br>; the phone frame must not collapse them.
+            className={`whitespace-pre-line text-sm ${textAlignClass(bioAlign)} ${!bioText ? "opacity-40" : ""}`}
             style={{ color: rgbaWithAlpha(fg, 0.5) }}
           >
             {bioText || "Your bio / tagline"}

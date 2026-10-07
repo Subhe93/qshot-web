@@ -1091,7 +1091,12 @@
       "visible": "Visível no site de reservas",
       "hidden": "Oculto",
       "visibleHint": "Desligado = oculto da sua página de reservas pública (não excluído).",
-      "minutesUnit": "{count, plural, one {minuto} other {minutos}}"
+      "minutesUnit": "{count, plural, one {minuto} other {minutos}}",
+      "image": "Imagem",
+      "optional": "opcional",
+      "addPhoto": "Adicionar foto",
+      "changePhoto": "Alterar foto",
+      "failedToSave": "Falha ao salvar"
     },
     "customers": {
       "title": "Customers",

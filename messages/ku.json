@@ -1091,7 +1091,12 @@
       "visible": "Li ser malpera rezervasyonê xuya",
       "hidden": "Veşartî",
       "visibleHint": "Vemirandî = ji rûpela rezervasyonê ya giştî veşartî (nehatiye jêbirin).",
-      "minutesUnit": "{count, plural, one {خولەک} other {خولەک}}"
+      "minutesUnit": "{count, plural, one {خولەک} other {خولەک}}",
+      "image": "Wêne",
+      "optional": "bijarte",
+      "addPhoto": "Wêne zêde bike",
+      "changePhoto": "Wêne biguherîne",
+      "failedToSave": "Tomarkirin bi ser neket"
     },
     "customers": {
       "title": "Customers",

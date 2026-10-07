@@ -1,5 +1,6 @@
 import { HTTPError } from "ky";
 import { api } from "@/lib/api/client";
+import { imageOf } from "@/lib/api/booking";
 
 /**
  * Read-only view of the PUBLIC booking services tree, as drawn by the website
@@ -40,7 +41,9 @@ export interface BookingServiceNode {
   currency: string | null;
   paymentEnabled: boolean;
   onlinePaymentAvailable: boolean;
-  /** Not returned by the API today; read so tiles pick it up if it ever ships. */
+  /** Optional picture — a full CDN URL (service-image-api-contract §3).
+   *  Categories may carry one too. Missing key / null / blank / non-string
+   *  all read as none. */
   image: string | null;
   order: number | null;
   children: BookingServiceNode[];
@@ -92,7 +95,7 @@ function nodeFromJson(json: Raw, parentName: string | null): BookingServiceNode 
     currency: blankToNull(json.currency),
     paymentEnabled: json.paymentEnabled === true,
     onlinePaymentAvailable: json.onlinePaymentAvailable === true,
-    image: blankToNull(json.image),
+    image: imageOf(json.image),
     order: int(json.order),
     children,
   };

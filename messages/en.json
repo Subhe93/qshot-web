@@ -1091,7 +1091,12 @@
       "visible": "Visible on booking site",
       "hidden": "Hidden",
       "visibleHint": "Off = hidden from your public booking page (not deleted).",
-      "minutesUnit": "{count, plural, one {minute} other {minutes}}"
+      "minutesUnit": "{count, plural, one {minute} other {minutes}}",
+      "image": "Image",
+      "optional": "optional",
+      "addPhoto": "Add Photo",
+      "changePhoto": "Change Photo",
+      "failedToSave": "Failed to save"
     },
     "customers": {
       "title": "Customers",

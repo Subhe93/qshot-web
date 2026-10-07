@@ -112,6 +112,36 @@ export interface Service {
   parentId?: string | null;
   hasChildren?: boolean;
   order?: number;
+  /**
+   * Optional picture — a FULL `https://cdn.qshot.com/…` URL, never a bare file
+   * name (the API rejects one with 400). Categories may carry one too.
+   * Services predating the feature come back with `null` OR no key at all;
+   * both read as "no image" (see `imageOf`).
+   *
+   * PATCH three-way rule (docs/booking update/service-image-api-contract.en.md):
+   * key ABSENT = unchanged · `null` = clear · URL = replace. The editor only
+   * includes the key when the user touched the picture — never spread a whole
+   * service into a PATCH body.
+   */
+  image?: string | null;
+}
+
+/**
+ * Reads a service image value defensively (mobile `ServiceModel._imageOf`):
+ * only a non-blank string counts; `null`, a missing key, a blank string or a
+ * non-string all read as "no image" rather than becoming `<img src="">`.
+ */
+export function imageOf(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+/** Normalises a raw service payload: `image` is always a usable URL or null. */
+function normalizeService(raw: Service): Service {
+  const s = asObj(raw);
+  if (!s) return raw;
+  return { ...(s as unknown as Service), image: imageOf(s.image) };
 }
 
 /**
@@ -452,19 +482,32 @@ export async function regenerateProviderCode(id: string) {
 export async function listServices(profileId: string): Promise<Service[]> {
   return arr<Service>(
     await api.get("booking/services", { searchParams: { profileId } }).json(),
+  ).map(normalizeService);
+}
+/**
+ * `body.image`: include the key ONLY to set (URL) or clear (`null`) the picture
+ * — the caller decides; this function sends the body as given.
+ */
+export async function createService(profileId: string, body: Partial<Service>) {
+  return normalizeService(
+    await readOne<Service>(api.post("booking/services", { json: { profileId, ...body } }), {
+      profileId,
+      ...body,
+    } as Service),
   );
 }
-export async function createService(profileId: string, body: Partial<Service>) {
-  return readOne<Service>(api.post("booking/services", { json: { profileId, ...body } }), {
-    profileId,
-    ...body,
-  } as Service);
-}
+/**
+ * PATCH — `image` follows the three-way rule: an absent key leaves the stored
+ * picture alone, `null` deletes it, a URL replaces it. Callers must omit the
+ * key on a save that did not touch the picture.
+ */
 export async function updateService(id: string, body: Partial<Service>) {
-  return readOne<Service>(api.patch(`booking/services/${id}`, { json: body }), {
-    _id: id,
-    ...body,
-  } as Service);
+  return normalizeService(
+    await readOne<Service>(api.patch(`booking/services/${id}`, { json: body }), {
+      _id: id,
+      ...body,
+    } as Service),
+  );
 }
 export async function deleteService(id: string) {
   return api.delete(`booking/services/${id}`).json();

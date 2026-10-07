@@ -1091,7 +1091,12 @@
       "visible": "在预约网站显示",
       "hidden": "已隐藏",
       "visibleHint": "关闭 = 从公开预约页面隐藏（未删除）。",
-      "minutesUnit": "{count, plural, other {分钟}}"
+      "minutesUnit": "{count, plural, other {分钟}}",
+      "image": "图片",
+      "optional": "可选",
+      "addPhoto": "添加照片",
+      "changePhoto": "更改照片",
+      "failedToSave": "保存失败"
     },
     "customers": {
       "title": "Customers",

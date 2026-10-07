@@ -1091,7 +1091,12 @@
       "visible": "Synlig på bokningssidan",
       "hidden": "Dold",
       "visibleHint": "Av = dold från din offentliga bokningssida (inte raderad).",
-      "minutesUnit": "{count, plural, one {minut} other {minuter}}"
+      "minutesUnit": "{count, plural, one {minut} other {minuter}}",
+      "image": "Bild",
+      "optional": "valfritt",
+      "addPhoto": "Lägg till foto",
+      "changePhoto": "Ändra foto",
+      "failedToSave": "Det gick inte att spara"
     },
     "customers": {
       "title": "Customers",

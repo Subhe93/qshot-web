@@ -44,6 +44,8 @@ export function NameBioContent({ which }: { which: "name" | "bio" }) {
             <textarea
               value={value.text ?? ""}
               rows={4}
+              // Mobile bio_settings_sheet.dart: LengthLimitingTextInputFormatter(120).
+              maxLength={120}
               placeholder="Bio"
               onChange={(e) =>
                 update({ [which]: { ...value, text: e.target.value } })

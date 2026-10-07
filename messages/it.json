@@ -1091,7 +1091,12 @@
       "visible": "Visibile sul sito di prenotazione",
       "hidden": "Nascosto",
       "visibleHint": "Off = nascosto dalla pagina di prenotazione pubblica (non eliminato).",
-      "minutesUnit": "{count, plural, one {minuto} other {minuti}}"
+      "minutesUnit": "{count, plural, one {minuto} other {minuti}}",
+      "image": "Immagine",
+      "optional": "opzionale",
+      "addPhoto": "Aggiungi foto",
+      "changePhoto": "Cambia foto",
+      "failedToSave": "Salvataggio fallito"
     },
     "customers": {
       "title": "Customers",

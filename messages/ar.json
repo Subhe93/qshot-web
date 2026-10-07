@@ -1091,7 +1091,12 @@
       "visible": "ظاهرة في موقع الحجز",
       "hidden": "مخفية",
       "visibleHint": "إيقاف = إخفاء من صفحة الحجز العامة (دون حذف).",
-      "minutesUnit": "{count, plural, one {دقيقة} other {دقائق}}"
+      "minutesUnit": "{count, plural, one {دقيقة} other {دقائق}}",
+      "image": "صورة",
+      "optional": "اختياري",
+      "addPhoto": "إضافة صورة",
+      "changePhoto": "تغيير الصورة",
+      "failedToSave": "فشل الحفظ"
     },
     "customers": {
       "title": "العملاء",

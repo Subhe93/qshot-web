@@ -1091,7 +1091,12 @@
       "visible": "Visible sur le site de réservation",
       "hidden": "Masqué",
       "visibleHint": "Désactivé = masqué de votre page de réservation publique (non supprimé).",
-      "minutesUnit": "{count, plural, one {minute} other {minutes}}"
+      "minutesUnit": "{count, plural, one {minute} other {minutes}}",
+      "image": "Image",
+      "optional": "optionnel",
+      "addPhoto": "Ajouter une photo",
+      "changePhoto": "Changer la photo",
+      "failedToSave": "Échec de la sauvegarde"
     },
     "customers": {
       "title": "Customers",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -21,6 +21,9 @@ import {
   ChevronRight,
   Pencil,
   Search,
+  ImageIcon,
+  SquarePen,
+  TriangleAlert,
 } from "lucide-react";
 import {
   listServices,
@@ -35,6 +38,9 @@ import {
   type Service,
   type Extra,
 } from "@/lib/api/booking";
+import { uploadImage } from "@/lib/api/media";
+import { cdnUrl } from "@/lib/api/qrcodes";
+import { apiErrorMessage } from "@/lib/api/client";
 import { useBookingUi } from "@/stores/booking-store";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -125,12 +131,20 @@ export function ServicesPane({ profileId }: { profileId: string }) {
   );
 
   const detailNode = editing ? (
-    <ServiceEditor profileId={profileId} service={detail.data} />
+    <ServiceEditor key={editorKey(detail.data)} profileId={profileId} service={detail.data} />
   ) : (
     <EmptyState icon={<MousePointer2 className="size-10 opacity-40" />} text={t("services.selectHint")} />
   );
 
   return <MasterDetail list={list} detail={detailNode} hasDetail={editing} />;
+}
+
+/** Remount key for the editor: one per saved service, one per "new under
+ *  parent X" stub, one for a brand-new root service. */
+function editorKey(s: Service | null): string {
+  if (!s) return "new";
+  const id = idOf(s);
+  return id ? `edit:${id}` : `new:${s.parentId ?? ""}`;
 }
 
 // A single service row — a Package leaf or a Folder category (with an
@@ -166,14 +180,7 @@ function ServiceRow({
         onClick={onSelect}
         className="flex min-w-0 flex-1 items-center gap-3 p-3 text-start"
       >
-        <span
-          className={cn(
-            "flex size-10 items-center justify-center rounded-xl",
-            isCategory ? "bg-amber-500/10 text-amber-600" : "bg-teal-500/10 text-teal-600",
-          )}
-        >
-          {isCategory ? <Folder className="size-5" /> : <Package className="size-5" />}
-        </span>
+        <ServiceThumb image={s.image} isCategory={isCategory} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <p className="truncate text-sm font-semibold">{s.name}</p>
@@ -219,6 +226,52 @@ function ServiceRow({
   );
 }
 
+/**
+ * The leading 44×44 box of a service row (mobile `_LeadingIcon`): the picture
+ * with cover fit when the service has one, otherwise the folder / package icon.
+ * A CDN 404 (deleted picture) degrades to the icon, never a broken-image glyph.
+ * Categories and bookable services behave the same way.
+ */
+function ServiceThumb({
+  image,
+  isCategory,
+}: {
+  image?: string | null;
+  isCategory: boolean;
+}) {
+  // The src that failed (not a flag) so a changed picture is retried.
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
+  const url = image ? cdnUrl(image) : "";
+  const showImage = !!url && url !== brokenSrc;
+  return (
+    <span
+      className={cn(
+        "flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-[11px]",
+        isCategory ? "bg-amber-500/10 text-amber-600" : "bg-teal-500/10 text-teal-600",
+      )}
+    >
+      {showImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt=""
+          width={44}
+          height={44}
+          sizes="44px"
+          loading="lazy"
+          decoding="async"
+          className="size-full object-cover"
+          onError={() => setBrokenSrc(url)}
+        />
+      ) : isCategory ? (
+        <Folder className="size-5" />
+      ) : (
+        <Package className="size-5" />
+      )}
+    </span>
+  );
+}
+
 const BLANK: Service = {
   name: "",
   description: "",
@@ -245,17 +298,77 @@ function ServiceEditor({ profileId, service }: { profileId: string; service: Ser
   const [draft, setDraft] = useState<Service>({ ...BLANK, ...(service ?? {}) });
   const [sheet, setSheet] = useState<null | "duration" | "currency" | "gapBefore" | "gapAfter">(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  useEffect(() => setDraft({ ...BLANK, ...(service ?? {}) }), [service]);
+  // Picture (mobile ServiceEditorCubit): `imageTouched` records whether the
+  // user changed it during THIS edit. PATCH reads an absent `image` key as
+  // "leave it alone", null as "delete", a URL as "replace" — so a rename or a
+  // price change must send NO key at all, or it would silently delete the
+  // picture. Only pick / remove set the flag.
+  const [imageTouched, setImageTouched] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [previewBroken, setPreviewBroken] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // No reset effect: the parent keys this editor by the selected service, so a
+  // different selection remounts it with fresh state (and a background refetch
+  // of the list no longer wipes an in-progress edit).
 
   const id = service?._id ? idOf(service) : null;
   const set = (p: Partial<Service>) => setDraft((d) => ({ ...d, ...p }));
   const isFree = (draft.defaultPrice ?? 0) <= 0;
+  const hasImage = !!draft.image;
+
+  async function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    // Show the picked image immediately (independent of the upload round-trip).
+    setLocalPreview(URL.createObjectURL(file));
+    setPreviewBroken(false);
+    setUploadError(false);
+    setUploading(true);
+    try {
+      const fileName = await uploadImage(file);
+      if (!fileName) throw new Error("upload returned no file name");
+      // The upload returns a relative file name; the booking API accepts only
+      // a FULL https CDN URL (contract §2.3 / §2.6).
+      set({ image: cdnUrl(fileName) });
+      setImageTouched(true);
+    } catch {
+      // Keep the previous picture (mobile: upload error leaves `image` alone).
+      setLocalPreview(null);
+      setUploadError(true);
+    } finally {
+      setUploading(false);
+    }
+  }
+  function removeImage() {
+    // The ONLY path that may send `"image": null` on an update.
+    set({ image: null });
+    setImageTouched(true);
+    setLocalPreview(null);
+    setPreviewBroken(false);
+    setUploadError(false);
+  }
 
   const save = useMutation({
-    mutationFn: () => (id ? updateService(id, draft) : createService(profileId, draft)),
+    mutationFn: () => {
+      // Strip the picture the draft inherited from the server; include the key
+      // only when the user touched it (URL to replace, null to clear).
+      const { image, ...rest } = draft;
+      const body: Partial<Service> = imageTouched ? { ...rest, image: image ?? null } : rest;
+      return id ? updateService(id, body) : createService(profileId, body);
+    },
+    onMutate: () => setSaveError(null),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["booking-services", profileId] });
       clearDetail();
+    },
+    onError: async (e) => {
+      // Surface the backend's message (e.g. the 400 "image must be an https
+      // URL on the cdn.qshot.com CDN"), falling back to the generic error.
+      setSaveError(await apiErrorMessage(e, tc("genericError")));
     },
   });
   const del = useMutation({
@@ -313,6 +426,93 @@ function ServiceEditor({ profileId, service }: { profileId: string; service: Ser
               onChange={(e) => set({ description: e.target.value })}
               className="border-0 bg-muted/40 p-2"
             />
+          </div>
+
+          {/* Image — full width (mobile _buildImagePicker: 52px square, Image /
+              optional, Add photo | Change photo + Delete). */}
+          <div
+            className="flex items-center gap-2.5 rounded-xl border border-input bg-card p-2 lg:col-span-2"
+            data-testid="service-image-picker"
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onPickImage}
+              disabled={uploading}
+              data-testid="service-image-input"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading || hasImage}
+              // A plain preview once a picture is set (mobile: the square is
+              // not tappable then); the row buttons carry the actions.
+              aria-label={hasImage ? t("image") : t("addPhoto")}
+              className="flex size-[52px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/[0.12] text-primary disabled:cursor-default"
+            >
+              {uploading ? (
+                <Loader2 className="size-5 animate-spin" />
+              ) : localPreview || (hasImage && !previewBroken) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={localPreview ?? cdnUrl(draft.image ?? undefined)}
+                  alt=""
+                  width={52}
+                  height={52}
+                  sizes="52px"
+                  decoding="async"
+                  className="size-full object-cover"
+                  onError={() => setPreviewBroken(true)}
+                />
+              ) : hasImage ? (
+                <TriangleAlert className="size-4" />
+              ) : (
+                <ImageIcon className="size-[18px]" />
+              )}
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">{t("image")}</p>
+              <p className="text-xs text-muted-foreground">{t("optional")}</p>
+              {uploadError && (
+                <p className="mt-0.5 text-xs text-error">{t("failedToSave")}</p>
+              )}
+            </div>
+            {hasImage ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  title={t("changePhoto")}
+                  aria-label={t("changePhoto")}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-lg text-primary hover:bg-primary/10 disabled:opacity-50"
+                >
+                  <SquarePen className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  disabled={uploading}
+                  title={tc("delete")}
+                  aria-label={tc("delete")}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-lg text-error hover:bg-error/10 disabled:opacity-50"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <Plus className="size-3.5" />
+                {t("addPhoto")}
+              </button>
+            )}
           </div>
 
           {/* Duration — full width on its own */}
@@ -406,7 +606,7 @@ function ServiceEditor({ profileId, service }: { profileId: string; service: Ser
         </div>
 
         {(save.isError || del.isError) && (
-          <p className="text-center text-sm text-error">{tc("genericError")}</p>
+          <p className="text-center text-sm text-error">{saveError ?? tc("genericError")}</p>
         )}
 
         {/* Extras (add-ons) — only for a saved service (need its id). */}
@@ -433,7 +633,9 @@ function ServiceEditor({ profileId, service }: { profileId: string; service: Ser
           <Button
             variant="gradient"
             className="w-full"
-            disabled={!draft.name.trim() || save.isPending}
+            // Also disabled while a picture uploads, so a save cannot race ahead
+            // of the upload and store the service without its image.
+            disabled={!draft.name.trim() || save.isPending || uploading}
             onClick={() => save.mutate()}
           >
             {save.isPending && <Loader2 className="size-4 animate-spin" />}

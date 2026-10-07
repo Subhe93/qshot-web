@@ -1091,7 +1091,12 @@
       "visible": "Synlig på bookingsiden",
       "hidden": "Skjult",
       "visibleHint": "Av = skjult fra den offentlige bookingsiden (ikke slettet).",
-      "minutesUnit": "{count, plural, one {minutt} other {minutter}}"
+      "minutesUnit": "{count, plural, one {minutt} other {minutter}}",
+      "image": "Bilde",
+      "optional": "valgfritt",
+      "addPhoto": "Legg til foto",
+      "changePhoto": "Endre foto",
+      "failedToSave": "Lagring mislyktes"
     },
     "customers": {
       "title": "Customers",
