@@ -65,9 +65,9 @@ export function RowSummary({ view, className }: { view: HistoryRowView; classNam
           <span key={i}>{` · ${part}`}</span>
         ))}
       </p>
-      {(view.row.source !== "editor" || view.row.pinned) && (
+      {(view.sourceBadge || view.row.pinned) && (
         <div className="mt-2 flex flex-wrap gap-1.5">
-          {view.row.source !== "editor" && <SourceBadge label={view.sourceLabel} />}
+          {view.sourceBadge && <SourceBadge label={view.sourceLabel} />}
           {view.row.pinned && <PinChip label={view.row.pinned.label} />}
         </div>
       )}

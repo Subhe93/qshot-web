@@ -1838,6 +1838,7 @@
     "allPages": "Hemû rûpel",
     "home": "Serrûpel",
     "page": "Rûpel",
+    "deletedPage": "jêbirî",
     "today": "Îro",
     "yesterday": "Duh",
     "you": "Tu",
@@ -1852,6 +1853,7 @@
     "network": "Gihîştina serverê pêk nehat. Girêdana xwe kontrol bike û dîsa biceribîne.",
     "flushFailed": "Guhertina te ya dawî nehat tomarkirin. Berî vegerandinê edîtorê veke û kontrol bike.",
     "flushFailedDismiss": "Bigire",
+    "websiteNotFound": "Malper nehat dîtin",
     "source": {
       "editor": "Hat guhertin",
       "initial": "Guhertoya resen",
@@ -1899,7 +1901,8 @@
       "removed": "Rakirî",
       "edited": "Guhertî",
       "none": "(tune)",
-      "failed": "Guhertin bar nebûn"
+      "failed": "Guhertin bar nebûn",
+      "formatOnly": "Guhertineke xuya tune (tenê format)"
     },
     "blocks": {
       "title": "Blokekê vegerîne",

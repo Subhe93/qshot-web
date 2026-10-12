@@ -146,7 +146,7 @@ export function HistoryPreview({
     return (
       <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-muted-foreground">
         <p>{t("preview.failed")}</p>
-        <p className="text-xs">{historyErrorMessage(error, t, tc("genericError"))}</p>
+        <p className="text-xs">{historyErrorMessage(error, t, tc("genericError"), "row")}</p>
         <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
           {tc("retry")}
         </Button>

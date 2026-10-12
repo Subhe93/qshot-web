@@ -1838,6 +1838,7 @@
     "allPages": "所有页面",
     "home": "首页",
     "page": "页面",
+    "deletedPage": "已删除",
     "today": "今天",
     "yesterday": "昨天",
     "you": "你",
@@ -1852,6 +1853,7 @@
     "network": "无法连接服务器。请检查网络后重试。",
     "flushFailed": "你的最后一次修改未能保存。恢复前请打开编辑器检查。",
     "flushFailedDismiss": "关闭",
+    "websiteNotFound": "未找到网站",
     "source": {
       "editor": "已编辑",
       "initial": "原始版本",
@@ -1899,7 +1901,8 @@
       "removed": "已移除",
       "edited": "已编辑",
       "none": "（无）",
-      "failed": "无法加载修改内容"
+      "failed": "无法加载修改内容",
+      "formatOnly": "无可见更改（仅格式）"
     },
     "blocks": {
       "title": "恢复一个区块",

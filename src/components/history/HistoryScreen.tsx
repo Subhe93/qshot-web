@@ -4,7 +4,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronRight, History, Loader2, Lock, RotateCcw, TriangleAlert, X } from "lucide-react";
-import { awaitPendingSave, clearFlushFailure, hasFlushFailure } from "@/lib/builder/pending-save";
+import {
+  awaitPendingSave,
+  clearFlushFailure,
+  hasFlushFailure,
+  lastFlushAt,
+} from "@/lib/builder/pending-save";
+
+/**
+ * §3.1: the server records a save in the background, up to ~3 s after the
+ * save response. After a flushed save (§7.1) the first list read waits this
+ * long past the response, so the session just saved is in the list.
+ */
+const HISTORY_FLUSH_SETTLE_MS = 2000;
 import {
   HISTORY_PAGE_SIZE,
   historyDocumentOf,
@@ -14,7 +26,7 @@ import {
   type HistoryBlockRef,
   type HistoryRow,
 } from "@/lib/api/history";
-import { groupByDay, summaryLine } from "@/lib/history/summary";
+import { groupByDay, HISTORY_SUMMARY_SEPARATOR, summaryParts } from "@/lib/history/summary";
 import { listPages } from "@/lib/api/pages";
 import { listProfiles } from "@/lib/api/profiles";
 import { getAccount } from "@/lib/api/account";
@@ -104,19 +116,32 @@ export function HistoryScreen({
     if (el) requestAnimationFrame(() => el.focus());
   }, []);
 
-  // The builder flushes its last edit on the way here (§7.1). If that flush
-  // did not save, the builder is gone and cannot say so — this screen does,
-  // before any restore, as a dismissible notice (restores may still proceed).
+  // The builder flushes its last edit on the way here (§7.1). The list must
+  // not race it: it is read only once the flush has resolved, and — when a
+  // flush happened in this very navigation — a further 2 s later, so the
+  // server's background recording (§3.1) has landed; the loading state shows
+  // meanwhile (never an empty list that then fills). If the flush did not
+  // save, the builder is gone and cannot say so — this screen does, as a
+  // dismissible notice (restores may still proceed).
+  const [mountedAt] = useState(() => Date.now());
+  const [listReady, setListReady] = useState(false);
   const [flushFailed, setFlushFailed] = useState(false);
   useEffect(() => {
     let active = true;
+    let handle: ReturnType<typeof setTimeout> | undefined;
+    const flushedThisNavigation = lastFlushAt() >= mountedAt;
     void awaitPendingSave().then(() => {
-      if (active && hasFlushFailure()) setFlushFailed(true);
+      if (!active) return;
+      if (hasFlushFailure()) setFlushFailed(true);
+      handle = setTimeout(() => {
+        if (active) setListReady(true);
+      }, flushedThisNavigation ? HISTORY_FLUSH_SETTLE_MS : 0);
     });
     return () => {
       active = false;
+      clearTimeout(handle);
     };
-  }, []);
+  }, [mountedAt]);
 
   // ── Who am I (for "You") ──
   const authUser = useAuthStore((s) => s.user);
@@ -134,15 +159,6 @@ export function HistoryScreen({
     queryKey: pagesQueryKey(profileId),
     queryFn: () => listPages(profileId),
   });
-  const pageNameOf = useCallback(
-    (row: HistoryRow): string => {
-      if (row.pageId === null) return t("home");
-      if (row.page?.listName) return row.page.listName;
-      return pages?.find((p) => p._id === row.pageId)?.listName || t("page");
-    },
-    [pages, t],
-  );
-
   // ── The list: cursor pages, reloaded on every open, never kept around (§3.2) ──
   const pinned = tab === "pinned";
   const list = useInfiniteQuery({
@@ -157,6 +173,7 @@ export function HistoryScreen({
       }),
     initialPageParam: null as number | null,
     getNextPageParam: (last) => last.nextCursor,
+    enabled: listReady,
     refetchOnMount: "always",
     staleTime: 0,
     gcTime: 0,
@@ -164,6 +181,34 @@ export function HistoryScreen({
   });
   const rows = useMemo(() => list.data?.pages.flatMap((p) => p.history) ?? [], [list.data]);
   const groups = useMemo(() => groupByDay(rows), [rows]);
+
+  // Deleted sub-pages are gone from `multi-page/index`; their name survives on
+  // the `page_deleted` row, which names every earlier row of that page too.
+  const deletedPages = useMemo(() => {
+    const names = new Map<string, string>();
+    for (const row of rows) {
+      if (row.source === "page_deleted" && row.pageId && row.page?.listName && !names.has(row.pageId)) {
+        names.set(row.pageId, row.page.listName);
+      }
+    }
+    return names;
+  }, [rows]);
+  const pageNameOf = useCallback(
+    (row: HistoryRow): string => {
+      if (row.pageId === null) return t("home");
+      return (
+        pages?.find((p) => p._id === row.pageId)?.listName ||
+        deletedPages.get(row.pageId) ||
+        row.page?.listName ||
+        t("page")
+      );
+    },
+    [pages, deletedPages, t],
+  );
+  const deletedPageOptions = useMemo(
+    () => [...deletedPages].filter(([id]) => !pages?.some((p) => p._id === id)),
+    [deletedPages, pages],
+  );
 
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = list;
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -181,15 +226,21 @@ export function HistoryScreen({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const describe = useCallback(
-    (row: HistoryRow): HistoryRowView => ({
-      row,
-      time: formatClock(row.endedAt, locale),
-      range: formatRange(row.startedAt, row.endedAt, locale),
-      who: actorLabel(row, selfId, t),
-      page: pageNameOf(row),
-      summary: summaryLine(row, strings),
-      sourceLabel: strings.sourceLabel(row.source),
-    }),
+    (row: HistoryRow): HistoryRowView => {
+      // §6.3: with nothing listed the source label IS the line — once, no badge.
+      const parts = summaryParts(row, strings);
+      const hasParts = parts.length > 0 && !(parts.length === 1 && parts[0] === strings.sourceLabel(row.source));
+      return {
+        row,
+        time: formatClock(row.endedAt, locale),
+        range: formatRange(row.startedAt, row.endedAt, locale),
+        who: actorLabel(row, selfId, t),
+        page: pageNameOf(row),
+        summary: parts.join(HISTORY_SUMMARY_SEPARATOR),
+        sourceLabel: strings.sourceLabel(row.source),
+        sourceBadge: row.source !== "editor" && hasParts,
+      };
+    },
     [locale, selfId, t, pageNameOf, strings],
   );
 
@@ -302,6 +353,11 @@ export function HistoryScreen({
             {pages?.map((p) => (
               <option key={p._id} value={historyDocumentOf(p._id)}>
                 {p.listName}
+              </option>
+            ))}
+            {deletedPageOptions.map(([id, name]) => (
+              <option key={id} value={historyDocumentOf(id)}>
+                {`${name} (${t("deletedPage")})`}
               </option>
             ))}
           </select>
@@ -525,7 +581,7 @@ export function HistoryScreen({
 function HistoryRowItem({ view, onOpen }: { view: HistoryRowView; onOpen: (trigger: HTMLElement) => void }) {
   const { row } = view;
   const meta = [view.who, view.page].filter(Boolean).join(" · ");
-  const showBadges = row.source !== "editor" || row.pinned;
+  const showBadges = view.sourceBadge || row.pinned;
   return (
     <li>
       <button
@@ -551,7 +607,7 @@ function HistoryRowItem({ view, onOpen }: { view: HistoryRowView; onOpen: (trigg
           {meta && <span className="mt-0.5 block truncate text-xs text-muted-foreground">{meta}</span>}
           {showBadges && (
             <span className="mt-1.5 flex flex-wrap gap-1.5">
-              {row.source !== "editor" && <SourceBadge label={view.sourceLabel} />}
+              {view.sourceBadge && <SourceBadge label={view.sourceLabel} />}
               {row.pinned && <PinChip label={row.pinned.label} />}
             </span>
           )}

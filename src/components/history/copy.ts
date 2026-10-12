@@ -52,23 +52,12 @@ export function dayHeading(day: string, locale: string, t: Translate): string {
   }).format(date);
 }
 
-/** A settings value for the compare list: strings as-is, else compact JSON, clipped. */
-export function compactValue(value: unknown, max = 80): string {
-  if (value === null || value === undefined) return "—";
-  let text: string;
-  if (typeof value === "string") text = value;
-  else {
-    try {
-      text = JSON.stringify(value) ?? String(value);
-    } catch {
-      text = String(value);
-    }
-  }
-  if (text === "") return "—";
-  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
-}
-
-export type HistoryActionContext = "restore" | "block" | "page" | "pin" | "list";
+/**
+ * Where an error surfaced: the list itself (`list` — a 404 there is the
+ * WEBSITE, not a version), a row's preview / compare (`row`), or one of the
+ * write flows.
+ */
+export type HistoryActionContext = "list" | "row" | "restore" | "block" | "page" | "pin";
 
 /**
  * §9 error → one sentence. Only codes with their own meaning get a specific
@@ -86,7 +75,11 @@ export function historyErrorMessage(
     case "forbidden":
       return t("cantView");
     case "not_found":
+      if (context === "list") return t("websiteNotFound");
       return context === "block" ? t("block.notFound") : t("notFound");
+    case "bad_request":
+      // §5.1: 422 on an invalid `profileId` — the website, not a version.
+      return context === "list" ? t("websiteNotFound") : genericError;
     case "validation":
       return t("restore.invalid");
     case "deleted_page":
@@ -151,7 +144,11 @@ export interface HistoryRowView {
   range: ClockRange | null;
   who: string | null;
   page: string;
+  /** §6.3 parts joined, or the source label when the row lists nothing. */
   summary: string;
-  /** §3.3 label; shown as a badge for every source but `editor`. */
+  /** §3.3 label. */
   sourceLabel: string;
+  /** Show the source badge: a non-editor source whose summary has real parts
+   *  (when the label already IS the summary line, no badge — not twice). */
+  sourceBadge: boolean;
 }

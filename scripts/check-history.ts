@@ -47,6 +47,12 @@ import {
   type HistoryStrings,
 } from "../src/lib/history/summary";
 import { historyRowToEditorState } from "../src/lib/history/content";
+import {
+  clipPair,
+  flattenChanges,
+  isDefaultValue,
+  sameIgnoringDefaults,
+} from "../src/lib/history/diff-values";
 import { useAuthStore } from "../src/stores/auth-store";
 
 let passed = 0;
@@ -305,7 +311,12 @@ const ROW_4 = {
     changed: false,
     document: "main",
   });
-  check("A.restore.result empty → changed true", readHistoryRestoreResult({}), { changed: true, document: "main" });
+  check("A.restore.result empty → changed true", readHistoryRestoreResult({}), { changed: true, document: "" });
+  // Seen live: `changed: false` comes WITHOUT `document`.
+  check("A.restore.result without document", readHistoryRestoreResult({ changed: false }), {
+    changed: false,
+    document: "",
+  });
   check(
     "A.restorePage.page",
     readHistoryRestoredPage({ _id: "newid", urlName: "menu-2", listName: "Menu", listViewStatus: true, order: 4 }),
@@ -761,6 +772,50 @@ function httpError(status: number, body: unknown, opts: { asText?: boolean; noDa
 
   const empty = historyRowToEditorState(readHistoryRowContent({}));
   check("F.empty row", [empty.blocks, empty.settings], [[], null]);
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * G. Compare values — format-only detection, leaf flattening, clipping
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+{
+  check("G.defaults", [false, null, "", [], 0, "a", true].map(isDefaultValue), [true, true, true, true, false, false, false]);
+  const old = { id: "b", type: "BookingModule", title: "Book" };
+  const grown = { ...old, foldable: false, hide: false, use_background_color: false, background_color: null, items: [] };
+  checkTrue("G.same: serializer defaults added → format only", sameIgnoringDefaults(old, grown));
+  checkTrue("G.same: symmetric", sameIgnoringDefaults(grown, old));
+  checkTrue("G.same: a real edit differs", !sameIgnoringDefaults(old, { ...grown, title: "Reserve" }));
+  checkTrue("G.same: a non-default new key differs", !sameIgnoringDefaults(old, { ...old, hide: true }));
+  checkTrue("G.same: nested", sameIgnoringDefaults({ a: { x: 1 } }, { a: { x: 1, hide: false } }));
+  checkTrue("G.same: arrays element-wise", sameIgnoringDefaults([{ x: 1 }], [{ x: 1, y: null }]));
+  checkTrue("G.same: array length differs", !sameIgnoringDefaults([1], [1, 2]));
+
+  check(
+    "G.flatten: object → changed leaf only",
+    flattenChanges("text", { hide: false, text: "A", size: 20 }, { hide: false, text: "B", size: 20 }),
+    [{ path: "text.text", before: "A", after: "B" }],
+  );
+  check("G.flatten: scalar", flattenChanges("style", "style1", "style2"), [{ path: "style", before: "style1", after: "style2" }]);
+  check("G.flatten: format only → empty", flattenChanges("header", { x: 1 }, { x: 1, hide: false }), []);
+  check(
+    "G.flatten: nested two levels",
+    flattenChanges("a", { b: { c: 1, d: 2 } }, { b: { c: 1, d: 3 } }),
+    [{ path: "a.b.d", before: 2, after: 3 }],
+  );
+  check("G.flatten: key appears", flattenChanges("a", { x: 1 }, { x: 1, y: "new" }), [{ path: "a.y", before: undefined, after: "new" }]);
+
+  check("G.clip: short passes through", clipPair("A", "B"), { before: "A", after: "B" });
+  check("G.clip: null → em dash", clipPair(null, "x"), { before: "—", after: "x" });
+  const prefix = "Northstar — the long tagline that keeps going well past sixty characters so that it must be clipped ";
+  const suffix = " ending here with many more words that keep the sentence running well past the clip window";
+  const a = `${prefix}Studio${suffix}`;
+  const b = `${prefix}Atelier${suffix}`;
+  const clipped = clipPair(a, b, 60);
+  checkTrue("G.clip: differing part visible on both sides", clipped.before.includes("Studio") && clipped.after.includes("Atelier"));
+  checkTrue("G.clip: ellipsis on the cut sides", clipped.before.startsWith("…") && clipped.before.endsWith("…"));
+  checkTrue("G.clip: within the window", clipped.before.length <= 62 && clipped.after.length <= 62);
+  const tail = clipPair(`${prefix}A`, `${prefix}B`, 60);
+  checkTrue("G.clip: difference at the end stays visible", tail.before.endsWith("A") && tail.after.endsWith("B"));
 }
 
 /* ──────────────────────────────────────────────────────────────────────────── */

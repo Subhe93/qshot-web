@@ -18,9 +18,11 @@ export type SaveOutcome = "saved" | "refused" | "failed";
 
 let pending: Promise<void> | null = null;
 let failed = false;
+let flushedAt = 0;
 
 /** Track a flush. `awaitPendingSave` always resolves; a non-save is recorded. */
 export function trackPendingSave(save: Promise<SaveOutcome>): Promise<void> {
+  flushedAt = Date.now();
   const tracked: Promise<void> = save
     .then(
       (outcome) => {
@@ -40,6 +42,15 @@ export function trackPendingSave(save: Promise<SaveOutcome>): Promise<void> {
 /** Resolves once no flushed save is in flight (immediately when none is). */
 export function awaitPendingSave(): Promise<void> {
   return pending ?? Promise.resolve();
+}
+
+/**
+ * When the last flush was tracked (epoch ms; 0 = never). The builder's unmount
+ * cleanup runs synchronously before the next screen mounts, so "a flush
+ * happened in this navigation" is `lastFlushAt() >= thatScreen'sMountTime`.
+ */
+export function lastFlushAt(): number {
+  return flushedAt;
 }
 
 /** True while a flushed save that did not reach the server is unacknowledged. */

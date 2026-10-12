@@ -1838,6 +1838,7 @@
     "allPages": "Alla sidor",
     "home": "Hem",
     "page": "Sida",
+    "deletedPage": "raderad",
     "today": "I dag",
     "yesterday": "I går",
     "you": "Du",
@@ -1852,6 +1853,7 @@
     "network": "Kunde inte nå servern. Kontrollera anslutningen och försök igen.",
     "flushFailed": "Din senaste ändring kunde inte sparas. Öppna redigeraren och kontrollera den innan du återställer.",
     "flushFailedDismiss": "Stäng",
+    "websiteNotFound": "Webbplatsen hittades inte",
     "source": {
       "editor": "Redigerad",
       "initial": "Ursprunglig version",
@@ -1899,7 +1901,8 @@
       "removed": "Borttaget",
       "edited": "Redigerat",
       "none": "(inget)",
-      "failed": "Kunde inte läsa in ändringarna"
+      "failed": "Kunde inte läsa in ändringarna",
+      "formatOnly": "Ingen synlig ändring (endast format)"
     },
     "blocks": {
       "title": "Återställ ett block",

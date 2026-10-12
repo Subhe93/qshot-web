@@ -24,8 +24,9 @@ import type { Block } from "@/lib/types/blocks";
 import type { WebsiteSettings } from "@/lib/types/profile";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { clipPair, flattenChanges, sameIgnoringDefaults } from "@/lib/history/diff-values";
 import { HistoryFrame } from "./HistoryPreview";
-import { compactValue, historyErrorMessage } from "./copy";
+import { historyErrorMessage } from "./copy";
 
 export interface BlockRestoreTarget {
   historyId: string;
@@ -97,7 +98,7 @@ export function HistoryCompare({
     return (
       <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-muted-foreground">
         <p>{t("compare.failed")}</p>
-        <p className="text-xs">{historyErrorMessage(error, t, tc("genericError"))}</p>
+        <p className="text-xs">{historyErrorMessage(error, t, tc("genericError"), "row")}</p>
         <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
           {tc("retry")}
         </Button>
@@ -136,26 +137,61 @@ export function HistoryCompare({
             {t("compare.settings")}
           </h3>
           <ul className="divide-y divide-border px-4 py-1" data-testid="history-settings-diff">
-            {[
-              ...diff.settings.map((s) => ({ ...s, kind: "settings" })),
-              ...diff.info.map((s) => ({ ...s, kind: "info" })),
-            ].map((s) => (
-              <li key={`${s.kind}:${s.key}`} className="flex flex-wrap items-center gap-x-2 gap-y-1 py-2.5 text-sm">
-                <span className="font-semibold text-foreground">{s.key}:</span>
-                <span dir="auto" className="break-all text-muted-foreground line-through decoration-error/60">
-                  {compactValue(s.before)}
-                </span>
-                <ArrowRight className="size-3.5 shrink-0 text-muted-foreground rtl:rotate-180" aria-hidden />
-                <span dir="auto" className="break-all text-foreground">
-                  {compactValue(s.after)}
-                </span>
-              </li>
-            ))}
+            {settingsRows(diff).map((row) =>
+              row.kind === "formatOnly" ? (
+                <li key={row.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 py-2.5 text-sm" data-format-only="true">
+                  <span className="font-semibold text-foreground">{row.key}:</span>
+                  <span className="text-muted-foreground">{t("compare.formatOnly")}</span>
+                </li>
+              ) : (
+                <li key={row.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 py-2.5 text-sm">
+                  <span className="font-semibold text-foreground">{row.path}:</span>
+                  <span dir="auto" className="break-all text-muted-foreground line-through decoration-error/60">
+                    {row.before}
+                  </span>
+                  <ArrowRight className="size-3.5 shrink-0 text-muted-foreground rtl:rotate-180" aria-hidden />
+                  <span dir="auto" className="break-all text-foreground">
+                    {row.after}
+                  </span>
+                </li>
+              ),
+            )}
           </ul>
         </section>
       )}
     </div>
   );
+}
+
+type SettingsRow =
+  | { kind: "formatOnly"; id: string; key: string }
+  | { kind: "leaf"; id: string; path: string; before: string; after: string };
+
+/**
+ * §6.5.4 as leaves: each changed key flattened to the leaves that really
+ * differ (`text.text: A → B`), long values clipped around the difference; a
+ * key whose change is format only (serializer defaults, §diff-values) says so.
+ */
+function settingsRows(diff: HistoryDiff): SettingsRow[] {
+  const out: SettingsRow[] = [];
+  const groups: { kind: string; entries: HistoryDiff["settings"] }[] = [
+    { kind: "settings", entries: diff.settings },
+    { kind: "info", entries: diff.info },
+  ];
+  for (const group of groups) {
+    for (const entry of group.entries) {
+      const leaves = flattenChanges(entry.key, entry.before, entry.after);
+      if (leaves.length === 0) {
+        out.push({ kind: "formatOnly", id: `${group.kind}:${entry.key}`, key: entry.key });
+        continue;
+      }
+      for (const leaf of leaves) {
+        const clipped = clipPair(leaf.before, leaf.after);
+        out.push({ kind: "leaf", id: `${group.kind}:${leaf.path}`, path: leaf.path, ...clipped });
+      }
+    }
+  }
+  return out;
 }
 
 function BlockDiffCard({
@@ -178,9 +214,18 @@ function BlockDiffCard({
   const after = useMemo(() => (entry.after ? parseBlock(entry.after) : null), [entry.after]);
   const target = blockRestoreHistoryId(entry.change, row, diff);
   const name = strings.blockName(entry.type);
+  // "Edited" only because the serializer wrote its default keys (`hide:
+  // false`, `background_color: null`, …) that the older JSON lacked: nothing
+  // visible changed, so no frames to compare and nothing to undo. The row's
+  // summary still counts it, as the server reports it.
+  const formatOnly =
+    entry.change === "edited" &&
+    entry.before !== null &&
+    entry.after !== null &&
+    sameIgnoringDefaults(entry.before, entry.after);
 
   let restoreLabel: string | null = null;
-  if (target) {
+  if (target && !formatOnly) {
     restoreLabel =
       target.mode === "bring_back"
         ? t("blocks.bringBack")
@@ -194,6 +239,7 @@ function BlockDiffCard({
       className="overflow-hidden rounded-2xl bg-card p-3 shadow-soft sm:p-4"
       data-testid="history-block-diff"
       data-change={entry.change}
+      data-format-only={formatOnly ? "true" : undefined}
     >
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="text-sm font-bold text-foreground">{name}</h3>
@@ -214,10 +260,14 @@ function BlockDiffCard({
           </Button>
         )}
       </div>
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <DiffSide label={t("compare.before")} block={before} settings={liveSettings} />
-        <DiffSide label={t("compare.after")} block={after} settings={liveSettings} />
-      </div>
+      {formatOnly ? (
+        <p className="mt-2 text-sm text-muted-foreground">{t("compare.formatOnly")}</p>
+      ) : (
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <DiffSide label={t("compare.before")} block={before} settings={liveSettings} />
+          <DiffSide label={t("compare.after")} block={after} settings={liveSettings} />
+        </div>
+      )}
     </section>
   );
 }

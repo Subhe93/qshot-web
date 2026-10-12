@@ -1838,6 +1838,7 @@
     "allPages": "Alle sider",
     "home": "Hjem",
     "page": "Side",
+    "deletedPage": "slettet",
     "today": "I dag",
     "yesterday": "I går",
     "you": "Du",
@@ -1852,6 +1853,7 @@
     "network": "Fikk ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
     "flushFailed": "Den siste endringen din ble ikke lagret. Åpne redigeringen og sjekk den før du gjenoppretter.",
     "flushFailedDismiss": "Lukk",
+    "websiteNotFound": "Fant ikke nettstedet",
     "source": {
       "editor": "Redigert",
       "initial": "Opprinnelig versjon",
@@ -1899,7 +1901,8 @@
       "removed": "Fjernet",
       "edited": "Redigert",
       "none": "(ingen)",
-      "failed": "Kunne ikke laste endringene"
+      "failed": "Kunne ikke laste endringene",
+      "formatOnly": "Ingen synlig endring (kun format)"
     },
     "blocks": {
       "title": "Gjenopprett en blokk",

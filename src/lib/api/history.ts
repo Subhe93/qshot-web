@@ -121,6 +121,7 @@ export interface HistoryPage {
 export interface HistoryRestoreResult {
   /** `false`: the page already equals that state; nothing was written. */
   changed: boolean;
+  /** `""` when the server omits it (the live server does on `changed: false`). */
   document: string;
 }
 
@@ -363,7 +364,7 @@ export function readHistoryRestoreResult(value: unknown): HistoryRestoreResult {
   const raw = isMap(value) ? value : {};
   return {
     changed: readBool(raw.changed, true),
-    document: readStr(raw.document, "main") || "main",
+    document: readStr(raw.document),
   };
 }
 

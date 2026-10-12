@@ -1838,6 +1838,7 @@
     "allPages": "Todas as páginas",
     "home": "Início",
     "page": "Página",
+    "deletedPage": "eliminada",
     "today": "Hoje",
     "yesterday": "Ontem",
     "you": "Você",
@@ -1852,6 +1853,7 @@
     "network": "Não foi possível contactar o servidor. Verifique a ligação e tente de novo.",
     "flushFailed": "A sua última alteração não foi guardada. Abra o editor para a verificar antes de restaurar.",
     "flushFailedDismiss": "Fechar",
+    "websiteNotFound": "Site não encontrado",
     "source": {
       "editor": "Editado",
       "initial": "Versão original",
@@ -1899,7 +1901,8 @@
       "removed": "Removido",
       "edited": "Editado",
       "none": "(nenhum)",
-      "failed": "Não foi possível carregar as alterações"
+      "failed": "Não foi possível carregar as alterações",
+      "formatOnly": "Sem alteração visível (apenas formato)"
     },
     "blocks": {
       "title": "Restaurar um bloco",

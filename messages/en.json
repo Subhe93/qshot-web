@@ -1838,6 +1838,7 @@
     "allPages": "All pages",
     "home": "Home",
     "page": "Page",
+    "deletedPage": "deleted",
     "today": "Today",
     "yesterday": "Yesterday",
     "you": "You",
@@ -1852,6 +1853,7 @@
     "network": "Couldn't reach the server. Check your connection and try again.",
     "flushFailed": "Your last edit could not be saved. Open the editor to check it before restoring.",
     "flushFailedDismiss": "Dismiss",
+    "websiteNotFound": "Website not found",
     "source": {
       "editor": "Edited",
       "initial": "Original version",
@@ -1899,7 +1901,8 @@
       "removed": "Removed",
       "edited": "Edited",
       "none": "(none)",
-      "failed": "Couldn't load the changes"
+      "failed": "Couldn't load the changes",
+      "formatOnly": "No visible change (format only)"
     },
     "blocks": {
       "title": "Restore a block",
