@@ -1828,5 +1828,128 @@
     "unavailable": "Demkî ne berdest e, ji kerema xwe paşê biceribîne",
     "until": "Heta",
     "yourLinks": "Girêdanên te"
+  },
+  "history": {
+    "title": "Dîroka guhertinan",
+    "subtitle": "Her guhertina tomarkirî ya vê malperê. Her guhertoyekê pêşdîtin bike, bide ber hev û vegerîne.",
+    "tabAll": "Hemû guhertin",
+    "tabPinned": "Pêvekirî",
+    "pageFilter": "Rûpel",
+    "allPages": "Hemû rûpel",
+    "home": "Serrûpel",
+    "page": "Rûpel",
+    "today": "Îro",
+    "yesterday": "Duh",
+    "you": "Tu",
+    "company": "Hesabê kompanyayê",
+    "support": "Piştgiriya QShot",
+    "saves": "{count, plural, one {# tomarkirin} other {# tomarkirin}}",
+    "empty": "Hêj guhertin nehatine tomarkirin. Malpera xwe biguherîne û her tomarkirin dê li vir xuya bibe.",
+    "emptyPinned": "Hêj guhertoyên binavkirî tune ne. Guhertoyekê pêve bike da ku her tim bimîne.",
+    "loadMore": "Bêtir bar bike",
+    "cantView": "Tu nikarî dîroka vê malperê bibînî",
+    "notFound": "Ev guherto êdî tune ye. Lîste hat nûkirin.",
+    "network": "Gihîştina serverê pêk nehat. Girêdana xwe kontrol bike û dîsa biceribîne.",
+    "flushFailed": "Guhertina te ya dawî nehat tomarkirin. Berî vegerandinê edîtorê veke û kontrol bike.",
+    "flushFailedDismiss": "Bigire",
+    "source": {
+      "editor": "Hat guhertin",
+      "initial": "Guhertoya resen",
+      "external": "Ji aliyê pergalê ve hat nûkirin",
+      "restore": "Hat vegerandin",
+      "page_deleted": "Rûpel hat jêbirin"
+    },
+    "summary": {
+      "blocksAdded": "{count, plural, one {# blok hat zêdekirin} other {# blok hatin zêdekirin}}",
+      "blocksRemoved": "{count, plural, one {# blok hat rakirin} other {# blok hatin rakirin}}",
+      "blocksEdited": "{count, plural, one {# blok hat guhertin} other {# blok hatin guhertin}}",
+      "blockAdded": "{name} hat zêdekirin",
+      "blockRemoved": "{name} hat rakirin",
+      "blockEdited": "{name} hat guhertin",
+      "reordered": "Rêza blokan hat guhertin",
+      "designChanged": "Sêwirandin hat guhertin",
+      "pageSettingsChanged": "Mîhengên rûpelê hatin guhertin"
+    },
+    "actions": {
+      "title": "Guherto",
+      "preview": "Pêşdîtin",
+      "compare": "Guhertinan bibîne",
+      "restore": "Vê guhertoyê vegerîne",
+      "restoreBlock": "Blokekê vegerîne",
+      "restorePage": "Rûpelê vegerîne",
+      "pageRestored": "Rûpel jixwe hat vegerandin",
+      "pin": "Vê guhertoyê pêve bike",
+      "rename": "Nav biguherîne",
+      "unpin": "Pêvekirinê rake"
+    },
+    "preview": {
+      "title": "Pêşdîtin",
+      "failed": "Ev guherto bar nebû"
+    },
+    "compare": {
+      "title": "Guhertin",
+      "before": "Berê",
+      "after": "Paşê",
+      "empty": "Tiştek ji bo berawirdkirinê tune — ev rewşa yekem a tomarkirî ya vê rûpelê ye.",
+      "reordered": "Rêza blokan hat guhertin",
+      "orderBefore": "Rêza berê",
+      "orderAfter": "Rêza paşê",
+      "settings": "Mîhengên sêwirandinê",
+      "added": "Zêdekirî",
+      "removed": "Rakirî",
+      "edited": "Guhertî",
+      "none": "(tune)",
+      "failed": "Guhertin bar nebûn"
+    },
+    "blocks": {
+      "title": "Blokekê vegerîne",
+      "hint": "Bloka ku tu dixwazî vegerînî hilbijêre. Her tiştê din wekî niha dimîne.",
+      "bringBack": "Vegerîne",
+      "undoEdit": "Vê guhertinê paşve bike",
+      "restore": "Vegerîne",
+      "noPrevious": "Guhertoyeke berê ya vê blokê tune"
+    },
+    "restore": {
+      "title": "Ev guherto bê vegerandin?",
+      "message": "Vê guhertoya {page} vegerînî? Guhertoya te ya niha di dîrokê de dimîne û dikare dîsa bê vegerandin.",
+      "notRestored": "Nayê vegerandin:",
+      "keepUrl": "navê URL ya malperê",
+      "keepPage": "navên URL, navên lîsteyê, rêz û xuyabûna binrûpelan",
+      "keepOther": "xizmetên rezervasyonê, hesabên girêdayî, domainên taybet, beralîkirinên demkî, plan û banner",
+      "confirm": "Vegerîne",
+      "done": "Guherto hat vegerandin",
+      "unchanged": "Ev guherto jixwe guhertoya niha ye.",
+      "invalid": "Ev guherto êdî nikare bê vegerandin.",
+      "deletedPage": "Ev rûpel hat jêbirin. Li şûna wê «Rûpelê vegerîne» bi kar bîne."
+    },
+    "block": {
+      "title": "Ev blok bê vegerandin?",
+      "message": "{block} wekî di vê guhertoyê de bû vegerînî? Her tiştê din wekî niha dimîne.",
+      "undoMessage": "Guhertina li ser {block} paşve bikî? Dê vegere rewşa berî vê guhertoyê.",
+      "confirm": "Blokê vegerîne",
+      "done": "Blok hat vegerandin",
+      "notFound": "Ev blok di wê guhertoyê de tune ye."
+    },
+    "restorePage": {
+      "title": "Ev rûpel bê vegerandin?",
+      "message": "Rûpela «{page}» bi naveroka wê ya dawî vegerînî? Dê li dawiya rûpelên te bê zêdekirin.",
+      "confirm": "Rûpelê vegerîne",
+      "done": "Rûpel li /{url} hat vegerandin",
+      "conflict": "Ev rûpel nehat vegerandin: jixwe hatiye vegerandin an navnîşana wê girtî ye."
+    },
+    "pin": {
+      "title": "Navekî bide vê guhertoyê",
+      "renameTitle": "Navê vê guhertoyê biguherîne",
+      "hint": "Guhertoyên binavkirî her tim têne parastin û bi guhertinên paşê re nayên yekkirin.",
+      "label": "Nav",
+      "placeholder": "mînak: Berî sêwirandina nû",
+      "limit": "Tu dikarî heta 10 guhertoyên binavkirî biparêzî. Pêşî pêvekirina yekê rake.",
+      "done": "Guherto hat pêvekirin",
+      "renamed": "Navê guhertoyê hat guhertin",
+      "unpinTitle": "Pêvekirina vê guhertoyê bê rakirin?",
+      "unpinMessage": "Dê dîsa di nav 300 guhertinên dawî de bê hejmartin. Eger ji wan kevntir be, tavilê tê rakirin.",
+      "unpin": "Pêvekirinê rake",
+      "unpinned": "Pêvekirina guhertoyê hat rakirin"
+    }
   }
 }

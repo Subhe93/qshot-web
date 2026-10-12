@@ -1828,5 +1828,128 @@
     "unavailable": "Midlertidig utilgjengelig, prøv igjen senere",
     "until": "Til",
     "yourLinks": "Lenkene dine"
+  },
+  "history": {
+    "title": "Endringshistorikk",
+    "subtitle": "Hver lagrede endring på dette nettstedet. Forhåndsvis, sammenlign og gjenopprett enhver versjon.",
+    "tabAll": "Alle endringer",
+    "tabPinned": "Festede",
+    "pageFilter": "Side",
+    "allPages": "Alle sider",
+    "home": "Hjem",
+    "page": "Side",
+    "today": "I dag",
+    "yesterday": "I går",
+    "you": "Du",
+    "company": "Bedriftskonto",
+    "support": "QShot-support",
+    "saves": "{count, plural, one {# lagring} other {# lagringer}}",
+    "empty": "Ingen endringer er registrert enda. Rediger nettstedet ditt, så vises hver lagring her.",
+    "emptyPinned": "Ingen navngitte versjoner enda. Fest en versjon for å beholde den for alltid.",
+    "loadMore": "Last inn flere",
+    "cantView": "Du kan ikke se historikken til dette nettstedet",
+    "notFound": "Denne versjonen finnes ikke lenger. Listen er oppdatert.",
+    "network": "Fikk ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
+    "flushFailed": "Den siste endringen din ble ikke lagret. Åpne redigeringen og sjekk den før du gjenoppretter.",
+    "flushFailedDismiss": "Lukk",
+    "source": {
+      "editor": "Redigert",
+      "initial": "Opprinnelig versjon",
+      "external": "Oppdatert av systemet",
+      "restore": "Gjenopprettet",
+      "page_deleted": "Side slettet"
+    },
+    "summary": {
+      "blocksAdded": "{count, plural, one {# blokk lagt til} other {# blokker lagt til}}",
+      "blocksRemoved": "{count, plural, one {# blokk fjernet} other {# blokker fjernet}}",
+      "blocksEdited": "{count, plural, one {# blokk redigert} other {# blokker redigert}}",
+      "blockAdded": "{name} lagt til",
+      "blockRemoved": "{name} fjernet",
+      "blockEdited": "{name} redigert",
+      "reordered": "Blokker omorganisert",
+      "designChanged": "Design endret",
+      "pageSettingsChanged": "Sideinnstillinger endret"
+    },
+    "actions": {
+      "title": "Versjon",
+      "preview": "Forhåndsvis",
+      "compare": "Se endringer",
+      "restore": "Gjenopprett denne versjonen",
+      "restoreBlock": "Gjenopprett en blokk",
+      "restorePage": "Gjenopprett side",
+      "pageRestored": "Siden er allerede gjenopprettet",
+      "pin": "Fest denne versjonen",
+      "rename": "Gi nytt navn",
+      "unpin": "Løsne"
+    },
+    "preview": {
+      "title": "Forhåndsvisning",
+      "failed": "Kunne ikke laste denne versjonen"
+    },
+    "compare": {
+      "title": "Endringer",
+      "before": "Før",
+      "after": "Etter",
+      "empty": "Ingenting å sammenligne – dette er den første registrerte tilstanden til siden.",
+      "reordered": "Blokker omorganisert",
+      "orderBefore": "Rekkefølge før",
+      "orderAfter": "Rekkefølge etter",
+      "settings": "Designinnstillinger",
+      "added": "Lagt til",
+      "removed": "Fjernet",
+      "edited": "Redigert",
+      "none": "(ingen)",
+      "failed": "Kunne ikke laste endringene"
+    },
+    "blocks": {
+      "title": "Gjenopprett en blokk",
+      "hint": "Velg blokken som skal settes tilbake. Alt annet forblir som nå.",
+      "bringBack": "Sett tilbake",
+      "undoEdit": "Angre denne endringen",
+      "restore": "Gjenopprett",
+      "noPrevious": "Ingen tidligere versjon av denne blokken"
+    },
+    "restore": {
+      "title": "Gjenopprette denne versjonen?",
+      "message": "Gjenopprette denne versjonen av {page}? Din nåværende versjon blir i historikken og kan gjenopprettes igjen.",
+      "notRestored": "Gjenopprettes ikke:",
+      "keepUrl": "nettstedets URL-navn",
+      "keepPage": "undersidenes URL-navn, listenavn, rekkefølge og synlighet",
+      "keepOther": "bookingtjenester, tilkoblede kontoer, egne domener, midlertidige omdirigeringer, abonnement og banner",
+      "confirm": "Gjenopprett",
+      "done": "Versjon gjenopprettet",
+      "unchanged": "Denne versjonen er allerede den gjeldende.",
+      "invalid": "Denne versjonen kan ikke lenger gjenopprettes.",
+      "deletedPage": "Denne siden er slettet. Bruk «Gjenopprett side» i stedet."
+    },
+    "block": {
+      "title": "Gjenopprette denne blokken?",
+      "message": "Sette {block} tilbake slik den var i denne versjonen? Alt annet forblir som nå.",
+      "undoMessage": "Angre endringen av {block}? Den går tilbake til slik den var før denne versjonen.",
+      "confirm": "Gjenopprett blokk",
+      "done": "Blokk gjenopprettet",
+      "notFound": "Denne blokken finnes ikke i den versjonen."
+    },
+    "restorePage": {
+      "title": "Gjenopprette denne siden?",
+      "message": "Hente tilbake siden «{page}» med det siste innholdet? Den legges til sist blant sidene dine.",
+      "confirm": "Gjenopprett side",
+      "done": "Siden er gjenopprettet på /{url}",
+      "conflict": "Siden kunne ikke gjenopprettes: den er allerede gjenopprettet, eller adressen er opptatt."
+    },
+    "pin": {
+      "title": "Gi denne versjonen et navn",
+      "renameTitle": "Gi versjonen nytt navn",
+      "hint": "Navngitte versjoner beholdes for alltid og slås aldri sammen med senere endringer.",
+      "label": "Navn",
+      "placeholder": "f.eks. Før redesign",
+      "limit": "Du kan beholde opptil 10 navngitte versjoner. Løsne én først.",
+      "done": "Versjon festet",
+      "renamed": "Versjonen har fått nytt navn",
+      "unpinTitle": "Løsne denne versjonen?",
+      "unpinMessage": "Den teller igjen blant de 300 nyeste endringene. Er den eldre enn disse, fjernes den umiddelbart.",
+      "unpin": "Løsne",
+      "unpinned": "Versjon løsnet"
+    }
   }
 }

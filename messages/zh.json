@@ -1828,5 +1828,128 @@
     "unavailable": "暂时不可用，请稍后再试",
     "until": "截止到",
     "yourLinks": "你的链接"
+  },
+  "history": {
+    "title": "修改历史",
+    "subtitle": "此网站的每一次保存的修改。可预览、对比并恢复任意版本。",
+    "tabAll": "全部修改",
+    "tabPinned": "已固定",
+    "pageFilter": "页面",
+    "allPages": "所有页面",
+    "home": "首页",
+    "page": "页面",
+    "today": "今天",
+    "yesterday": "昨天",
+    "you": "你",
+    "company": "公司账户",
+    "support": "QShot 客服",
+    "saves": "{count, plural, other {# 次保存}}",
+    "empty": "尚未记录任何修改。编辑你的网站后，每次保存都会显示在这里。",
+    "emptyPinned": "尚无命名版本。固定一个版本即可永久保留。",
+    "loadMore": "加载更多",
+    "cantView": "你无法查看此网站的历史",
+    "notFound": "该版本已不存在。列表已刷新。",
+    "network": "无法连接服务器。请检查网络后重试。",
+    "flushFailed": "你的最后一次修改未能保存。恢复前请打开编辑器检查。",
+    "flushFailedDismiss": "关闭",
+    "source": {
+      "editor": "已编辑",
+      "initial": "原始版本",
+      "external": "系统更新",
+      "restore": "已恢复",
+      "page_deleted": "页面已删除"
+    },
+    "summary": {
+      "blocksAdded": "{count, plural, other {添加了 # 个区块}}",
+      "blocksRemoved": "{count, plural, other {移除了 # 个区块}}",
+      "blocksEdited": "{count, plural, other {编辑了 # 个区块}}",
+      "blockAdded": "添加了{name}",
+      "blockRemoved": "移除了{name}",
+      "blockEdited": "编辑了{name}",
+      "reordered": "区块已重新排序",
+      "designChanged": "设计已更改",
+      "pageSettingsChanged": "页面设置已更改"
+    },
+    "actions": {
+      "title": "版本",
+      "preview": "预览",
+      "compare": "查看修改",
+      "restore": "恢复此版本",
+      "restoreBlock": "恢复一个区块",
+      "restorePage": "恢复页面",
+      "pageRestored": "页面已恢复",
+      "pin": "固定此版本",
+      "rename": "重命名",
+      "unpin": "取消固定"
+    },
+    "preview": {
+      "title": "预览",
+      "failed": "无法加载此版本"
+    },
+    "compare": {
+      "title": "修改内容",
+      "before": "之前",
+      "after": "之后",
+      "empty": "没有可对比的内容——这是此页面的第一个记录状态。",
+      "reordered": "区块已重新排序",
+      "orderBefore": "之前的顺序",
+      "orderAfter": "之后的顺序",
+      "settings": "设计设置",
+      "added": "已添加",
+      "removed": "已移除",
+      "edited": "已编辑",
+      "none": "（无）",
+      "failed": "无法加载修改内容"
+    },
+    "blocks": {
+      "title": "恢复一个区块",
+      "hint": "选择要还原的区块。其他内容保持现状。",
+      "bringBack": "还原",
+      "undoEdit": "撤销此次编辑",
+      "restore": "恢复",
+      "noPrevious": "此区块没有更早的版本"
+    },
+    "restore": {
+      "title": "恢复此版本？",
+      "message": "要恢复{page}的此版本吗？当前版本会保留在历史中，可以再次恢复。",
+      "notRestored": "不会恢复：",
+      "keepUrl": "网站的 URL 名称",
+      "keepPage": "子页面的 URL 名称、列表名称、顺序和可见性",
+      "keepOther": "预约服务、已连接账户、自定义域名、临时跳转、套餐和横幅",
+      "confirm": "恢复",
+      "done": "版本已恢复",
+      "unchanged": "此版本已经是当前版本。",
+      "invalid": "此版本已无法恢复。",
+      "deletedPage": "此页面已被删除，请改用“恢复页面”。"
+    },
+    "block": {
+      "title": "恢复此区块？",
+      "message": "要把{block}还原为此版本中的样子吗？其他内容保持现状。",
+      "undoMessage": "要撤销对{block}的修改吗？它将恢复到此版本之前的样子。",
+      "confirm": "恢复区块",
+      "done": "区块已恢复",
+      "notFound": "该版本中没有此区块。"
+    },
+    "restorePage": {
+      "title": "恢复此页面？",
+      "message": "要以最后的内容恢复页面“{page}”吗？它会被添加到页面列表末尾。",
+      "confirm": "恢复页面",
+      "done": "页面已恢复至 /{url}",
+      "conflict": "无法恢复此页面：它已被恢复，或其地址已被占用。"
+    },
+    "pin": {
+      "title": "为此版本命名",
+      "renameTitle": "重命名此版本",
+      "hint": "命名版本会永久保留，且不会与后续编辑合并。",
+      "label": "名称",
+      "placeholder": "例如：改版前",
+      "limit": "最多可保留 10 个命名版本。请先取消固定一个。",
+      "done": "版本已固定",
+      "renamed": "版本已重命名",
+      "unpinTitle": "取消固定此版本？",
+      "unpinMessage": "它将重新计入最近 300 次修改。如果比这些更早，会立即被删除。",
+      "unpin": "取消固定",
+      "unpinned": "已取消固定"
+    }
   }
 }

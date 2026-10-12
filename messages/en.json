@@ -1828,5 +1828,128 @@
     "unavailable": "Temporarily unavailable, please try later",
     "until": "Until",
     "yourLinks": "Your links"
+  },
+  "history": {
+    "title": "Change history",
+    "subtitle": "Every saved change to this website. Preview, compare and restore any version.",
+    "tabAll": "All changes",
+    "tabPinned": "Pinned",
+    "pageFilter": "Page",
+    "allPages": "All pages",
+    "home": "Home",
+    "page": "Page",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "you": "You",
+    "company": "Company account",
+    "support": "QShot support",
+    "saves": "{count, plural, one {# save} other {# saves}}",
+    "empty": "No changes recorded yet. Edit your website and every save will appear here.",
+    "emptyPinned": "No named versions yet. Pin a version to keep it forever.",
+    "loadMore": "Load more",
+    "cantView": "You can't view this website's history",
+    "notFound": "This version no longer exists. The list has been refreshed.",
+    "network": "Couldn't reach the server. Check your connection and try again.",
+    "flushFailed": "Your last edit could not be saved. Open the editor to check it before restoring.",
+    "flushFailedDismiss": "Dismiss",
+    "source": {
+      "editor": "Edited",
+      "initial": "Original version",
+      "external": "Updated by the system",
+      "restore": "Restored",
+      "page_deleted": "Page deleted"
+    },
+    "summary": {
+      "blocksAdded": "{count, plural, one {# block added} other {# blocks added}}",
+      "blocksRemoved": "{count, plural, one {# block removed} other {# blocks removed}}",
+      "blocksEdited": "{count, plural, one {# block edited} other {# blocks edited}}",
+      "blockAdded": "{name} added",
+      "blockRemoved": "{name} removed",
+      "blockEdited": "{name} edited",
+      "reordered": "Blocks reordered",
+      "designChanged": "Design changed",
+      "pageSettingsChanged": "Page settings changed"
+    },
+    "actions": {
+      "title": "Version",
+      "preview": "Preview",
+      "compare": "See changes",
+      "restore": "Restore this version",
+      "restoreBlock": "Restore a block",
+      "restorePage": "Restore page",
+      "pageRestored": "Page already restored",
+      "pin": "Pin this version",
+      "rename": "Rename",
+      "unpin": "Unpin"
+    },
+    "preview": {
+      "title": "Preview",
+      "failed": "Couldn't load this version"
+    },
+    "compare": {
+      "title": "Changes",
+      "before": "Before",
+      "after": "After",
+      "empty": "Nothing to compare — this is the first recorded state of this page.",
+      "reordered": "Blocks reordered",
+      "orderBefore": "Order before",
+      "orderAfter": "Order after",
+      "settings": "Design settings",
+      "added": "Added",
+      "removed": "Removed",
+      "edited": "Edited",
+      "none": "(none)",
+      "failed": "Couldn't load the changes"
+    },
+    "blocks": {
+      "title": "Restore a block",
+      "hint": "Pick the block to put back. Everything else stays as it is now.",
+      "bringBack": "Bring back",
+      "undoEdit": "Undo this edit",
+      "restore": "Restore",
+      "noPrevious": "No earlier version of this block"
+    },
+    "restore": {
+      "title": "Restore this version?",
+      "message": "Restore this version of {page}? Your current version stays in the history and can be restored again.",
+      "notRestored": "Not restored:",
+      "keepUrl": "the website's URL name",
+      "keepPage": "sub-page URL names, list names, order and visibility",
+      "keepOther": "booking services, connected accounts, custom domains, temporary redirects, plan and banner",
+      "confirm": "Restore",
+      "done": "Version restored",
+      "unchanged": "This version is already the current one.",
+      "invalid": "This version can no longer be restored.",
+      "deletedPage": "This page was deleted. Use Restore page instead."
+    },
+    "block": {
+      "title": "Restore this block?",
+      "message": "Put {block} back as it was in this version? Everything else stays as it is now.",
+      "undoMessage": "Undo the change to {block}? It goes back to how it was before this version.",
+      "confirm": "Restore block",
+      "done": "Block restored",
+      "notFound": "This block isn't in that version."
+    },
+    "restorePage": {
+      "title": "Restore this page?",
+      "message": "Bring back the page \"{page}\" with its last content? It is added at the end of your pages.",
+      "confirm": "Restore page",
+      "done": "Page restored at /{url}",
+      "conflict": "This page could not be restored: it was already restored or its address is taken."
+    },
+    "pin": {
+      "title": "Name this version",
+      "renameTitle": "Rename this version",
+      "hint": "Named versions are kept forever and never fold into later edits.",
+      "label": "Name",
+      "placeholder": "e.g. Before redesign",
+      "limit": "You can keep up to 10 named versions. Unpin one first.",
+      "done": "Version pinned",
+      "renamed": "Version renamed",
+      "unpinTitle": "Unpin this version?",
+      "unpinMessage": "It will count toward the newest 300 changes again. If it is older than those, it is removed right away.",
+      "unpin": "Unpin",
+      "unpinned": "Version unpinned"
+    }
   }
 }

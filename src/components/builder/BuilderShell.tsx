@@ -46,6 +46,8 @@ import { findIncompleteBlocks, findUnknownBlocks } from "@/lib/builder/validate"
 import { catalogByType } from "@/lib/builder/catalog";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { takeAiDraft, type AiDraft } from "@/lib/ai/draft-handoff";
+import { trackPendingSave, type SaveOutcome } from "@/lib/builder/pending-save";
+import type { WebsiteSettings } from "@/lib/types/profile";
 import { BuilderDesktop } from "./BuilderDesktop";
 import type { Block } from "@/lib/types/blocks";
 import { AddBlockMenu } from "./AddBlockMenu";
@@ -64,6 +66,23 @@ import { TEMPLATES_ENABLED } from "@/lib/builder/feature-flags";
 
 import { siteUrl } from "@/lib/site-domain";
 type Panel = "home" | "pages" | "style" | "settings";
+
+/** The content a save writes, taken from the store by reference. */
+interface Snapshot {
+  blocks: Block[];
+  settings: WebsiteSettings;
+  name: string;
+  pageId: string | null;
+}
+
+function snapshotOf(s: Snapshot): Snapshot {
+  return { blocks: s.blocks, settings: s.settings, name: s.name, pageId: s.pageId };
+}
+
+/** Every store mutation builds new arrays/objects, so identity = unchanged. */
+function sameContent(a: Snapshot, b: Snapshot): boolean {
+  return a.blocks === b.blocks && a.settings === b.settings && a.name === b.name && a.pageId === b.pageId;
+}
 
 // Seed shown for a brand-new profile so the canvas is never empty. Uses the real
 // mobile block `type` values + a JSON-encoded Quill Delta for the paragraph.
@@ -177,8 +196,23 @@ export function BuilderShell({
       .replace(/[^a-z0-9-]/g, "") || "me";
   const profileUrl = siteUrl(slug);
 
+  // The id whose content the store holds — set only once a load path has
+  // populated the store for THIS mount. The unmount flush below checks it, so
+  // a flush can never write a store that still holds nothing or another site.
+  const loadedForRef = useRef<string | null>(null);
+
   useEffect(() => {
     let active = true;
+    loadedForRef.current = null;
+    // The synchronous load paths mark the store "loaded" a tick later: React
+    // StrictMode's simulated unmount runs in the same tick as the mount, and
+    // it must never see a loaded store and flush it.
+    let markHandle: ReturnType<typeof setTimeout> | undefined;
+    const markLoadedSoon = () => {
+      markHandle = setTimeout(() => {
+        if (active) loadedForRef.current = id;
+      }, 0);
+    };
 
     // Mobile WebsiteEditorCubit prefetches the booking tree FRESH when the
     // editor opens (§5.2): drop any tree cached from an earlier visit so the
@@ -197,9 +231,14 @@ export function BuilderShell({
         blocks: draft.blocks,
         dirty: id !== "new",
       });
+      markLoadedSoon();
       // Deferred a tick — react-hooks/set-state-in-effect.
       const t = setTimeout(() => setLoading(false), 0);
-      return () => clearTimeout(t);
+      return () => {
+        active = false;
+        clearTimeout(t);
+        clearTimeout(markHandle);
+      };
     }
 
     // Admin mode: load ANY profile via the admin `show` endpoint (raw payload →
@@ -228,6 +267,7 @@ export function BuilderShell({
             : fillDefaults("style2", { websiteName: adminName }),
           blocks: rawBlocks.length ? parseBlocks(rawBlocks) : demoBlocks(),
         });
+        loadedForRef.current = id;
         setLoading(false);
       })();
       return () => {
@@ -244,7 +284,11 @@ export function BuilderShell({
         settings: fillDefaults("style2", { websiteName: "My profile" }),
         blocks: [],
       });
-      return;
+      markLoadedSoon();
+      return () => {
+        active = false;
+        clearTimeout(markHandle);
+      };
     }
     (async () => {
       let profile = null;
@@ -267,6 +311,7 @@ export function BuilderShell({
           (profile?.settings?.modules as Block[] | undefined) ??
           demoBlocks(),
       });
+      loadedForRef.current = id;
       setLoading(false);
     })();
     return () => {
@@ -303,104 +348,166 @@ export function BuilderShell({
     return () => clearTimeout(h);
   }, [templateUndo]);
 
-  // The actual save — shared by the debounced auto-save and the manual button.
-  const doSave = useCallback(async () => {
-    // The server validates the whole document (schemaVersion 2.0.0 — NOT our
-    // docs copy, see docs/for validation/DELTA-deployed-2.0.0-vs-our-copy.md)
-    // and rejects it wholesale. An unsupported block type is one violation we
-    // can still be holding (we keep unknown blocks verbatim rather than
-    // destroying them) — name it instead of firing a doomed request.
-    const unknown = findUnknownBlocks(blocks);
-    if (unknown.length) {
-      setToast({
-        text: t("unsupportedBlock", {
-          position: unknown[0].index + 1,
-          type: unknown[0].type,
-        }),
-        error: true,
-      });
-      return;
-    }
-    // Blocks the builder lets you add empty (Embed, Introduction video) but the
-    // server requires filled in. Name the block and the missing field locally
-    // rather than firing a request that can only come back as a 422.
-    const incomplete = findIncompleteBlocks(blocks);
-    if (incomplete.length) {
-      setToast({
-        text: t(incomplete[0].messageKey, { position: incomplete[0].index + 1 }),
-        error: true,
-      });
-      return;
-    }
-    setSaving(true);
-    try {
-      // Admin mode: persist the whole profile via the admin `update` endpoint —
-      // NEVER the user `edit` endpoint (which 400s on a profile you don't own).
-      if (adminName) {
-        const saveId = adminIdRef.current ?? adminProfileId ?? null;
-        if (!saveId) throw new Error("admin_no_profile_id");
-        await updateAdminProfile({
-          id: saveId,
-          name,
-          info: { modules: serializeBlocks(blocks) },
-          settings: serializeSettings(settings) as Record<string, unknown>,
-        });
-      }
-      // Sub-page edits save only blocks (update-info); home saves the profile.
-      else if (pageId) await savePageBlocks(pageId, blocks);
-      else await saveProfile(id, name, blocks, settings);
-      markSaved();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1500);
-      setToast({ text: t("saved") });
-    } catch (e) {
-      // A 422 carries the server's schema-validation report: exactly which
-      // pointer inside the document is wrong and why. Surface it instead of
-      // collapsing everything into "something went wrong".
-      const failure = await readSchemaValidationFailure(e);
-      if (!failure) {
-        // Anything else — offline, timeout, 401 (the client already logged the
-        // user out), a non-JSON 4xx — keeps the previous generic message.
-        console.error("[qshot] profile save failed", e);
-        setToast({ text: tc("genericError"), error: true });
-        return;
-      }
-      // The full structured report is for us; the toast can only carry one issue.
-      console.error(
-        `[qshot] save rejected by the server schema validator` +
-          ` (schemaVersion ${failure.schemaVersion ?? "?"}, target ${failure.target ?? "?"})`,
-        { summary: failure.message, errors: failure.errors, body: failure.raw },
-      );
+  // The unmount flush may land after this component is gone: its toasts and
+  // spinner must not be set on an unmounted tree.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+  // The save in flight, if any — one request at a time (see `doSave`) — and
+  // the snapshot it is writing, so the unmount flush can tell "that request
+  // already carries the page" from "the page changed since".
+  const inFlightRef = useRef<Promise<SaveOutcome> | null>(null);
+  const inFlightSnapRef = useRef<Snapshot | null>(null);
 
-      const first = failure.errors[0];
-      const issue = first ? decodeSchemaIssue(first) : null;
-      // "links/0/icon: unknown field \"icon\" is not allowed" — pointer inside
-      // the block first, then the server's own words.
-      const reason =
-        (issue ? [issue.where, issue.message].filter(Boolean).join(": ") : "") ||
-        failure.message ||
-        tc("genericError");
-      let text: string;
-      if (issue?.blockPosition != null) {
-        const type = (blocks[issue.blockPosition - 1] as Block | undefined)?.type;
-        const labelKey = type ? catalogByType[type]?.labelKey : undefined;
-        text = t("saveRejectedBlock", {
-          position: issue.blockPosition,
-          // Prefer the block's display name; fall back to the raw type.
-          block: labelKey ? tb(labelKey) : (type ?? "?"),
-          reason,
+  // One save of ONE snapshot of the page: the pre-save checks, the route, the
+  // server's schema report. It reads nothing from the store, so the unmount
+  // flush can hand it the content exactly as it was when the user left.
+  const saveOnce = useCallback(
+    async (snap: Snapshot): Promise<SaveOutcome> => {
+      const { blocks, settings, name, pageId } = snap;
+      const toast = (next: { text: string; error?: boolean }) => {
+        if (mountedRef.current) setToast(next);
+      };
+      // The server validates the whole document (schemaVersion 2.0.0 — NOT our
+      // docs copy, see docs/for validation/DELTA-deployed-2.0.0-vs-our-copy.md)
+      // and rejects it wholesale. An unsupported block type is one violation we
+      // can still be holding (we keep unknown blocks verbatim rather than
+      // destroying them) — name it instead of firing a doomed request.
+      const unknown = findUnknownBlocks(blocks);
+      if (unknown.length) {
+        toast({
+          text: t("unsupportedBlock", {
+            position: unknown[0].index + 1,
+            type: unknown[0].type,
+          }),
+          error: true,
         });
-      } else {
-        text = t("saveRejected", { reason });
+        return "refused";
       }
-      if (failure.errors.length > 1) {
-        text += ` ${t("saveRejectedMore", { count: failure.errors.length - 1 })}`;
+      // Blocks the builder lets you add empty (Embed, Introduction video) but the
+      // server requires filled in. Name the block and the missing field locally
+      // rather than firing a request that can only come back as a 422.
+      const incomplete = findIncompleteBlocks(blocks);
+      if (incomplete.length) {
+        toast({
+          text: t(incomplete[0].messageKey, { position: incomplete[0].index + 1 }),
+          error: true,
+        });
+        return "refused";
       }
-      setToast({ text, error: true });
-    } finally {
-      setSaving(false);
-    }
-  }, [pageId, blocks, id, name, settings, markSaved, t, tb, tc, adminName, adminProfileId]);
+      try {
+        // Admin mode: persist the whole profile via the admin `update` endpoint —
+        // NEVER the user `edit` endpoint (which 400s on a profile you don't own).
+        if (adminName) {
+          const saveId = adminIdRef.current ?? adminProfileId ?? null;
+          if (!saveId) throw new Error("admin_no_profile_id");
+          await updateAdminProfile({
+            id: saveId,
+            name,
+            info: { modules: serializeBlocks(blocks) },
+            settings: serializeSettings(settings) as Record<string, unknown>,
+          });
+        }
+        // Sub-page edits save only blocks (update-info); home saves the profile.
+        else if (pageId) await savePageBlocks(pageId, blocks);
+        else await saveProfile(id, name, blocks, settings);
+        if (mountedRef.current) {
+          setSaved(true);
+          setTimeout(() => setSaved(false), 1500);
+          setToast({ text: t("saved") });
+        }
+        return "saved";
+      } catch (e) {
+        // A 422 carries the server's schema-validation report: exactly which
+        // pointer inside the document is wrong and why. Surface it instead of
+        // collapsing everything into "something went wrong".
+        const failure = await readSchemaValidationFailure(e);
+        if (!failure) {
+          // Anything else — offline, timeout, 401 (the client already logged the
+          // user out), a non-JSON 4xx — keeps the previous generic message.
+          console.error("[qshot] profile save failed", e);
+          toast({ text: tc("genericError"), error: true });
+          return "failed";
+        }
+        // The full structured report is for us; the toast can only carry one issue.
+        console.error(
+          `[qshot] save rejected by the server schema validator` +
+            ` (schemaVersion ${failure.schemaVersion ?? "?"}, target ${failure.target ?? "?"})`,
+          { summary: failure.message, errors: failure.errors, body: failure.raw },
+        );
+
+        const first = failure.errors[0];
+        const issue = first ? decodeSchemaIssue(first) : null;
+        // "links/0/icon: unknown field \"icon\" is not allowed" — pointer inside
+        // the block first, then the server's own words.
+        const reason =
+          (issue ? [issue.where, issue.message].filter(Boolean).join(": ") : "") ||
+          failure.message ||
+          tc("genericError");
+        let text: string;
+        if (issue?.blockPosition != null) {
+          const type = (blocks[issue.blockPosition - 1] as Block | undefined)?.type;
+          const labelKey = type ? catalogByType[type]?.labelKey : undefined;
+          text = t("saveRejectedBlock", {
+            position: issue.blockPosition,
+            // Prefer the block's display name; fall back to the raw type.
+            block: labelKey ? tb(labelKey) : (type ?? "?"),
+            reason,
+          });
+        } else {
+          text = t("saveRejected", { reason });
+        }
+        if (failure.errors.length > 1) {
+          text += ` ${t("saveRejectedMore", { count: failure.errors.length - 1 })}`;
+        }
+        toast({ text, error: true });
+        return "failed";
+      }
+    },
+    [id, t, tb, tc, adminName, adminProfileId],
+  );
+
+  // The save the debounce and the Save button call. It reads the page from
+  // the store at call time, never from a render closure, and runs ONE request
+  // at a time: a call during a request returns that request's promise. When a
+  // request lands the page is re-read and, if it changed meanwhile and is
+  // still dirty, saved again — so no edit made during a request is lost, and
+  // `dirty` is cleared only when the snapshot that was saved still IS the page.
+  const doSave = useCallback((): Promise<SaveOutcome> => {
+    if (inFlightRef.current) return inFlightRef.current;
+    let run: Promise<SaveOutcome> | null = null;
+    run = (async (): Promise<SaveOutcome> => {
+      if (mountedRef.current) setSaving(true);
+      try {
+        for (;;) {
+          const snap = snapshotOf(useEditorStore.getState());
+          inFlightSnapRef.current = snap;
+          const outcome = await saveOnce(snap);
+          if (outcome !== "saved") return outcome;
+          const now = useEditorStore.getState();
+          if (sameContent(snap, now)) {
+            markSaved();
+            return outcome;
+          }
+          // Changed while saving. Dirty → save the newer page; not dirty → a
+          // page switch or the unmount reset, nothing of ours is left to save.
+          if (!now.dirty) return outcome;
+        }
+      } finally {
+        if (inFlightRef.current === run) {
+          inFlightRef.current = null;
+          inFlightSnapRef.current = null;
+        }
+        if (mountedRef.current) setSaving(false);
+      }
+    })();
+    inFlightRef.current = run;
+    return run;
+  }, [saveOnce, markSaved]);
 
   // Manual save — runs immediately (markSaved clears `dirty`, which cancels any
   // pending debounced save via the effect cleanup below). Safe even while the
@@ -413,12 +520,49 @@ export function BuilderShell({
   // Debounced silent auto-save (mirrors the mobile app's auto-save). No pause
   // for the Theme sheet anymore: previews go through `previewOverlay` and never
   // touch the saved fields — the old pause papered over the leak the overlay
-  // now closes structurally.
+  // now closes structurally. `blocks` / `settings` / `name` are deps so every
+  // edit restarts the 1.5s timer (debounce since the LAST change).
   useEffect(() => {
     if (!dirty) return;
     const handle = setTimeout(() => void doSave(), 1500);
     return () => clearTimeout(handle);
-  }, [dirty, doSave]);
+  }, [dirty, blocks, settings, name, doSave]);
+
+  // Leaving the builder (History, Analytics, Messages, the dashboard), or
+  // switching to another site's id, with an edit still inside the debounce:
+  // the effect above only CANCELS its timer, which would silently drop that
+  // edit. Flush it instead — with the page as it is NOW, after any request
+  // already in flight — and track it so a restore started on the next screen
+  // waits for it (docs/profile-history-api-contract.md §7.1). Then wipe the
+  // store, so a stale `dirty` or this site's blocks can never leak into the
+  // next builder mount (slow load + first-render debounce = site A saved into
+  // site B). Only a store that was loaded for THIS id is flushed; the load
+  // effect re-populates the store after a StrictMode simulated unmount.
+  const saveOnceRef = useRef(saveOnce);
+  useEffect(() => {
+    saveOnceRef.current = saveOnce;
+  }, [saveOnce]);
+  useEffect(
+    () => () => {
+      const store = useEditorStore.getState();
+      const inFlight = inFlightRef.current;
+      const inFlightSnap = inFlightSnapRef.current;
+      let pending: Promise<SaveOutcome> | null = inFlight;
+      if (loadedForRef.current === id && store.dirty) {
+        const snap = snapshotOf(store);
+        if (!inFlight) pending = saveOnceRef.current(snap);
+        else if (!inFlightSnap || !sameContent(inFlightSnap, snap)) {
+          // Edited during the request: save the newer page once it lands.
+          pending = inFlight.then(() => saveOnceRef.current(snap));
+        }
+        // else: the request in flight already carries exactly this page.
+      }
+      if (pending) trackPendingSave(pending);
+      loadedForRef.current = null;
+      store.reset();
+    },
+    [id],
+  );
 
   // Auto-dismiss the toast. Errors quote the server and need reading time.
   useEffect(() => {

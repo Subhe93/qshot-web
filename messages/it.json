@@ -1828,5 +1828,128 @@
     "unavailable": "Temporaneamente non disponibile, riprova più tardi",
     "until": "Fino a",
     "yourLinks": "I tuoi link"
+  },
+  "history": {
+    "title": "Cronologia modifiche",
+    "subtitle": "Ogni modifica salvata di questo sito. Visualizza, confronta e ripristina qualsiasi versione.",
+    "tabAll": "Tutte",
+    "tabPinned": "Fissate",
+    "pageFilter": "Pagina",
+    "allPages": "Tutte le pagine",
+    "home": "Home",
+    "page": "Pagina",
+    "today": "Oggi",
+    "yesterday": "Ieri",
+    "you": "Tu",
+    "company": "Account aziendale",
+    "support": "Assistenza QShot",
+    "saves": "{count, plural, one {# salvataggio} other {# salvataggi}}",
+    "empty": "Nessuna modifica registrata finora. Modifica il tuo sito e ogni salvataggio apparirà qui.",
+    "emptyPinned": "Nessuna versione con nome finora. Fissa una versione per conservarla per sempre.",
+    "loadMore": "Carica altro",
+    "cantView": "Non puoi vedere la cronologia di questo sito",
+    "notFound": "Questa versione non esiste più. L'elenco è stato aggiornato.",
+    "network": "Impossibile raggiungere il server. Controlla la connessione e riprova.",
+    "flushFailed": "L'ultima modifica non è stata salvata. Apri l'editor per controllarla prima di ripristinare.",
+    "flushFailedDismiss": "Chiudi",
+    "source": {
+      "editor": "Modificato",
+      "initial": "Versione originale",
+      "external": "Aggiornato dal sistema",
+      "restore": "Ripristinato",
+      "page_deleted": "Pagina eliminata"
+    },
+    "summary": {
+      "blocksAdded": "{count, plural, one {# blocco aggiunto} other {# blocchi aggiunti}}",
+      "blocksRemoved": "{count, plural, one {# blocco rimosso} other {# blocchi rimossi}}",
+      "blocksEdited": "{count, plural, one {# blocco modificato} other {# blocchi modificati}}",
+      "blockAdded": "{name} aggiunto",
+      "blockRemoved": "{name} rimosso",
+      "blockEdited": "{name} modificato",
+      "reordered": "Blocchi riordinati",
+      "designChanged": "Design modificato",
+      "pageSettingsChanged": "Impostazioni pagina modificate"
+    },
+    "actions": {
+      "title": "Versione",
+      "preview": "Anteprima",
+      "compare": "Vedi modifiche",
+      "restore": "Ripristina questa versione",
+      "restoreBlock": "Ripristina un blocco",
+      "restorePage": "Ripristina pagina",
+      "pageRestored": "Pagina già ripristinata",
+      "pin": "Fissa questa versione",
+      "rename": "Rinomina",
+      "unpin": "Sblocca"
+    },
+    "preview": {
+      "title": "Anteprima",
+      "failed": "Impossibile caricare questa versione"
+    },
+    "compare": {
+      "title": "Modifiche",
+      "before": "Prima",
+      "after": "Dopo",
+      "empty": "Niente da confrontare: è il primo stato registrato di questa pagina.",
+      "reordered": "Blocchi riordinati",
+      "orderBefore": "Ordine prima",
+      "orderAfter": "Ordine dopo",
+      "settings": "Impostazioni design",
+      "added": "Aggiunto",
+      "removed": "Rimosso",
+      "edited": "Modificato",
+      "none": "(nessuno)",
+      "failed": "Impossibile caricare le modifiche"
+    },
+    "blocks": {
+      "title": "Ripristina un blocco",
+      "hint": "Scegli il blocco da rimettere. Tutto il resto resta com'è ora.",
+      "bringBack": "Rimetti",
+      "undoEdit": "Annulla questa modifica",
+      "restore": "Ripristina",
+      "noPrevious": "Nessuna versione precedente di questo blocco"
+    },
+    "restore": {
+      "title": "Ripristinare questa versione?",
+      "message": "Ripristinare questa versione di {page}? La versione attuale resta nella cronologia e può essere ripristinata di nuovo.",
+      "notRestored": "Non ripristinati:",
+      "keepUrl": "il nome URL del sito",
+      "keepPage": "URL, nomi, ordine e visibilità delle sottopagine",
+      "keepOther": "servizi di prenotazione, account collegati, domini personalizzati, reindirizzamenti temporanei, piano e banner",
+      "confirm": "Ripristina",
+      "done": "Versione ripristinata",
+      "unchanged": "Questa versione è già quella attuale.",
+      "invalid": "Questa versione non può più essere ripristinata.",
+      "deletedPage": "Questa pagina è stata eliminata. Usa «Ripristina pagina»."
+    },
+    "block": {
+      "title": "Ripristinare questo blocco?",
+      "message": "Rimettere {block} com'era in questa versione? Tutto il resto resta com'è ora.",
+      "undoMessage": "Annullare la modifica a {block}? Tornerà com'era prima di questa versione.",
+      "confirm": "Ripristina blocco",
+      "done": "Blocco ripristinato",
+      "notFound": "Questo blocco non è in quella versione."
+    },
+    "restorePage": {
+      "title": "Ripristinare questa pagina?",
+      "message": "Rimettere la pagina «{page}» con il suo ultimo contenuto? Sarà aggiunta alla fine delle tue pagine.",
+      "confirm": "Ripristina pagina",
+      "done": "Pagina ripristinata su /{url}",
+      "conflict": "Impossibile ripristinare questa pagina: è già stata ripristinata o il suo indirizzo è occupato."
+    },
+    "pin": {
+      "title": "Dai un nome a questa versione",
+      "renameTitle": "Rinomina questa versione",
+      "hint": "Le versioni con nome sono conservate per sempre e non si uniscono alle modifiche successive.",
+      "label": "Nome",
+      "placeholder": "es. Prima del restyling",
+      "limit": "Puoi conservare fino a 10 versioni con nome. Sbloccane una prima.",
+      "done": "Versione fissata",
+      "renamed": "Versione rinominata",
+      "unpinTitle": "Sbloccare questa versione?",
+      "unpinMessage": "Tornerà a contare tra le ultime 300 modifiche. Se è più vecchia, viene rimossa subito.",
+      "unpin": "Sblocca",
+      "unpinned": "Versione sbloccata"
+    }
   }
 }

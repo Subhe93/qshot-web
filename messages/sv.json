@@ -1828,5 +1828,128 @@
     "unavailable": "Tillfälligt otillgängligt, försök igen senare",
     "until": "Till",
     "yourLinks": "Dina länkar"
+  },
+  "history": {
+    "title": "Ändringshistorik",
+    "subtitle": "Varje sparad ändring på den här webbplatsen. Förhandsgranska, jämför och återställ valfri version.",
+    "tabAll": "Alla ändringar",
+    "tabPinned": "Fästa",
+    "pageFilter": "Sida",
+    "allPages": "Alla sidor",
+    "home": "Hem",
+    "page": "Sida",
+    "today": "I dag",
+    "yesterday": "I går",
+    "you": "Du",
+    "company": "Företagskonto",
+    "support": "QShot-support",
+    "saves": "{count, plural, one {# sparning} other {# sparningar}}",
+    "empty": "Inga ändringar har registrerats än. Redigera din webbplats så visas varje sparning här.",
+    "emptyPinned": "Inga namngivna versioner än. Fäst en version för att behålla den för alltid.",
+    "loadMore": "Läs in fler",
+    "cantView": "Du kan inte se den här webbplatsens historik",
+    "notFound": "Den här versionen finns inte längre. Listan har uppdaterats.",
+    "network": "Kunde inte nå servern. Kontrollera anslutningen och försök igen.",
+    "flushFailed": "Din senaste ändring kunde inte sparas. Öppna redigeraren och kontrollera den innan du återställer.",
+    "flushFailedDismiss": "Stäng",
+    "source": {
+      "editor": "Redigerad",
+      "initial": "Ursprunglig version",
+      "external": "Uppdaterad av systemet",
+      "restore": "Återställd",
+      "page_deleted": "Sida raderad"
+    },
+    "summary": {
+      "blocksAdded": "{count, plural, one {# block tillagt} other {# block tillagda}}",
+      "blocksRemoved": "{count, plural, one {# block borttaget} other {# block borttagna}}",
+      "blocksEdited": "{count, plural, one {# block redigerat} other {# block redigerade}}",
+      "blockAdded": "{name} tillagd",
+      "blockRemoved": "{name} borttagen",
+      "blockEdited": "{name} redigerad",
+      "reordered": "Block omordnade",
+      "designChanged": "Design ändrad",
+      "pageSettingsChanged": "Sidinställningar ändrade"
+    },
+    "actions": {
+      "title": "Version",
+      "preview": "Förhandsgranska",
+      "compare": "Visa ändringar",
+      "restore": "Återställ den här versionen",
+      "restoreBlock": "Återställ ett block",
+      "restorePage": "Återställ sida",
+      "pageRestored": "Sidan är redan återställd",
+      "pin": "Fäst den här versionen",
+      "rename": "Byt namn",
+      "unpin": "Lossa"
+    },
+    "preview": {
+      "title": "Förhandsgranskning",
+      "failed": "Kunde inte läsa in den här versionen"
+    },
+    "compare": {
+      "title": "Ändringar",
+      "before": "Före",
+      "after": "Efter",
+      "empty": "Inget att jämföra – det här är sidans första registrerade tillstånd.",
+      "reordered": "Block omordnade",
+      "orderBefore": "Ordning före",
+      "orderAfter": "Ordning efter",
+      "settings": "Designinställningar",
+      "added": "Tillagt",
+      "removed": "Borttaget",
+      "edited": "Redigerat",
+      "none": "(inget)",
+      "failed": "Kunde inte läsa in ändringarna"
+    },
+    "blocks": {
+      "title": "Återställ ett block",
+      "hint": "Välj blocket som ska sättas tillbaka. Allt annat förblir som nu.",
+      "bringBack": "Sätt tillbaka",
+      "undoEdit": "Ångra den här ändringen",
+      "restore": "Återställ",
+      "noPrevious": "Ingen tidigare version av det här blocket"
+    },
+    "restore": {
+      "title": "Återställa den här versionen?",
+      "message": "Återställa den här versionen av {page}? Din nuvarande version stannar i historiken och kan återställas igen.",
+      "notRestored": "Återställs inte:",
+      "keepUrl": "webbplatsens URL-namn",
+      "keepPage": "undersidornas URL-namn, listnamn, ordning och synlighet",
+      "keepOther": "bokningstjänster, anslutna konton, egna domäner, tillfälliga omdirigeringar, plan och banner",
+      "confirm": "Återställ",
+      "done": "Version återställd",
+      "unchanged": "Den här versionen är redan den aktuella.",
+      "invalid": "Den här versionen kan inte längre återställas.",
+      "deletedPage": "Den här sidan har raderats. Använd ”Återställ sida” i stället."
+    },
+    "block": {
+      "title": "Återställa det här blocket?",
+      "message": "Sätta tillbaka {block} som det var i den här versionen? Allt annat förblir som nu.",
+      "undoMessage": "Ångra ändringen av {block}? Det återgår till hur det var före den här versionen.",
+      "confirm": "Återställ block",
+      "done": "Block återställt",
+      "notFound": "Det här blocket finns inte i den versionen."
+    },
+    "restorePage": {
+      "title": "Återställa den här sidan?",
+      "message": "Ta tillbaka sidan ”{page}” med dess senaste innehåll? Den läggs sist bland dina sidor.",
+      "confirm": "Återställ sida",
+      "done": "Sidan återställd på /{url}",
+      "conflict": "Sidan kunde inte återställas: den är redan återställd eller så är adressen upptagen."
+    },
+    "pin": {
+      "title": "Namnge den här versionen",
+      "renameTitle": "Byt namn på versionen",
+      "hint": "Namngivna versioner behålls för alltid och slås aldrig ihop med senare ändringar.",
+      "label": "Namn",
+      "placeholder": "t.ex. Före omdesign",
+      "limit": "Du kan behålla upp till 10 namngivna versioner. Lossa en först.",
+      "done": "Version fäst",
+      "renamed": "Versionen har bytt namn",
+      "unpinTitle": "Lossa den här versionen?",
+      "unpinMessage": "Den räknas igen bland de 300 senaste ändringarna. Är den äldre än dem tas den bort direkt.",
+      "unpin": "Lossa",
+      "unpinned": "Version lossad"
+    }
   }
 }

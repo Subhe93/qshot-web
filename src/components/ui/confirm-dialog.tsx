@@ -34,7 +34,8 @@ export function ConfirmDialog({
 }: {
   open: boolean;
   title: string;
-  message: string;
+  /** A sentence, or structured content (e.g. a sentence plus a bullet list). */
+  message: React.ReactNode;
   confirmText: string;
   /** Omit for an acknowledge-only dialog (confirm button spans the row). */
   cancelText?: string;
@@ -81,9 +82,9 @@ export function ConfirmDialog({
         </div>
 
         {/* Message */}
-        <p className="px-5 pt-5 text-center text-sm font-medium text-muted-foreground">
+        <div className="px-5 pt-5 text-center text-sm font-medium text-muted-foreground">
           {message}
-        </p>
+        </div>
 
         {/* Actions */}
         <div className="flex gap-3 p-4">

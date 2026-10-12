@@ -29,6 +29,7 @@ import {
   Globe,
   Languages,
   Lock,
+  History,
 } from "lucide-react";
 import { useEditorStore } from "@/stores/editor-store";
 import { useRouter } from "@/i18n/navigation";
@@ -101,6 +102,7 @@ export function WebsiteSettingsPanel() {
   const t = useTranslations("builder.websiteSettings");
   const tc = useTranslations("common");
   const ta = useTranslations("admin");
+  const th = useTranslations("history");
   const router = useRouter();
   const name = useEditorStore((s) => s.name);
   const settings = useEditorStore((s) => s.settings);
@@ -288,6 +290,17 @@ export function WebsiteSettingsPanel() {
               on={indexGoogle}
               onToggle={() => updateSettings({ index_in_google: !indexGoogle })}
             />
+          }
+        />
+        {/* Website change history (contract §6.1). Its own route, so leaving the
+            builder unmounts the editor and flushes the last edit before any
+            restore can run (§7.1). */}
+        <Row
+          icon={<History className="size-5" />}
+          color="#ff815a"
+          title={th("title")}
+          onClick={() =>
+            realId ? router.push(`/sites/${realId}/history`) : openSoon(th("title"))
           }
         />
         {translationAllowed ? (
