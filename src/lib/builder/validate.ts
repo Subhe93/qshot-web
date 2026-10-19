@@ -33,7 +33,11 @@
 
 import type { Block, BlockType, EmbedConfiguration } from "@/lib/types/blocks";
 
-/** The 17 `type` discriminators the server's `oneOf` accepts. */
+/**
+ * The `type` discriminators the server's `oneOf` accepts — 18 since schema
+ * 2.1.0 added `MusicLinksModule` (docs/api-contract.en.md §4). A server still
+ * on 2.0.0 rejects that type with a 422 the save path reports by block.
+ */
 export const KNOWN_BLOCK_TYPES: readonly BlockType[] = [
   "social_links",
   "ExternalLinksModule",
@@ -52,6 +56,7 @@ export const KNOWN_BLOCK_TYPES: readonly BlockType[] = [
   "EmbedModule",
   "IntroductionVideoModule",
   "BookingModule",
+  "MusicLinksModule",
 ];
 
 const KNOWN = new Set<string>(KNOWN_BLOCK_TYPES);
@@ -203,7 +208,8 @@ export type IncompleteMessageKey =
   | "incomplete.videoThumbnail"
   | "incomplete.embedEmpty"
   | "incomplete.embedUrl"
-  | "incomplete.embedHtml";
+  | "incomplete.embedHtml"
+  | "incomplete.musicTitle";
 
 export interface IncompleteIssue extends BlockIssue {
   messageKey: IncompleteMessageKey;
@@ -235,6 +241,11 @@ export function findIncompleteBlocks(blocks: Block[]): IncompleteIssue[] {
         issues.push({ index, type: b.type, messageKey: "incomplete.embedEmpty" });
       else if (noUrl) issues.push({ index, type: b.type, messageKey: "incomplete.embedUrl" });
       else if (noHtml) issues.push({ index, type: b.type, messageKey: "incomplete.embedHtml" });
+    } else if (b.type === "MusicLinksModule") {
+      // A song's `title` is required and the user may clear it while editing
+      // (contract §4.3); the server would 422 on the empty string.
+      if ((b.tracks ?? []).some((track) => blank(track.title)))
+        issues.push({ index, type: b.type, messageKey: "incomplete.musicTitle" });
     }
   });
   return issues;

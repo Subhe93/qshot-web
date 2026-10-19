@@ -151,7 +151,8 @@
       "location": "位置",
       "embed": "嵌入代码",
       "introVideo": "上传视频",
-      "booking": "预约"
+      "booking": "预约",
+      "musicLinks": "歌曲"
     },
     "fields": {
       "name": "Name",
@@ -233,7 +234,8 @@
       "location": "在地图上显示您的地址",
       "embed": "使用嵌入代码轻松将自定义小部件或第三方内容集成到您的平台中。",
       "introVideo": "上传一个简短的视频来介绍你自己或你的作品。",
-      "booking": "预约小部件将显示在您的网站上"
+      "booking": "预约小部件将显示在您的网站上",
+      "musicLinks": "分享你的歌曲，并附上 Spotify、Anghami、YouTube 等平台的链接。"
     },
     "edit": "Edit",
     "layoutList": "List",
@@ -619,7 +621,8 @@
       "videoThumbnail": "第 {position} 个视频板块缺少缩略图——请添加一张（或使用 YouTube 链接）后再保存。",
       "embedEmpty": "第 {position} 个嵌入板块为空——请添加链接或嵌入代码后再保存。",
       "embedUrl": "第 {position} 个嵌入板块缺少链接——请补充后再保存。",
-      "embedHtml": "第 {position} 个嵌入板块缺少嵌入代码——请补充后再保存。"
+      "embedHtml": "第 {position} 个嵌入板块缺少嵌入代码——请补充后再保存。",
+      "musicTitle": "歌曲模块 {position}：每首歌曲都需要标题——请添加后再保存。"
     }
   },
   "nav": {
@@ -1953,6 +1956,92 @@
       "unpinMessage": "它将重新计入最近 300 次修改。如果比这些更早，会立即被删除。",
       "unpin": "取消固定",
       "unpinned": "已取消固定"
+    }
+  },
+  "musicLinks": {
+    "upgrade": "升级",
+    "tryAgain": "重试",
+    "tabs": {
+      "songs": "歌曲"
+    },
+    "addSong": "添加歌曲",
+    "limitReached": "你的套餐允许本页面最多 {count} 首歌曲",
+    "limitCounter": "本页面 {count} / {max} 首歌曲",
+    "unavailable": "目前无法添加歌曲。已添加的歌曲仍会显示在你的页面上。",
+    "empty": "还没有歌曲",
+    "placeholder": "添加你的歌曲",
+    "untitled": "未命名歌曲",
+    "resolving": "正在获取链接…",
+    "layout": {
+      "cards": "卡片",
+      "list": "列表",
+      "grid": "网格"
+    },
+    "showCover": "显示封面",
+    "buttonStyle": "按钮样式",
+    "buttonIcon": "图标",
+    "buttonIconText": "图标 + 文字",
+    "dropdown": "下拉菜单",
+    "search": {
+      "title": "添加歌曲",
+      "placeholder": "按歌曲或歌手搜索",
+      "hint": "请至少输入 2 个字符",
+      "searching": "正在搜索…",
+      "noResults": "未找到歌曲"
+    },
+    "paste": {
+      "label": "或粘贴歌曲链接",
+      "placeholder": "https://open.spotify.com/track/…",
+      "find": "查找"
+    },
+    "card": {
+      "heading": "歌曲",
+      "editHeading": "编辑歌曲",
+      "back": "返回结果",
+      "title": "歌曲标题",
+      "artist": "歌手",
+      "titleRequired": "歌曲需要标题",
+      "platforms": "平台",
+      "platformsHint": "选择访客可以在哪里收听。拖动以调整顺序。",
+      "noPlatforms": "未选择平台",
+      "showMore": "显示更多",
+      "showLess": "收起",
+      "noMore": "这首歌曲没有其他平台",
+      "choosePlatform": "请至少选择一个平台",
+      "select": "显示 {name}",
+      "hide": "隐藏 {name}",
+      "add": "添加",
+      "save": "保存",
+      "refresh": "刷新链接",
+      "refreshed": "链接已更新——保存页面后生效。",
+      "refreshAvailableIn": "{time}后可再次刷新"
+    },
+    "time": {
+      "days": "{n} 天",
+      "hours": "{n} 小时",
+      "minutes": "{n} 分钟",
+      "seconds": "{n} 秒"
+    },
+    "errors": {
+      "unsupportedLink": "无法查询此链接。请粘贴 Spotify、Apple Music、YouTube 或 Deezer 的链接，或按名称搜索。",
+      "notATrack": "请粘贴单首歌曲的链接，而不是专辑或歌手的链接。",
+      "notFound": "找不到这首歌曲。",
+      "rateLimited": "服务繁忙——请在 {seconds} 秒后重试。",
+      "rateLimitedNow": "服务繁忙——现在可以重试了。",
+      "inProgress": "这首歌曲仍在获取中——请稍后重试。",
+      "notInPlan": "你的套餐不包含歌曲功能。",
+      "disabled": "目前无法添加歌曲。",
+      "invalid": "无法使用此搜索——请换个关键词。",
+      "unauthorized": "登录已过期——请重新登录。",
+      "network": "没有网络连接——请检查网络后重试。",
+      "server": "出了点问题——请稍后再试。"
+    },
+    "save": {
+      "trackLimit": "无法保存——你的套餐允许本页面最多 {limit} 首歌曲，当前有 {count} 首。请删除 {extra} 首歌曲后再保存。",
+      "trackLimitShort": "无法保存——本页面的歌曲数量超出了套餐限制。请删除部分歌曲后再保存。",
+      "notInPlan": "无法保存——你的套餐不包含歌曲功能。请删除新添加的歌曲或升级套餐。",
+      "disabled": "无法保存——歌曲功能目前已关闭。请删除新添加的歌曲后再保存。",
+      "badLink": "某个歌曲链接不属于其平台——请删除该歌曲后重新添加"
     }
   }
 }

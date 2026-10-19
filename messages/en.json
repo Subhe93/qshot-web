@@ -151,7 +151,8 @@
       "location": "Location",
       "embed": "Embed Code",
       "introVideo": "Upload Video",
-      "booking": "Booking"
+      "booking": "Booking",
+      "musicLinks": "Songs"
     },
     "fields": {
       "name": "Name",
@@ -233,7 +234,8 @@
       "location": "Show your address on a map",
       "embed": "Easily integrate custom widgets or third-party content into your platform using embed code.",
       "introVideo": "Upload a short video to introduce yourself or your work.",
-      "booking": "Booking widget will appear here on your website"
+      "booking": "Booking widget will appear here on your website",
+      "musicLinks": "Share your songs with links to Spotify, Anghami, YouTube and more."
     },
     "edit": "Edit",
     "layoutList": "List",
@@ -619,7 +621,8 @@
       "videoThumbnail": "Video block {position} has no thumbnail — add one (or use a YouTube link) to save.",
       "embedEmpty": "Embed block {position} is empty — add the link or the embed code to save.",
       "embedUrl": "Embed block {position} is missing its link — add it to save.",
-      "embedHtml": "Embed block {position} is missing its embed code — add it to save."
+      "embedHtml": "Embed block {position} is missing its embed code — add it to save.",
+      "musicTitle": "Songs block {position}: every song needs a title — add one to save."
     }
   },
   "nav": {
@@ -1953,6 +1956,92 @@
       "unpinMessage": "It will count toward the newest 300 changes again. If it is older than those, it is removed right away.",
       "unpin": "Unpin",
       "unpinned": "Version unpinned"
+    }
+  },
+  "musicLinks": {
+    "upgrade": "Upgrade",
+    "tryAgain": "Try again",
+    "tabs": {
+      "songs": "Songs"
+    },
+    "addSong": "Add song",
+    "limitReached": "Your plan allows {count, plural, =1 {1 song} other {# songs}} on this page",
+    "limitCounter": "{count} of {max} songs on this page",
+    "unavailable": "Adding songs is unavailable right now. Songs you already added still show on your page.",
+    "empty": "No songs yet",
+    "placeholder": "Add your songs",
+    "untitled": "Untitled song",
+    "resolving": "Getting links…",
+    "layout": {
+      "cards": "Cards",
+      "list": "List",
+      "grid": "Grid"
+    },
+    "showCover": "Show cover",
+    "buttonStyle": "Button style",
+    "buttonIcon": "Icon",
+    "buttonIconText": "Icon + text",
+    "dropdown": "Dropdown",
+    "search": {
+      "title": "Add a song",
+      "placeholder": "Search by song or artist",
+      "hint": "Type at least 2 characters",
+      "searching": "Searching…",
+      "noResults": "No songs found"
+    },
+    "paste": {
+      "label": "Or paste a song link",
+      "placeholder": "https://open.spotify.com/track/…",
+      "find": "Find"
+    },
+    "card": {
+      "heading": "Song",
+      "editHeading": "Edit song",
+      "back": "Back to results",
+      "title": "Song title",
+      "artist": "Artist",
+      "titleRequired": "A song needs a title",
+      "platforms": "Platforms",
+      "platformsHint": "Choose where visitors can listen. Drag to reorder.",
+      "noPlatforms": "No platform selected",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "noMore": "No other platforms for this song",
+      "choosePlatform": "Choose at least one platform",
+      "select": "Show {name}",
+      "hide": "Hide {name}",
+      "add": "Add",
+      "save": "Save",
+      "refresh": "Refresh links",
+      "refreshed": "Links updated — save the page to apply them.",
+      "refreshAvailableIn": "Refresh available in {time}"
+    },
+    "time": {
+      "days": "{n, plural, =1 {1 day} other {# days}}",
+      "hours": "{n, plural, =1 {1 hour} other {# hours}}",
+      "minutes": "{n, plural, =1 {1 minute} other {# minutes}}",
+      "seconds": "{n, plural, =1 {1 second} other {# seconds}}"
+    },
+    "errors": {
+      "unsupportedLink": "This link can’t be looked up. Paste a Spotify, Apple Music, YouTube or Deezer link, or search by name.",
+      "notATrack": "Paste the link of a single song, not an album or an artist.",
+      "notFound": "We couldn’t find this song.",
+      "rateLimited": "Busy — try again in {seconds, plural, =1 {1 second} other {# seconds}}.",
+      "rateLimitedNow": "Busy — you can try again now.",
+      "inProgress": "This song is still being fetched — try again in a moment.",
+      "notInPlan": "Songs aren’t included in your plan.",
+      "disabled": "Adding songs is unavailable right now.",
+      "invalid": "That search can’t be used — try different words.",
+      "unauthorized": "Your session has expired — sign in again.",
+      "network": "No connection — check your internet and try again.",
+      "server": "Something went wrong — try again later."
+    },
+    "save": {
+      "trackLimit": "Couldn’t save — your plan allows {limit} songs on this page and it has {count}. Remove {extra, plural, =1 {1 song} other {# songs}} to save.",
+      "trackLimitShort": "Couldn’t save — this page has more songs than your plan allows. Remove some songs to save.",
+      "notInPlan": "Couldn’t save — songs aren’t included in your plan. Remove the new songs or upgrade your plan.",
+      "disabled": "Couldn’t save — adding songs is switched off right now. Remove the new songs to save.",
+      "badLink": "a song link doesn’t belong to its platform — remove that song and add it again"
     }
   }
 }

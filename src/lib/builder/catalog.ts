@@ -18,6 +18,7 @@ import {
   faCode,
   faCirclePlay,
   faCalendarCheck,
+  faMusic,
 } from "@fortawesome/free-solid-svg-icons";
 import type { Block, BlockType } from "@/lib/types/blocks";
 
@@ -247,6 +248,26 @@ export const BLOCK_CATALOG: CatalogEntry[] = [
     icon: faCalendarCheck,
     kind: "rich",
     make: () => ({ id: nanoid(), type: "BookingModule", title: "", button_label: "Book Now" }),
+  },
+  {
+    // "Songs" — docs/api-contract.en.md §4. Seeded with every contract key at
+    // its default (title "" — never null). Shown in the add-block menu only
+    // when `GET music-links/entitlements` allows it (AddBlockMenu); kept in the
+    // catalog regardless so history / save errors can always NAME the block.
+    type: "MusicLinksModule",
+    labelKey: "musicLinks",
+    icon: faMusic,
+    kind: "rich",
+    make: () => ({
+      id: nanoid(),
+      type: "MusicLinksModule",
+      title: "",
+      foldable: false,
+      layout_type: "cards",
+      show_cover: true,
+      button_style: "iconText",
+      tracks: [],
+    }),
   },
 ];
 

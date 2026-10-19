@@ -358,7 +358,8 @@ export type BlockType =
   | "LocationModule"
   | "EmbedModule"
   | "IntroductionVideoModule"
-  | "BookingModule";
+  | "BookingModule"
+  | "MusicLinksModule";
 
 // ---- Common fields shared by every block ----
 export interface BaseBlock {
@@ -652,6 +653,67 @@ export interface BookingBlock extends NamedBlock {
   circle_image?: boolean;
 }
 
+/**
+ * `MusicLinksModule` ("Songs") — docs/api-contract.en.md §4 (schema 2.1.0).
+ *
+ * The block is a SNAPSHOT of what `music-links/resolve` returned when the user
+ * picked a song: title, artist, cover and the chosen platform links. The
+ * published page renders it from the page JSON only (§8), so every URL is kept
+ * EXACTLY as the server returned it — the save validator checks its host
+ * against the platform (§10.5).
+ */
+export type MusicLinksLayoutType = "list" | "grid" | "cards";
+export const MUSIC_LINKS_LAYOUT_TYPES: MusicLinksLayoutType[] = ["list", "grid", "cards"];
+
+/** Platform buttons: icon only, or icon + platform name. */
+export type MusicButtonStyle = "icon" | "iconText";
+
+/** One platform button of a song (§4.4). */
+export interface MusicTrackLink {
+  /** Client UUID, unique within the track. */
+  id: string;
+  /**
+   * One of the 16 registry ids (§5). Typed as a plain string on purpose: a
+   * block saved by a newer client may carry an id this build does not know —
+   * it round-trips untouched and is simply not rendered.
+   */
+  platform: string;
+  /** https URL exactly as the server returned it. */
+  url: string;
+  hidden?: boolean | null;
+  [key: string]: unknown;
+}
+
+/** One song of a Songs block (§4.3). */
+export interface MusicTrack {
+  /** Client UUID, unique within the block. */
+  id: string;
+  /** 12 chars, uppercase — ties the track to the server cache. */
+  isrc: string;
+  /** NEVER null (the Dart parser crashes on it). */
+  title: string;
+  artist?: string | null;
+  cover_url?: string | null;
+  preview_url?: string | null;
+  hidden?: boolean | null;
+  /** The user's chosen platforms, in the user's order. */
+  links: MusicTrackLink[];
+  [key: string]: unknown;
+}
+
+export interface MusicLinksBlock extends NamedBlock {
+  type: "MusicLinksModule";
+  foldable?: boolean | null;
+  /** Default `cards`; an unknown value reads as `cards`. */
+  layout_type: MusicLinksLayoutType;
+  /** Default `true`. */
+  show_cover?: boolean | null;
+  /** Default `iconText`. */
+  button_style?: MusicButtonStyle | null;
+  /** Display order = array order. May be empty. */
+  tracks: MusicTrack[];
+}
+
 export type Block =
   | SocialLinksBlock
   | ExternalLinksBlock
@@ -669,4 +731,5 @@ export type Block =
   | LocationBlock
   | EmbedBlock
   | IntroductionVideoBlock
-  | BookingBlock;
+  | BookingBlock
+  | MusicLinksBlock;

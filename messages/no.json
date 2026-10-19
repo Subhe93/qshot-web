@@ -151,7 +151,8 @@
       "location": "Sted",
       "embed": "Integreringskode",
       "introVideo": "Last opp video",
-      "booking": "Booking"
+      "booking": "Booking",
+      "musicLinks": "Sanger"
     },
     "fields": {
       "name": "Name",
@@ -233,7 +234,8 @@
       "location": "Vis adressen din på et kart",
       "embed": "Integrer enkelt egendefinerte widgets eller tredjepartsinnhold i plattformen din ved hjelp av innebygd kode.",
       "introVideo": "Last opp en kort video for å introdusere deg selv eller arbeidet ditt.",
-      "booking": "Bookingwidgeten vises her på nettstedet ditt"
+      "booking": "Bookingwidgeten vises her på nettstedet ditt",
+      "musicLinks": "Del sangene dine med lenker til Spotify, Anghami, YouTube og mer."
     },
     "edit": "Edit",
     "layoutList": "List",
@@ -619,7 +621,8 @@
       "videoThumbnail": "Videoblokk {position} mangler miniatyrbilde — legg til ett (eller bruk en YouTube-lenke) for å lagre.",
       "embedEmpty": "Innbyggingsblokk {position} er tom — legg til lenken eller innbyggingskoden for å lagre.",
       "embedUrl": "Innbyggingsblokk {position} mangler lenken — legg den til for å lagre.",
-      "embedHtml": "Innbyggingsblokk {position} mangler innbyggingskoden — legg den til for å lagre."
+      "embedHtml": "Innbyggingsblokk {position} mangler innbyggingskoden — legg den til for å lagre.",
+      "musicTitle": "Sangblokk {position}: hver sang trenger en tittel — legg til en for å lagre."
     }
   },
   "nav": {
@@ -1953,6 +1956,92 @@
       "unpinMessage": "Den teller igjen blant de 300 nyeste endringene. Er den eldre enn disse, fjernes den umiddelbart.",
       "unpin": "Løsne",
       "unpinned": "Versjon løsnet"
+    }
+  },
+  "musicLinks": {
+    "upgrade": "Oppgrader",
+    "tryAgain": "Prøv igjen",
+    "tabs": {
+      "songs": "Sanger"
+    },
+    "addSong": "Legg til sang",
+    "limitReached": "Abonnementet ditt tillater {count, plural, =1 {1 sang} other {# sanger}} på denne siden",
+    "limitCounter": "{count} av {max} sanger på denne siden",
+    "unavailable": "Du kan ikke legge til sanger akkurat nå. Sangene du allerede har lagt til, vises fortsatt på siden din.",
+    "empty": "Ingen sanger ennå",
+    "placeholder": "Legg til sangene dine",
+    "untitled": "Sang uten tittel",
+    "resolving": "Henter lenker…",
+    "layout": {
+      "cards": "Kort",
+      "list": "Liste",
+      "grid": "Rutenett"
+    },
+    "showCover": "Vis omslag",
+    "buttonStyle": "Knappestil",
+    "buttonIcon": "Ikon",
+    "buttonIconText": "Ikon + tekst",
+    "dropdown": "Nedtrekksmeny",
+    "search": {
+      "title": "Legg til en sang",
+      "placeholder": "Søk etter sang eller artist",
+      "hint": "Skriv minst 2 tegn",
+      "searching": "Søker…",
+      "noResults": "Fant ingen sanger"
+    },
+    "paste": {
+      "label": "Eller lim inn en sanglenke",
+      "placeholder": "https://open.spotify.com/track/…",
+      "find": "Finn"
+    },
+    "card": {
+      "heading": "Sang",
+      "editHeading": "Rediger sang",
+      "back": "Tilbake til resultatene",
+      "title": "Sangtittel",
+      "artist": "Artist",
+      "titleRequired": "En sang trenger en tittel",
+      "platforms": "Plattformer",
+      "platformsHint": "Velg hvor besøkende kan lytte. Dra for å endre rekkefølgen.",
+      "noPlatforms": "Ingen plattform valgt",
+      "showMore": "Vis flere",
+      "showLess": "Vis færre",
+      "noMore": "Ingen andre plattformer for denne sangen",
+      "choosePlatform": "Velg minst én plattform",
+      "select": "Vis {name}",
+      "hide": "Skjul {name}",
+      "add": "Legg til",
+      "save": "Lagre",
+      "refresh": "Oppdater lenker",
+      "refreshed": "Lenkene er oppdatert — lagre siden for å ta dem i bruk.",
+      "refreshAvailableIn": "Oppdatering tilgjengelig om {time}"
+    },
+    "time": {
+      "days": "{n, plural, =1 {1 dag} other {# dager}}",
+      "hours": "{n, plural, =1 {1 time} other {# timer}}",
+      "minutes": "{n, plural, =1 {1 minutt} other {# minutter}}",
+      "seconds": "{n, plural, =1 {1 sekund} other {# sekunder}}"
+    },
+    "errors": {
+      "unsupportedLink": "Denne lenken kan ikke slås opp. Lim inn en lenke fra Spotify, Apple Music, YouTube eller Deezer, eller søk etter navn.",
+      "notATrack": "Lim inn lenken til én sang, ikke et album eller en artist.",
+      "notFound": "Vi fant ikke denne sangen.",
+      "rateLimited": "Opptatt — prøv igjen om {seconds, plural, =1 {1 sekund} other {# sekunder}}.",
+      "rateLimitedNow": "Opptatt — du kan prøve igjen nå.",
+      "inProgress": "Sangen hentes fortsatt — prøv igjen om et øyeblikk.",
+      "notInPlan": "Sanger er ikke inkludert i abonnementet ditt.",
+      "disabled": "Du kan ikke legge til sanger akkurat nå.",
+      "invalid": "Det søket kan ikke brukes — prøv andre ord.",
+      "unauthorized": "Økten din er utløpt — logg inn på nytt.",
+      "network": "Ingen tilkobling — sjekk internett og prøv igjen.",
+      "server": "Noe gikk galt — prøv igjen senere."
+    },
+    "save": {
+      "trackLimit": "Kunne ikke lagre — abonnementet ditt tillater {limit} sanger på denne siden, og den har {count}. Fjern {extra, plural, =1 {1 sang} other {# sanger}} for å lagre.",
+      "trackLimitShort": "Kunne ikke lagre — denne siden har flere sanger enn abonnementet ditt tillater. Fjern noen sanger for å lagre.",
+      "notInPlan": "Kunne ikke lagre — sanger er ikke inkludert i abonnementet ditt. Fjern de nye sangene eller oppgrader.",
+      "disabled": "Kunne ikke lagre — å legge til sanger er slått av akkurat nå. Fjern de nye sangene for å lagre.",
+      "badLink": "en sanglenke hører ikke til plattformen sin — fjern sangen og legg den til på nytt"
     }
   }
 }

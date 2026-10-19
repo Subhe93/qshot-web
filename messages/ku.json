@@ -151,7 +151,8 @@
       "location": "Cih",
       "embed": "Koda Xistinê",
       "introVideo": "Vîdyoyê Barkirin",
-      "booking": "Rezervkirin"
+      "booking": "Rezervkirin",
+      "musicLinks": "Stran"
     },
     "fields": {
       "name": "Name",
@@ -233,7 +234,8 @@
       "location": "Navnîşana xwe li ser nexşeyê nîşan bide",
       "embed": "Bi karanîna koda têxistî, bi hêsanî widgetên xwerû an naveroka partiya sêyemîn di platforma xwe de yek bikin.",
       "introVideo": "Vîdeoyek kurt bar bike ji bo xwe an karê xwe pêş bikî.",
-      "booking": "Widgeta rezervkirinê li vir li ser malpera we xuya dibe"
+      "booking": "Widgeta rezervkirinê li vir li ser malpera we xuya dibe",
+      "musicLinks": "Stranên xwe bi lînkên Spotify, Anghami, YouTube û yên din re parve bike."
     },
     "edit": "Edit",
     "layoutList": "List",
@@ -619,7 +621,8 @@
       "videoThumbnail": "Bloka vîdyoyê {position} wêneyê biçûk tune ye — yekê lê zêde bike (an girêdaneke YouTube bi kar bîne) da ku tomar bikî.",
       "embedEmpty": "Bloka cibicîkirinê {position} vala ye — girêdanê an koda cibicîkirinê zêde bike da ku tomar bikî.",
       "embedUrl": "Girêdana bloka cibicîkirinê {position} kêm e — wê zêde bike da ku tomar bikî.",
-      "embedHtml": "Koda bloka cibicîkirinê {position} kêm e — wê zêde bike da ku tomar bikî."
+      "embedHtml": "Koda bloka cibicîkirinê {position} kêm e — wê zêde bike da ku tomar bikî.",
+      "musicTitle": "Bloka Stranan {position}: her stran sernavekî dixwaze — yekî zêde bike da ku tomar bikî."
     }
   },
   "nav": {
@@ -1953,6 +1956,92 @@
       "unpinMessage": "Dê dîsa di nav 300 guhertinên dawî de bê hejmartin. Eger ji wan kevntir be, tavilê tê rakirin.",
       "unpin": "Pêvekirinê rake",
       "unpinned": "Pêvekirina guhertoyê hat rakirin"
+    }
+  },
+  "musicLinks": {
+    "upgrade": "Plana xwe bilind bike",
+    "tryAgain": "Dîsa biceribîne",
+    "tabs": {
+      "songs": "Stran"
+    },
+    "addSong": "Stran zêde bike",
+    "limitReached": "Plana te destûrê dide {count, plural, =1 {1 stran} other {# stran}} li vê rûpelê",
+    "limitCounter": "{count} ji {max} stranan li vê rûpelê",
+    "unavailable": "Niha zêdekirina stranan ne berdest e. Stranên ku te berê zêde kirine hîn li rûpela te xuya dibin.",
+    "empty": "Hîn stran tune ne",
+    "placeholder": "Stranên xwe zêde bike",
+    "untitled": "Strana bê sernav",
+    "resolving": "Lînk têne anîn…",
+    "layout": {
+      "cards": "Kart",
+      "list": "Lîste",
+      "grid": "Tor"
+    },
+    "showCover": "Bergê nîşan bide",
+    "buttonStyle": "Şêwaza bişkokan",
+    "buttonIcon": "Îkon",
+    "buttonIconText": "Îkon + nivîs",
+    "dropdown": "Lîsteya daketî",
+    "search": {
+      "title": "Stranekê zêde bike",
+      "placeholder": "Bi navê stranê an hunermend bigere",
+      "hint": "Herî kêm 2 tîpan binivîse",
+      "searching": "Tê gerîn…",
+      "noResults": "Stran nehatin dîtin"
+    },
+    "paste": {
+      "label": "An jî lînka stranekê bixe",
+      "placeholder": "https://open.spotify.com/track/…",
+      "find": "Bibîne"
+    },
+    "card": {
+      "heading": "Stran",
+      "editHeading": "Stranê biguherîne",
+      "back": "Vegere encaman",
+      "title": "Sernavê stranê",
+      "artist": "Hunermend",
+      "titleRequired": "Stran sernavekî dixwaze",
+      "platforms": "Platform",
+      "platformsHint": "Hilbijêre ka mêvan li ku guhdarî bikin. Ji bo rêzkirinê bikişîne.",
+      "noPlatforms": "Tu platform nehatiye hilbijartin",
+      "showMore": "Zêdetir nîşan bide",
+      "showLess": "Kêmtir nîşan bide",
+      "noMore": "Ji bo vê stranê platformên din tune ne",
+      "choosePlatform": "Herî kêm platformekê hilbijêre",
+      "select": "{name} nîşan bide",
+      "hide": "{name} veşêre",
+      "add": "Zêde bike",
+      "save": "Tomar bike",
+      "refresh": "Lînkan nû bike",
+      "refreshed": "Lînk hatin nûkirin — ji bo sepandinê rûpelê tomar bike.",
+      "refreshAvailableIn": "Nûkirin piştî {time} berdest e"
+    },
+    "time": {
+      "days": "{n, plural, =1 {1 roj} other {# roj}}",
+      "hours": "{n, plural, =1 {1 saet} other {# saet}}",
+      "minutes": "{n, plural, =1 {1 deqîqe} other {# deqîqe}}",
+      "seconds": "{n, plural, =1 {1 çirke} other {# çirke}}"
+    },
+    "errors": {
+      "unsupportedLink": "Ev lînk nayê gerîn. Lînkeke Spotify, Apple Music, YouTube an Deezer bixe, an jî bi navê bigere.",
+      "notATrack": "Lînka yek stranê bixe, ne ya albûmekê an hunermendekî.",
+      "notFound": "Me ev stran nedît.",
+      "rateLimited": "Mijûl e — piştî {seconds, plural, =1 {1 çirke} other {# çirke}} dîsa biceribîne.",
+      "rateLimitedNow": "Mijûl bû — niha dikarî dîsa biceribînî.",
+      "inProgress": "Ev stran hîn tê anîn — piştî kêliyekê dîsa biceribîne.",
+      "notInPlan": "Stran di plana te de nînin.",
+      "disabled": "Niha zêdekirina stranan ne berdest e.",
+      "invalid": "Ev lêgerîn nayê bikaranîn — peyvên din biceribîne.",
+      "unauthorized": "Danişîna te qediya — dîsa têkeve.",
+      "network": "Girêdan tune — înterneta xwe kontrol bike û dîsa biceribîne.",
+      "server": "Tiştek xelet çû — paşê dîsa biceribîne."
+    },
+    "save": {
+      "trackLimit": "Nehat tomarkirin — plana te destûrê dide {limit} stranan li vê rûpelê û tê de {count} hene. {extra, plural, =1 {1 stranê} other {# stranan}} rake da ku tomar bikî.",
+      "trackLimitShort": "Nehat tomarkirin — li vê rûpelê ji plana te zêdetir stran hene. Hin stranan rake da ku tomar bikî.",
+      "notInPlan": "Nehat tomarkirin — stran di plana te de nînin. Stranên nû rake an plana xwe bilind bike.",
+      "disabled": "Nehat tomarkirin — zêdekirina stranan niha girtî ye. Stranên nû rake da ku tomar bikî.",
+      "badLink": "lînkeke stranê ne ya platforma wê ye — wê stranê rake û dîsa zêde bike"
     }
   }
 }

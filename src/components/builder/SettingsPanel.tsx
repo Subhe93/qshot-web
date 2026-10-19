@@ -30,6 +30,7 @@ import type {
   EmbedBlock,
   IntroductionVideoBlock,
   BookingBlock,
+  MusicLinksBlock,
 } from "@/lib/types/blocks";
 import { HeaderBlockEditor } from "./editors/HeaderBlockEditor";
 import { ParagraphBlockEditor } from "./editors/ParagraphBlockEditor";
@@ -48,6 +49,7 @@ import { LocationBlockEditor } from "./editors/LocationBlockEditor";
 import { EmbedBlockEditor } from "./editors/EmbedBlockEditor";
 import { IntroductionVideoBlockEditor } from "./editors/IntroductionVideoBlockEditor";
 import { BookingBlockEditor } from "./editors/BookingBlockEditor";
+import { MusicLinksBlockEditor } from "./editors/music/MusicLinksBlockEditor";
 
 export function SettingsPanel() {
   const selectedId = useEditorStore((s) => s.selectedId);
@@ -307,6 +309,9 @@ function blockEditor(block: Block) {
   if (block.type === "BookingModule") {
     return <BookingBlockEditor block={block as BookingBlock} />;
   }
+  if (block.type === "MusicLinksModule") {
+    return <MusicLinksBlockEditor block={block as MusicLinksBlock} />;
+  }
 
   // Every block type is handled by a dedicated editor above (unreachable).
   return (
@@ -354,6 +359,7 @@ function labelKeyOf(type: string): string {
     EmbedModule: "embed",
     IntroductionVideoModule: "introVideo",
     BookingModule: "booking",
+    MusicLinksModule: "musicLinks",
   };
   return map[type] ?? "block";
 }

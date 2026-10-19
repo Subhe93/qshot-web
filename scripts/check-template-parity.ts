@@ -47,6 +47,7 @@ import type {
   ButtonBlock,
   HeaderBlock,
   ImagesBlock,
+  MusicLinksBlock,
 } from "../src/lib/types/blocks";
 import type { WebsiteSettings } from "../src/lib/types/profile";
 import { catalogByType } from "../src/lib/builder/catalog";
@@ -82,6 +83,9 @@ import {
 } from "../src/lib/builder/website-templates";
 import rawTemplate2 from "../src/lib/builder/template-sites/template-2.json";
 import { initialOf } from "../src/lib/booking/booking-tree";
+import { findIncompleteBlocks, findUnknownBlocks } from "../src/lib/builder/validate";
+import { blockLabelKey } from "../src/lib/history/summary";
+import { countPageTracks } from "../src/lib/music-links/use-music-links";
 
 let passed = 0;
 let failed = 0;
@@ -734,6 +738,192 @@ function bookingBlockTests(): void {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Songs block — `MusicLinksModule`, docs/api-contract.en.md §4 (schema 2.1.0).
+// Defaults, null handling, unknown layout, `title` never null, exact URLs and
+// unknown platform ids preserved on a round-trip, and a restyle that copies
+// the STYLE keys only (layout_type / show_cover / button_style / foldable /
+// background).
+// ═══════════════════════════════════════════════════════════════════════════
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+function musicLinksTests(): void {
+  section("songs block (MusicLinksModule)");
+
+  // The add-block factory writes every contract key at its default.
+  const fresh = serializeBlock(make<Block>("MusicLinksModule"));
+  checkSet(
+    "songs: fresh block keys",
+    Object.keys(fresh),
+    ["id", "type", "title", "foldable", "layout_type", "show_cover", "button_style", "tracks"],
+  );
+  check('songs: fresh title is ""', fresh.title, "");
+  check("songs: fresh foldable", fresh.foldable, false);
+  check("songs: fresh layout_type", fresh.layout_type, "cards");
+  check("songs: fresh show_cover", fresh.show_cover, true);
+  check("songs: fresh button_style", fresh.button_style, "iconText");
+  checkTrue("songs: fresh tracks is []", Array.isArray(fresh.tracks) && (fresh.tracks as unknown[]).length === 0);
+
+  // fromJson defaults: a minimal block (only the required keys).
+  const min = parseBlock({ type: "MusicLinksModule", id: "m1", layout_type: "list", tracks: [] }) as MusicLinksBlock;
+  check('songs: missing title reads ""', min.title, "");
+  check("songs: missing foldable reads false", min.foldable, false);
+  check("songs: missing show_cover reads true", min.show_cover, true);
+  check("songs: missing button_style reads iconText", min.button_style, "iconText");
+  check("songs: known layout kept", min.layout_type, "list");
+  check("songs: common hide default", min.hide, false);
+  check("songs: common use_background_color default", min.use_background_color, false);
+  check("songs: common background_color default", min.background_color, null);
+
+  // "Key present with null" equals "key absent" (§4.4).
+  const nul = parseBlock({
+    type: "MusicLinksModule",
+    title: null,
+    foldable: null,
+    layout_type: null,
+    show_cover: null,
+    button_style: null,
+    tracks: null,
+  }) as MusicLinksBlock;
+  check('songs: null title reads "" (never null)', nul.title, "");
+  check("songs: null foldable reads false", nul.foldable, false);
+  check("songs: null layout_type reads cards", nul.layout_type, "cards");
+  check("songs: null show_cover reads true", nul.show_cover, true);
+  check("songs: null button_style reads iconText", nul.button_style, "iconText");
+  checkTrue("songs: null tracks reads []", Array.isArray(nul.tracks) && nul.tracks.length === 0);
+  check('songs: null title serializes as ""', serializeBlock(nul).title, "");
+  checkTrue("songs: a block id is generated when missing", typeof nul.id === "string" && nul.id.length > 0);
+
+  // Unknown enum values (a newer client) degrade, never throw.
+  const unknown = parseBlock({ type: "MusicLinksModule", layout_type: "carousel", button_style: "big" }) as MusicLinksBlock;
+  check("songs: unknown layout_type reads cards", unknown.layout_type, "cards");
+  check("songs: unknown button_style reads iconText", unknown.button_style, "iconText");
+  const icon = parseBlock({ type: "MusicLinksModule", button_style: "icon", show_cover: false, foldable: true }) as MusicLinksBlock;
+  check("songs: button_style icon kept", icon.button_style, "icon");
+  check("songs: show_cover false kept", icon.show_cover, false);
+  check("songs: foldable true kept", icon.foldable, true);
+
+  // Track / link nullable keys and generated UUIDs.
+  const tracked = parseBlock({
+    type: "MusicLinksModule",
+    tracks: [
+      {
+        isrc: "EGA020501614",
+        title: null,
+        artist: null,
+        links: [{ platform: "spotify", url: "https://open.spotify.com/track/6TYFcqqQVQPb3YsgfRhvqs", hidden: null }],
+      },
+      "garbage",
+    ],
+  }) as MusicLinksBlock;
+  check("songs: non-object tracks are dropped", tracked.tracks.length, 1);
+  const tr = tracked.tracks[0];
+  check('songs: null track title reads ""', tr.title, "");
+  check("songs: null artist stays null", tr.artist, null);
+  check("songs: missing cover_url reads null", tr.cover_url, null);
+  check("songs: missing preview_url reads null", tr.preview_url, null);
+  check("songs: missing track hidden reads false", tr.hidden, false);
+  checkTrue("songs: missing track id -> UUID v4", UUID_RE.test(tr.id));
+  checkTrue("songs: missing link id -> UUID v4", UUID_RE.test(tr.links[0].id));
+  check("songs: null link hidden reads false", tr.links[0].hidden, false);
+
+  // Round-trip of the contract example (§4.1) — byte-identical JSON, exact
+  // URLs (§10.5) and an UNKNOWN platform id preserved (§5: skip, never drop).
+  const example = {
+    type: "MusicLinksModule",
+    id: "0192f4c1-7b1e-7c3a-9a51-3c1f0e2d4b10",
+    hide: false,
+    use_background_color: false,
+    background_color: null,
+    title: "My songs",
+    foldable: false,
+    layout_type: "cards",
+    show_cover: true,
+    button_style: "iconText",
+    tracks: [
+      {
+        id: "0192f4c3-0d2e-7f11-8e0a-5b6c7d8e9f01",
+        isrc: "EGA020501614",
+        title: "Tamally Maak",
+        artist: "Amr Diab",
+        cover_url: "https://yt3.googleusercontent.com/zsLY...=w1500-h1500-l100-rj",
+        preview_url: "https://p.scdn.co/mp3-preview/355c1d910a573495bb23526c03326f30248c3d4f",
+        hidden: false,
+        links: [
+          { id: "l1", platform: "spotify", url: "https://open.spotify.com/track/6TYFcqqQVQPb3YsgfRhvqs", hidden: false },
+          { id: "l2", platform: "appleMusic", url: "https://music.apple.com/us/album/tamly-maak/880940009?i=880940097", hidden: true },
+          { id: "l3", platform: "futurePlatform", url: "https://future.example/track/1", hidden: false },
+        ],
+      },
+    ],
+  };
+  const roundTrip = serializeBlock(parseBlock(JSON.parse(JSON.stringify(example))));
+  check("songs: contract example round-trips byte-identically", JSON.stringify(roundTrip), JSON.stringify(example));
+  const rtLinks = (roundTrip.tracks as { links: { platform: string; url: string }[] }[])[0].links;
+  check("songs: unknown platform id preserved", rtLinks[2].platform, "futurePlatform");
+  check("songs: Apple URL kept exactly", rtLinks[1].url, "https://music.apple.com/us/album/tamly-maak/880940009?i=880940097");
+
+  // A block that slipped a null title past the parser still never sends one.
+  const slipped = serializeBlock({
+    ...min,
+    title: null as unknown as string,
+    tracks: [{ ...tr, title: null as unknown as string }],
+  });
+  check("songs: serialize coerces a null block title", slipped.title, "");
+  check(
+    "songs: serialize coerces a null track title",
+    (slipped.tracks as { title: unknown }[])[0].title,
+    "",
+  );
+
+  // Pre-save guards + naming.
+  check("songs: type is a known block type", findUnknownBlocks([min]).length, 0);
+  check(
+    "songs: an untitled song is reported before saving",
+    findIncompleteBlocks([tracked])[0]?.messageKey,
+    "incomplete.musicTitle",
+  );
+  check("songs: titled songs pass", findIncompleteBlocks([parseBlock(example)]).length, 0);
+  check("songs: history names the block", blockLabelKey("MusicLinksModule"), "musicLinks");
+  check(
+    "songs: tracks are counted across every Songs block of the page",
+    countPageTracks([parseBlock(example), tracked, make<Block>("HeaderModule")]),
+    2,
+  );
+
+  // restyle copies style only.
+  const user = parseBlock(example) as MusicLinksBlock;
+  const styled: MusicLinksBlock = {
+    ...make<MusicLinksBlock>("MusicLinksModule"),
+    title: "TEMPLATE TITLE",
+    layout_type: "grid",
+    show_cover: false,
+    button_style: "icon",
+    foldable: true,
+    use_background_color: true,
+    background_color: 0xff112233,
+    tracks: [{ ...user.tracks[0], id: "tpl", title: "TEMPLATE SONG" }],
+  };
+  const restyled = restyleBlockFrom(user, styled) as MusicLinksBlock;
+  check("songs restyle: keeps id", restyled.id, user.id);
+  check("songs restyle: keeps title", restyled.title, "My songs");
+  check("songs restyle: keeps tracks", JSON.stringify(restyled.tracks), JSON.stringify(user.tracks));
+  check("songs restyle: takes layout_type", restyled.layout_type, "grid");
+  check("songs restyle: takes show_cover", restyled.show_cover, false);
+  check("songs restyle: takes button_style", restyled.button_style, "icon");
+  check("songs restyle: takes foldable", restyled.foldable, true);
+  check("songs restyle: takes use_background_color", restyled.use_background_color, true);
+  check("songs restyle: takes background_color", restyled.background_color, 0xff112233);
+  const before = user as unknown as Record<string, unknown>;
+  const after = restyled as unknown as Record<string, unknown>;
+  checkSet(
+    "songs restyle: changes only the style keys",
+    Object.keys(after).filter((k) => JSON.stringify(after[k]) !== JSON.stringify(before[k])),
+    ["layout_type", "show_cover", "button_style", "foldable", "use_background_color", "background_color"],
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 
 async function main(): Promise<void> {
   await templateSiteTests();
@@ -741,6 +931,7 @@ async function main(): Promise<void> {
   buttonThemeTests();
   mergeTests();
   bookingBlockTests();
+  musicLinksTests();
   closeSection();
 
   console.log(`\n${passed} passed, ${failed} failed`);

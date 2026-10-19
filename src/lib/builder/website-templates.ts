@@ -384,6 +384,20 @@ export function restyleBlockFrom(block: Block, source: Block | undefined): Block
         background_color: s.background_color ?? block.background_color,
       };
     }
+    case "MusicLinksModule": {
+      // Style only — the songs, the title and every link are the user's
+      // content (docs/api-contract.en.md §7.6 lists the style keys).
+      const s = source as typeof block;
+      return {
+        ...block,
+        layout_type: s.layout_type ?? block.layout_type,
+        show_cover: s.show_cover ?? block.show_cover,
+        button_style: s.button_style ?? block.button_style,
+        foldable: s.foldable ?? block.foldable,
+        use_background_color: s.use_background_color ?? block.use_background_color,
+        background_color: s.background_color ?? block.background_color,
+      };
+    }
     default:
       return block;
   }

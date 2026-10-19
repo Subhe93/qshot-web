@@ -151,7 +151,8 @@
       "location": "Plats",
       "embed": "Inbäddningskod",
       "introVideo": "Ladda upp video",
-      "booking": "Bokning"
+      "booking": "Bokning",
+      "musicLinks": "Låtar"
     },
     "fields": {
       "name": "Name",
@@ -233,7 +234,8 @@
       "location": "Visa din adress på en karta",
       "embed": "Integrera enkelt anpassade widgets eller innehåll från tredje part i din plattform med hjälp av inbäddad kod.",
       "introVideo": "Ladda upp en kort video för att presentera dig själv eller ditt arbete.",
-      "booking": "Bokningswidgeten visas här på din webbplats"
+      "booking": "Bokningswidgeten visas här på din webbplats",
+      "musicLinks": "Dela dina låtar med länkar till Spotify, Anghami, YouTube och fler."
     },
     "edit": "Edit",
     "layoutList": "List",
@@ -619,7 +621,8 @@
       "videoThumbnail": "Videoblock {position} saknar miniatyrbild — lägg till en (eller använd en YouTube-länk) för att spara.",
       "embedEmpty": "Inbäddningsblock {position} är tomt — lägg till länken eller inbäddningskoden för att spara.",
       "embedUrl": "Inbäddningsblock {position} saknar länken — lägg till den för att spara.",
-      "embedHtml": "Inbäddningsblock {position} saknar inbäddningskoden — lägg till den för att spara."
+      "embedHtml": "Inbäddningsblock {position} saknar inbäddningskoden — lägg till den för att spara.",
+      "musicTitle": "Låtblock {position}: varje låt behöver en titel — lägg till en för att spara."
     }
   },
   "nav": {
@@ -1953,6 +1956,92 @@
       "unpinMessage": "Den räknas igen bland de 300 senaste ändringarna. Är den äldre än dem tas den bort direkt.",
       "unpin": "Lossa",
       "unpinned": "Version lossad"
+    }
+  },
+  "musicLinks": {
+    "upgrade": "Uppgradera",
+    "tryAgain": "Försök igen",
+    "tabs": {
+      "songs": "Låtar"
+    },
+    "addSong": "Lägg till låt",
+    "limitReached": "Din plan tillåter {count, plural, =1 {1 låt} other {# låtar}} på den här sidan",
+    "limitCounter": "{count} av {max} låtar på den här sidan",
+    "unavailable": "Det går inte att lägga till låtar just nu. Låtar du redan har lagt till visas fortfarande på din sida.",
+    "empty": "Inga låtar ännu",
+    "placeholder": "Lägg till dina låtar",
+    "untitled": "Låt utan titel",
+    "resolving": "Hämtar länkar…",
+    "layout": {
+      "cards": "Kort",
+      "list": "Lista",
+      "grid": "Rutnät"
+    },
+    "showCover": "Visa omslag",
+    "buttonStyle": "Knappstil",
+    "buttonIcon": "Ikon",
+    "buttonIconText": "Ikon + text",
+    "dropdown": "Rullgardinsmeny",
+    "search": {
+      "title": "Lägg till en låt",
+      "placeholder": "Sök efter låt eller artist",
+      "hint": "Skriv minst 2 tecken",
+      "searching": "Söker…",
+      "noResults": "Inga låtar hittades"
+    },
+    "paste": {
+      "label": "Eller klistra in en låtlänk",
+      "placeholder": "https://open.spotify.com/track/…",
+      "find": "Hitta"
+    },
+    "card": {
+      "heading": "Låt",
+      "editHeading": "Redigera låt",
+      "back": "Tillbaka till resultaten",
+      "title": "Låttitel",
+      "artist": "Artist",
+      "titleRequired": "En låt behöver en titel",
+      "platforms": "Plattformar",
+      "platformsHint": "Välj var besökare kan lyssna. Dra för att ändra ordning.",
+      "noPlatforms": "Ingen plattform vald",
+      "showMore": "Visa fler",
+      "showLess": "Visa färre",
+      "noMore": "Inga andra plattformar för den här låten",
+      "choosePlatform": "Välj minst en plattform",
+      "select": "Visa {name}",
+      "hide": "Dölj {name}",
+      "add": "Lägg till",
+      "save": "Spara",
+      "refresh": "Uppdatera länkar",
+      "refreshed": "Länkarna är uppdaterade — spara sidan för att använda dem.",
+      "refreshAvailableIn": "Uppdatering tillgänglig om {time}"
+    },
+    "time": {
+      "days": "{n, plural, =1 {1 dag} other {# dagar}}",
+      "hours": "{n, plural, =1 {1 timme} other {# timmar}}",
+      "minutes": "{n, plural, =1 {1 minut} other {# minuter}}",
+      "seconds": "{n, plural, =1 {1 sekund} other {# sekunder}}"
+    },
+    "errors": {
+      "unsupportedLink": "Den här länken kan inte slås upp. Klistra in en länk från Spotify, Apple Music, YouTube eller Deezer, eller sök efter namn.",
+      "notATrack": "Klistra in länken till en enda låt, inte ett album eller en artist.",
+      "notFound": "Vi hittade inte den här låten.",
+      "rateLimited": "Upptaget — försök igen om {seconds, plural, =1 {1 sekund} other {# sekunder}}.",
+      "rateLimitedNow": "Upptaget — du kan försöka igen nu.",
+      "inProgress": "Låten hämtas fortfarande — försök igen om en stund.",
+      "notInPlan": "Låtar ingår inte i din plan.",
+      "disabled": "Det går inte att lägga till låtar just nu.",
+      "invalid": "Den sökningen kan inte användas — prova andra ord.",
+      "unauthorized": "Din session har gått ut — logga in igen.",
+      "network": "Ingen anslutning — kontrollera internet och försök igen.",
+      "server": "Något gick fel — försök igen senare."
+    },
+    "save": {
+      "trackLimit": "Kunde inte spara — din plan tillåter {limit} låtar på den här sidan och den har {count}. Ta bort {extra, plural, =1 {1 låt} other {# låtar}} för att spara.",
+      "trackLimitShort": "Kunde inte spara — den här sidan har fler låtar än din plan tillåter. Ta bort några låtar för att spara.",
+      "notInPlan": "Kunde inte spara — låtar ingår inte i din plan. Ta bort de nya låtarna eller uppgradera.",
+      "disabled": "Kunde inte spara — att lägga till låtar är avstängt just nu. Ta bort de nya låtarna för att spara.",
+      "badLink": "en låtlänk hör inte till sin plattform — ta bort låten och lägg till den igen"
     }
   }
 }

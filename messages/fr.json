@@ -151,7 +151,8 @@
       "location": "Emplacement",
       "embed": "Code intégré",
       "introVideo": "Télécharger vidéo",
-      "booking": "Réservation"
+      "booking": "Réservation",
+      "musicLinks": "Chansons"
     },
     "fields": {
       "name": "Name",
@@ -233,7 +234,8 @@
       "location": "Affichez votre adresse sur une carte",
       "embed": "Intégrez facilement des widgets personnalisés ou du contenu tiers sur votre plateforme à l'aide d'un code d'intégration.",
       "introVideo": "Téléchargez une courte vidéo pour vous présenter ou présenter votre travail.",
-      "booking": "Le widget de réservation apparaîtra ici sur votre site"
+      "booking": "Le widget de réservation apparaîtra ici sur votre site",
+      "musicLinks": "Partagez vos chansons avec des liens vers Spotify, Anghami, YouTube et plus."
     },
     "edit": "Edit",
     "layoutList": "List",
@@ -619,7 +621,8 @@
       "videoThumbnail": "Le bloc vidéo {position} n’a pas de miniature — ajoutez-en une (ou utilisez un lien YouTube) pour enregistrer.",
       "embedEmpty": "Le bloc d’intégration {position} est vide — ajoutez le lien ou le code pour enregistrer.",
       "embedUrl": "Il manque le lien au bloc d’intégration {position} — ajoutez-le pour enregistrer.",
-      "embedHtml": "Il manque le code au bloc d’intégration {position} — ajoutez-le pour enregistrer."
+      "embedHtml": "Il manque le code au bloc d’intégration {position} — ajoutez-le pour enregistrer.",
+      "musicTitle": "Bloc Chansons {position} : chaque chanson doit avoir un titre — ajoutez-en un pour enregistrer."
     }
   },
   "nav": {
@@ -1953,6 +1956,92 @@
       "unpinMessage": "Elle comptera de nouveau parmi les 300 dernières modifications. Si elle est plus ancienne, elle sera supprimée immédiatement.",
       "unpin": "Désépingler",
       "unpinned": "Version désépinglée"
+    }
+  },
+  "musicLinks": {
+    "upgrade": "Passer à un forfait supérieur",
+    "tryAgain": "Réessayer",
+    "tabs": {
+      "songs": "Chansons"
+    },
+    "addSong": "Ajouter une chanson",
+    "limitReached": "Votre forfait permet {count, plural, =1 {1 chanson} other {# chansons}} sur cette page",
+    "limitCounter": "{count} sur {max} chansons sur cette page",
+    "unavailable": "L’ajout de chansons est indisponible pour le moment. Les chansons déjà ajoutées restent visibles sur votre page.",
+    "empty": "Aucune chanson pour l’instant",
+    "placeholder": "Ajoutez vos chansons",
+    "untitled": "Chanson sans titre",
+    "resolving": "Récupération des liens…",
+    "layout": {
+      "cards": "Cartes",
+      "list": "Liste",
+      "grid": "Grille"
+    },
+    "showCover": "Afficher la pochette",
+    "buttonStyle": "Style des boutons",
+    "buttonIcon": "Icône",
+    "buttonIconText": "Icône + texte",
+    "dropdown": "Menu déroulant",
+    "search": {
+      "title": "Ajouter une chanson",
+      "placeholder": "Rechercher une chanson ou un artiste",
+      "hint": "Saisissez au moins 2 caractères",
+      "searching": "Recherche…",
+      "noResults": "Aucune chanson trouvée"
+    },
+    "paste": {
+      "label": "Ou collez le lien d’une chanson",
+      "placeholder": "https://open.spotify.com/track/…",
+      "find": "Rechercher"
+    },
+    "card": {
+      "heading": "Chanson",
+      "editHeading": "Modifier la chanson",
+      "back": "Retour aux résultats",
+      "title": "Titre de la chanson",
+      "artist": "Artiste",
+      "titleRequired": "Une chanson doit avoir un titre",
+      "platforms": "Plateformes",
+      "platformsHint": "Choisissez où les visiteurs peuvent écouter. Faites glisser pour réorganiser.",
+      "noPlatforms": "Aucune plateforme sélectionnée",
+      "showMore": "Afficher plus",
+      "showLess": "Afficher moins",
+      "noMore": "Aucune autre plateforme pour cette chanson",
+      "choosePlatform": "Choisissez au moins une plateforme",
+      "select": "Afficher {name}",
+      "hide": "Masquer {name}",
+      "add": "Ajouter",
+      "save": "Enregistrer",
+      "refresh": "Actualiser les liens",
+      "refreshed": "Liens mis à jour — enregistrez la page pour les appliquer.",
+      "refreshAvailableIn": "Actualisation possible dans {time}"
+    },
+    "time": {
+      "days": "{n, plural, =1 {1 jour} other {# jours}}",
+      "hours": "{n, plural, =1 {1 heure} other {# heures}}",
+      "minutes": "{n, plural, =1 {1 minute} other {# minutes}}",
+      "seconds": "{n, plural, =1 {1 seconde} other {# secondes}}"
+    },
+    "errors": {
+      "unsupportedLink": "Ce lien ne peut pas être recherché. Collez un lien Spotify, Apple Music, YouTube ou Deezer, ou recherchez par nom.",
+      "notATrack": "Collez le lien d’une seule chanson, pas d’un album ni d’un artiste.",
+      "notFound": "Nous n’avons pas trouvé cette chanson.",
+      "rateLimited": "Service occupé — réessayez dans {seconds, plural, =1 {1 seconde} other {# secondes}}.",
+      "rateLimitedNow": "Service occupé — vous pouvez réessayer maintenant.",
+      "inProgress": "Cette chanson est encore en cours de récupération — réessayez dans un instant.",
+      "notInPlan": "Les chansons ne sont pas incluses dans votre forfait.",
+      "disabled": "L’ajout de chansons est indisponible pour le moment.",
+      "invalid": "Cette recherche ne peut pas être utilisée — essayez d’autres mots.",
+      "unauthorized": "Votre session a expiré — reconnectez-vous.",
+      "network": "Pas de connexion — vérifiez votre internet et réessayez.",
+      "server": "Une erreur s’est produite — réessayez plus tard."
+    },
+    "save": {
+      "trackLimit": "Enregistrement impossible — votre forfait permet {limit} chansons sur cette page et elle en contient {count}. Supprimez {extra, plural, =1 {1 chanson} other {# chansons}} pour enregistrer.",
+      "trackLimitShort": "Enregistrement impossible — cette page contient plus de chansons que votre forfait ne le permet. Supprimez-en pour enregistrer.",
+      "notInPlan": "Enregistrement impossible — les chansons ne sont pas incluses dans votre forfait. Supprimez les nouvelles chansons ou changez de forfait.",
+      "disabled": "Enregistrement impossible — l’ajout de chansons est désactivé pour le moment. Supprimez les nouvelles chansons pour enregistrer.",
+      "badLink": "un lien de chanson n’appartient pas à sa plateforme — supprimez cette chanson et ajoutez-la à nouveau"
     }
   }
 }

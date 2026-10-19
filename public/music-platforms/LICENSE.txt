@@ -1,0 +1,44 @@
+Music platform icons (Songs block)
+==================================
+
+Files: <id>.svg      48x48 app-icon tile (brand colour, glyph centred)
+       <id>-mono.svg 24x24 glyph only, fill="currentColor"
+
+Glyph paths are copied verbatim from the sources below (no path simplification);
+only the tile, colours and a positioning transform were added.
+
+id            source                                                         licence
+------------  -------------------------------------------------------------  -------------------------------
+spotify       Simple Icons 16.35.0, slug "spotify" (hex 1ED760)              CC0 1.0
+youtube       Simple Icons 16.35.0, slug "youtube" (hex FF0000)              CC0 1.0
+appleMusic    Simple Icons 16.35.0, slug "applemusic" (hex FA243C)           CC0 1.0
+youtubeMusic  Simple Icons 16.35.0, slug "youtubemusic" (hex FF0000)         CC0 1.0
+deezer        Simple Icons 16.35.0, slug "deezer" (hex A238FF)               CC0 1.0
+soundcloud    Simple Icons 16.35.0, slug "soundcloud" (hex FF5500)           CC0 1.0
+tidal         Simple Icons 16.35.0, slug "tidal" (hex 000000)                CC0 1.0
+audiomack     Simple Icons 16.35.0, slug "audiomack" (hex FFA200)            CC0 1.0
+shazam        Simple Icons 16.35.0, slug "shazam" (hex 0088FF)               CC0 1.0
+pandora       Simple Icons 16.35.0, slug "pandora" (hex 224099)              CC0 1.0
+iHeartRadio   Simple Icons 16.35.0, slug "iheartradio" (hex C6002B)          CC0 1.0
+tiktok        Simple Icons 16.35.0, slug "tiktok" (hex 000000)               CC0 1.0
+amazonMusic   Simple Icons 14.0.0, slug "amazonmusic" (smile + arrow         CC0 1.0
+              sub-paths only; removed from Simple Icons in 15.0.0).
+              Tile colour #43E9F1 sampled from the official app icon.
+anghami       Wikimedia Commons, "File:Anghami Icon.svg"                     Public domain (per Commons)
+              https://commons.wikimedia.org/wiki/File:Anghami_Icon.svg
+boomplay      Wikimedia Commons, "File:Boomplay Logo.svg" ("B" sub-path       CC0 1.0 (per Commons)
+              for the tile, full mark for mono). Cyan #00FFFF sampled
+              from Commons "File:Boomplay Music Logo.png" (CC BY-SA 4.0,
+              colour value only, no artwork copied).
+              https://commons.wikimedia.org/wiki/File:Boomplay_Logo.svg
+qobuz         Wikimedia Commons, "File:Qobuz qbz icon.svg"                   Public domain (per Commons)
+              https://commons.wikimedia.org/wiki/File:Qobuz_qbz_icon.svg
+
+Simple Icons: https://simpleicons.org  (https://github.com/simple-icons/simple-icons, CC0 1.0)
+
+Trademarks
+----------
+All brand names and logos are trademarks of their respective owners. They are used
+here only to identify each platform and link to the song on it; their use does not
+imply endorsement. The CC0 / public-domain status above covers copyright in the
+drawings only, not trademark rights.

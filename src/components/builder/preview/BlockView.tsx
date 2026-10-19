@@ -18,6 +18,7 @@ import type {
   EmbedBlock,
   IntroductionVideoBlock,
   BookingBlock,
+  MusicLinksBlock,
 } from "@/lib/types/blocks";
 import { argbToCss } from "@/lib/builder/color";
 import { dirOf } from "@/lib/builder/text-direction";
@@ -34,6 +35,7 @@ import { LocationBlockView } from "./blocks/LocationBlockView";
 import { EmbedBlockView } from "./blocks/EmbedBlockView";
 import { IntroductionVideoBlockView } from "./blocks/IntroductionVideoBlockView";
 import { BookingBlockView } from "./blocks/BookingBlockView";
+import { MusicLinksBlockView } from "./blocks/MusicLinksBlockView";
 import { QuillView } from "./QuillView";
 import { useDesktopPreview } from "./desktop-preview";
 
@@ -120,6 +122,8 @@ export function BlockView({ block }: { block: Block }) {
       return <IntroductionVideoBlockView block={block as IntroductionVideoBlock} />;
     case "BookingModule":
       return <BookingBlockView block={block as BookingBlock} />;
+    case "MusicLinksModule":
+      return <MusicLinksBlockView block={block as MusicLinksBlock} />;
     default:
       return (
         <div className="rounded-lg border border-dashed border-border p-3 text-center text-xs text-muted-foreground">

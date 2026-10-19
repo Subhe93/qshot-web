@@ -205,10 +205,26 @@ export function HistoryScreen({
     },
     [pages, deletedPages, t],
   );
-  const deletedPageOptions = useMemo(
-    () => [...deletedPages].filter(([id]) => !pages?.some((p) => p._id === id)),
-    [deletedPages, pages],
-  );
+  // A page deleted, restored (new id) and deleted again leaves two options with
+  // the same name: tell them apart by when each was deleted.
+  const deletedPageOptions = useMemo(() => {
+    const deletedAt = new Map<string, string>();
+    for (const row of rows) {
+      if (row.source === "page_deleted" && row.pageId && !deletedAt.has(row.pageId)) {
+        deletedAt.set(row.pageId, row.endedAt);
+      }
+    }
+    const options = [...deletedPages].filter(([id]) => !pages?.some((p) => p._id === id));
+    const counts = new Map<string, number>();
+    for (const [, name] of options) counts.set(name, (counts.get(name) ?? 0) + 1);
+    return options.map(([id, name]): [string, string] => {
+      if ((counts.get(name) ?? 0) < 2) return [id, name];
+      const when = new Date(deletedAt.get(id) ?? "");
+      return Number.isNaN(when.getTime())
+        ? [id, name]
+        : [id, `${name} · ${when.toLocaleString(locale, { dateStyle: "short", timeStyle: "short" })}`];
+    });
+  }, [deletedPages, pages, rows, locale]);
 
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = list;
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -631,7 +647,8 @@ function ListError({ error, onRetry }: { error: unknown; onRetry: () => void }) 
     >
       {forbidden ? <Lock className="size-12 opacity-40" /> : <History className="size-12 opacity-40" />}
       <p className="max-w-sm text-sm">{historyErrorMessage(err, t, tc("genericError"))}</p>
-      {!forbidden && err.code !== "unauthorized" && (
+      {/* Retrying a 404 / invalid id cannot help: the website itself is missing. */}
+      {!forbidden && err.code !== "unauthorized" && err.code !== "not_found" && err.code !== "bad_request" && (
         <Button variant="outline" size="sm" onClick={onRetry}>
           {tc("retry")}
         </Button>

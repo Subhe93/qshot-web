@@ -15,9 +15,15 @@
 import { nanoid } from "nanoid";
 import {
   BOOKING_LAYOUT_TYPES,
+  MUSIC_LINKS_LAYOUT_TYPES,
   type BookingBlock,
   type BookingLayoutType,
+  type MusicLinksBlock,
+  type MusicLinksLayoutType,
+  type MusicTrack,
+  type MusicTrackLink,
 } from "@/lib/types/blocks";
+import { newUuid } from "@/lib/music-links/platforms";
 import type {
   Block,
   ButtonItem,
@@ -208,6 +214,40 @@ function parseReviewItem(raw: Raw): ReviewItem {
     hidden: asBool(raw.hidden, false),
     locked: asBool(raw.locked, false),
     google_review_key: asStrOrNull(raw.google_review_key),
+  };
+}
+
+const isObj = (v: unknown): v is Raw =>
+  v != null && typeof v === "object" && !Array.isArray(v);
+
+/**
+ * One platform button of a Songs track (contract §4.4). The URL is kept
+ * byte-for-byte (§10.5) and `platform` is NOT checked against the registry: an
+ * id this build does not know (a newer server) must survive a web save — the
+ * renderers skip it instead (§5, §8).
+ */
+function parseMusicLink(raw: Raw): MusicTrackLink {
+  return {
+    ...raw,
+    id: asStr(raw.id) || newUuid(),
+    platform: asStr(raw.platform),
+    url: asStr(raw.url),
+    hidden: asBool(raw.hidden, false),
+  };
+}
+
+/** One Songs track (§4.3): `title` is never null, the optional keys are. */
+function parseMusicTrack(raw: Raw): MusicTrack {
+  return {
+    ...raw,
+    id: asStr(raw.id) || newUuid(),
+    isrc: asStr(raw.isrc),
+    title: asStr(raw.title),
+    artist: asStrOrNull(raw.artist),
+    cover_url: asStrOrNull(raw.cover_url),
+    preview_url: asStrOrNull(raw.preview_url),
+    hidden: asBool(raw.hidden, false),
+    links: Array.isArray(raw.links) ? raw.links.filter(isObj).map(parseMusicLink) : [],
   };
 }
 
@@ -413,6 +453,27 @@ export function parseBlock(input: unknown): Block {
       };
     }
 
+    case "MusicLinksModule": {
+      // docs/api-contract.en.md §4.2. "Key present with null" equals "key
+      // absent" for every optional field, so null reads as the default; an
+      // unknown layout (newer client) degrades to `cards`, never throws.
+      const layout = asStr(raw.layout_type);
+      return {
+        ...raw,
+        ...b,
+        type: "MusicLinksModule",
+        // `title` is required and NEVER null — null crashes the Dart parser.
+        title: asStr(raw.title),
+        foldable: asBool(raw.foldable, false),
+        layout_type: (MUSIC_LINKS_LAYOUT_TYPES as string[]).includes(layout)
+          ? (layout as MusicLinksLayoutType)
+          : "cards",
+        show_cover: asBool(raw.show_cover, true),
+        button_style: raw.button_style === "icon" ? "icon" : "iconText",
+        tracks: Array.isArray(raw.tracks) ? raw.tracks.filter(isObj).map(parseMusicTrack) : [],
+      };
+    }
+
     // Blocks not yet edited in the web builder: keep their raw shape, only
     // ensure id + common defaults so they round-trip and render (Phase 3).
     default:
@@ -526,6 +587,33 @@ export function serializeBlock(block: Block): Record<string, unknown> {
     delete clean.service_filter;
     delete clean.provider_filter;
     return clean;
+  }
+  if (block.type === "MusicLinksModule") {
+    // Like the other `*Module` blocks every contract key is written, at its
+    // default when unset (§4.2). The required strings are coerced so a null
+    // can never reach the server — `title` null crashes the Dart parser. URLs
+    // and platform ids pass through untouched (§10.5, unknown ids preserved).
+    const b = block as MusicLinksBlock;
+    return {
+      ...b,
+      title: b.title ?? "",
+      foldable: b.foldable ?? false,
+      layout_type: b.layout_type ?? "cards",
+      show_cover: b.show_cover ?? true,
+      button_style: b.button_style ?? "iconText",
+      tracks: (b.tracks ?? []).map((track) => ({
+        ...track,
+        title: track.title ?? "",
+        artist: track.artist ?? null,
+        cover_url: track.cover_url ?? null,
+        preview_url: track.preview_url ?? null,
+        hidden: track.hidden ?? false,
+        links: (track.links ?? []).map((link) => ({
+          ...link,
+          hidden: link.hidden ?? false,
+        })),
+      })),
+    };
   }
   return block as unknown as Record<string, unknown>;
 }

@@ -8,6 +8,7 @@ import { BrandIcon, BrandIconDefs } from "@/components/ui/brand-icon";
 import { usePlan } from "@/lib/plan/use-plan";
 import { PLAN_FEATURES } from "@/lib/plan/features";
 import { useUpgradeDialog } from "@/components/plan/upgrade-dialog";
+import { musicMenuState, useMusicEntitlements } from "@/lib/music-links/use-music-links";
 import type { Block, BlockType } from "@/lib/types/blocks";
 
 /**
@@ -31,10 +32,19 @@ export function AddBlockMenu({ onAdded }: { onAdded?: () => void }) {
   const addBlock = useEditorStore((s) => s.addBlock);
   const plan = usePlan();
   const showUpgrade = useUpgradeDialog((s) => s.show);
-  const rich = BLOCK_CATALOG.filter((e) => e.kind === "rich");
-  const basic = BLOCK_CATALOG.filter((e) => e.kind === "basic");
+  // "Songs" is gated by `GET music-links/entitlements`, not by a plan code
+  // (docs/api-contract.en.md §7.1): listed when enabled, locked with the
+  // upgrade prompt when only the plan lacks it, and absent while loading, on
+  // any failure (incl. the route not being deployed) or when switched off.
+  const music = musicMenuState(useMusicEntitlements().data);
+  const catalog = BLOCK_CATALOG.filter(
+    (e) => e.type !== "MusicLinksModule" || music !== "hidden",
+  );
+  const rich = catalog.filter((e) => e.kind === "rich");
+  const basic = catalog.filter((e) => e.kind === "basic");
 
   const blockAllowed = (type: BlockType) => {
+    if (type === "MusicLinksModule") return music === "available";
     const code = BLOCK_FEATURE[type];
     return !code || plan.isAvailable(code);
   };
@@ -59,6 +69,8 @@ export function AddBlockMenu({ onAdded }: { onAdded?: () => void }) {
             <button
               key={e.type}
               type="button"
+              data-testid={`add-block-${e.type}`}
+              data-locked={!ok}
               onClick={() => add(e.type, e.make)}
               className={`flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-start transition-colors hover:border-primary/40 hover:bg-surface ${ok ? "" : "opacity-60"}`}
             >

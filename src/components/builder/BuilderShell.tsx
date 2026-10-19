@@ -24,6 +24,8 @@ import { useRouter } from "@/i18n/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEditorStore, type EditorSnapshot } from "@/stores/editor-store";
 import { invalidateBookingTree } from "@/lib/booking/use-booking-tree";
+import { readMusicSaveError } from "@/lib/api/music-links";
+import { resetMusicEntitlements } from "@/lib/music-links/use-music-links";
 import {
   getProfile,
   saveProfile,
@@ -142,6 +144,7 @@ export function BuilderShell({
   const restoreSnapshot = useEditorStore((s) => s.restoreSnapshot);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const tm = useTranslations("musicLinks");
 
   const [panel, setPanel] = useState<Panel>("home");
   const [addOpen, setAddOpen] = useState(false);
@@ -319,6 +322,17 @@ export function BuilderShell({
     };
   }, [id, load, adminName, adminProfileId, queryClient]);
 
+  // Songs block: `GET music-links/entitlements` is read ONCE per editor open
+  // (docs/api-contract.en.md §6.1) — drop the previous site's answer and fetch
+  // a fresh one for this mount. The ref keeps StrictMode's double effect run
+  // from fetching twice.
+  const musicEntitlementsFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (musicEntitlementsFor.current === id) return;
+    musicEntitlementsFor.current = id;
+    resetMusicEntitlements(queryClient);
+  }, [id, queryClient]);
+
   // Auto-open Theme gate (mobile `_maybeOpenThemeGate`): a brand-new site —
   // main page, no blocks, never templated — starts at the Theme sheet instead
   // of an empty builder. Dismissing THIS opening writes the skipped marker
@@ -422,6 +436,33 @@ export function BuilderShell({
         }
         return "saved";
       } catch (e) {
+        // Songs block (docs/api-contract.en.md §9.2): the save routes refuse a
+        // save that GROWS the page's songs past the plan ceiling (403
+        // `track_limit_exceeded` with limit/count), or adds songs while the
+        // plan lacks the feature (403) or it is switched off (503).
+        const music = blocks.some((b) => b.type === "MusicLinksModule")
+          ? await readMusicSaveError(e)
+          : null;
+        if (music) {
+          console.error("[qshot] save refused for the Songs block", music);
+          let text: string;
+          if (music.code === "track_limit_exceeded") {
+            text =
+              music.limit != null && music.count != null
+                ? tm("save.trackLimit", {
+                    limit: music.limit,
+                    count: music.count,
+                    extra: Math.max(1, music.count - music.limit),
+                  })
+                : tm("save.trackLimitShort");
+          } else if (music.code === "feature_not_in_plan") {
+            text = tm("save.notInPlan");
+          } else {
+            text = tm("save.disabled");
+          }
+          toast({ text, error: true });
+          return "failed";
+        }
         // A 422 carries the server's schema-validation report: exactly which
         // pointer inside the document is wrong and why. Surface it instead of
         // collapsing everything into "something went wrong".
@@ -440,14 +481,18 @@ export function BuilderShell({
           { summary: failure.message, errors: failure.errors, body: failure.raw },
         );
 
-        const first = failure.errors[0];
+        // §9.2: a Songs link whose host does not belong to its platform comes
+        // back as keyword `musicPlatformUrl` — say so in words, not a pointer.
+        const musicUrl = failure.errors.find((x) => x.keyword === "musicPlatformUrl");
+        const first = musicUrl ?? failure.errors[0];
         const issue = first ? decodeSchemaIssue(first) : null;
         // "links/0/icon: unknown field \"icon\" is not allowed" — pointer inside
         // the block first, then the server's own words.
-        const reason =
-          (issue ? [issue.where, issue.message].filter(Boolean).join(": ") : "") ||
-          failure.message ||
-          tc("genericError");
+        const reason = musicUrl
+          ? tm("save.badLink")
+          : (issue ? [issue.where, issue.message].filter(Boolean).join(": ") : "") ||
+            failure.message ||
+            tc("genericError");
         let text: string;
         if (issue?.blockPosition != null) {
           const type = (blocks[issue.blockPosition - 1] as Block | undefined)?.type;
@@ -468,7 +513,7 @@ export function BuilderShell({
         return "failed";
       }
     },
-    [id, t, tb, tc, adminName, adminProfileId],
+    [id, t, tb, tc, tm, adminName, adminProfileId],
   );
 
   // The save the debounce and the Save button call. It reads the page from

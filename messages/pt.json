@@ -151,7 +151,8 @@
       "location": "Localização",
       "embed": "Código incorporado",
       "introVideo": "Enviar vídeo",
-      "booking": "Reserva"
+      "booking": "Reserva",
+      "musicLinks": "Músicas"
     },
     "fields": {
       "name": "Name",
@@ -233,7 +234,8 @@
       "location": "Mostre seu endereço em um mapa",
       "embed": "Integre facilmente widgets personalizados ou conteúdo de terceiros em sua plataforma usando código embutido.",
       "introVideo": "Envie um vídeo curto para se apresentar ou apresentar o seu trabalho.",
-      "booking": "O widget de reserva aparecerá aqui no seu site"
+      "booking": "O widget de reserva aparecerá aqui no seu site",
+      "musicLinks": "Partilhe as suas músicas com links para o Spotify, Anghami, YouTube e mais."
     },
     "edit": "Edit",
     "layoutList": "List",
@@ -619,7 +621,8 @@
       "videoThumbnail": "O bloco de vídeo {position} não tem miniatura — adicione uma (ou use uma ligação do YouTube) para guardar.",
       "embedEmpty": "O bloco de incorporação {position} está vazio — adicione a ligação ou o código para guardar.",
       "embedUrl": "Falta a ligação no bloco de incorporação {position} — adicione-a para guardar.",
-      "embedHtml": "Falta o código no bloco de incorporação {position} — adicione-o para guardar."
+      "embedHtml": "Falta o código no bloco de incorporação {position} — adicione-o para guardar.",
+      "musicTitle": "Bloco Músicas {position}: cada música precisa de um título — adicione-o para guardar."
     }
   },
   "nav": {
@@ -1953,6 +1956,92 @@
       "unpinMessage": "Volta a contar entre as 300 alterações mais recentes. Se for mais antiga, é removida de imediato.",
       "unpin": "Desafixar",
       "unpinned": "Versão desafixada"
+    }
+  },
+  "musicLinks": {
+    "upgrade": "Fazer upgrade",
+    "tryAgain": "Tentar novamente",
+    "tabs": {
+      "songs": "Músicas"
+    },
+    "addSong": "Adicionar música",
+    "limitReached": "O seu plano permite {count, plural, =1 {1 música} other {# músicas}} nesta página",
+    "limitCounter": "{count} de {max} músicas nesta página",
+    "unavailable": "De momento não é possível adicionar músicas. As músicas que já adicionou continuam visíveis na sua página.",
+    "empty": "Ainda não há músicas",
+    "placeholder": "Adicione as suas músicas",
+    "untitled": "Música sem título",
+    "resolving": "A obter links…",
+    "layout": {
+      "cards": "Cartões",
+      "list": "Lista",
+      "grid": "Grelha"
+    },
+    "showCover": "Mostrar capa",
+    "buttonStyle": "Estilo dos botões",
+    "buttonIcon": "Ícone",
+    "buttonIconText": "Ícone + texto",
+    "dropdown": "Menu suspenso",
+    "search": {
+      "title": "Adicionar uma música",
+      "placeholder": "Pesquisar por música ou artista",
+      "hint": "Escreva pelo menos 2 caracteres",
+      "searching": "A pesquisar…",
+      "noResults": "Nenhuma música encontrada"
+    },
+    "paste": {
+      "label": "Ou cole o link de uma música",
+      "placeholder": "https://open.spotify.com/track/…",
+      "find": "Procurar"
+    },
+    "card": {
+      "heading": "Música",
+      "editHeading": "Editar música",
+      "back": "Voltar aos resultados",
+      "title": "Título da música",
+      "artist": "Artista",
+      "titleRequired": "Uma música precisa de um título",
+      "platforms": "Plataformas",
+      "platformsHint": "Escolha onde os visitantes podem ouvir. Arraste para reordenar.",
+      "noPlatforms": "Nenhuma plataforma selecionada",
+      "showMore": "Mostrar mais",
+      "showLess": "Mostrar menos",
+      "noMore": "Não há outras plataformas para esta música",
+      "choosePlatform": "Escolha pelo menos uma plataforma",
+      "select": "Mostrar {name}",
+      "hide": "Ocultar {name}",
+      "add": "Adicionar",
+      "save": "Guardar",
+      "refresh": "Atualizar links",
+      "refreshed": "Links atualizados — guarde a página para os aplicar.",
+      "refreshAvailableIn": "Atualização disponível dentro de {time}"
+    },
+    "time": {
+      "days": "{n, plural, =1 {1 dia} other {# dias}}",
+      "hours": "{n, plural, =1 {1 hora} other {# horas}}",
+      "minutes": "{n, plural, =1 {1 minuto} other {# minutos}}",
+      "seconds": "{n, plural, =1 {1 segundo} other {# segundos}}"
+    },
+    "errors": {
+      "unsupportedLink": "Não é possível pesquisar este link. Cole um link do Spotify, Apple Music, YouTube ou Deezer, ou pesquise pelo nome.",
+      "notATrack": "Cole o link de uma única música, não de um álbum ou artista.",
+      "notFound": "Não encontrámos esta música.",
+      "rateLimited": "Serviço ocupado — tente novamente dentro de {seconds, plural, =1 {1 segundo} other {# segundos}}.",
+      "rateLimitedNow": "Serviço ocupado — já pode tentar novamente.",
+      "inProgress": "Esta música ainda está a ser obtida — tente novamente daqui a pouco.",
+      "notInPlan": "As músicas não estão incluídas no seu plano.",
+      "disabled": "De momento não é possível adicionar músicas.",
+      "invalid": "Essa pesquisa não pode ser usada — experimente outras palavras.",
+      "unauthorized": "A sua sessão expirou — inicie sessão novamente.",
+      "network": "Sem ligação — verifique a internet e tente novamente.",
+      "server": "Algo correu mal — tente mais tarde."
+    },
+    "save": {
+      "trackLimit": "Não foi possível guardar — o seu plano permite {limit} músicas nesta página e ela tem {count}. Remova {extra, plural, =1 {1 música} other {# músicas}} para guardar.",
+      "trackLimitShort": "Não foi possível guardar — esta página tem mais músicas do que o seu plano permite. Remova algumas para guardar.",
+      "notInPlan": "Não foi possível guardar — as músicas não estão incluídas no seu plano. Remova as músicas novas ou faça upgrade.",
+      "disabled": "Não foi possível guardar — adicionar músicas está desativado de momento. Remova as músicas novas para guardar.",
+      "badLink": "um link de música não pertence à respetiva plataforma — remova essa música e adicione-a novamente"
     }
   }
 }

@@ -151,7 +151,8 @@
       "location": "Posizione",
       "embed": "Codice incorporato",
       "introVideo": "Carica video",
-      "booking": "Prenotazione"
+      "booking": "Prenotazione",
+      "musicLinks": "Brani"
     },
     "fields": {
       "name": "Name",
@@ -233,7 +234,8 @@
       "location": "Mostra il tuo indirizzo su una mappa",
       "embed": "Integra facilmente widget personalizzati o contenuti di terze parti nella tua piattaforma utilizzando il codice di incorporamento.",
       "introVideo": "Carica un breve video per presentarti o mostrare il tuo lavoro.",
-      "booking": "Il widget di prenotazione apparirà qui sul tuo sito"
+      "booking": "Il widget di prenotazione apparirà qui sul tuo sito",
+      "musicLinks": "Condividi i tuoi brani con i link a Spotify, Anghami, YouTube e altro."
     },
     "edit": "Edit",
     "layoutList": "List",
@@ -619,7 +621,8 @@
       "videoThumbnail": "Il blocco video {position} non ha una miniatura — aggiungine una (o usa un link YouTube) per salvare.",
       "embedEmpty": "Il blocco di incorporamento {position} è vuoto — aggiungi il link o il codice per salvare.",
       "embedUrl": "Al blocco di incorporamento {position} manca il link — aggiungilo per salvare.",
-      "embedHtml": "Al blocco di incorporamento {position} manca il codice — aggiungilo per salvare."
+      "embedHtml": "Al blocco di incorporamento {position} manca il codice — aggiungilo per salvare.",
+      "musicTitle": "Blocco Brani {position}: ogni brano deve avere un titolo — aggiungilo per salvare."
     }
   },
   "nav": {
@@ -1953,6 +1956,92 @@
       "unpinMessage": "Tornerà a contare tra le ultime 300 modifiche. Se è più vecchia, viene rimossa subito.",
       "unpin": "Sblocca",
       "unpinned": "Versione sbloccata"
+    }
+  },
+  "musicLinks": {
+    "upgrade": "Passa a un piano superiore",
+    "tryAgain": "Riprova",
+    "tabs": {
+      "songs": "Brani"
+    },
+    "addSong": "Aggiungi brano",
+    "limitReached": "Il tuo piano consente {count, plural, =1 {1 brano} other {# brani}} in questa pagina",
+    "limitCounter": "{count} di {max} brani in questa pagina",
+    "unavailable": "Al momento non è possibile aggiungere brani. I brani già aggiunti restano visibili nella tua pagina.",
+    "empty": "Nessun brano",
+    "placeholder": "Aggiungi i tuoi brani",
+    "untitled": "Brano senza titolo",
+    "resolving": "Recupero dei link…",
+    "layout": {
+      "cards": "Schede",
+      "list": "Elenco",
+      "grid": "Griglia"
+    },
+    "showCover": "Mostra copertina",
+    "buttonStyle": "Stile dei pulsanti",
+    "buttonIcon": "Icona",
+    "buttonIconText": "Icona + testo",
+    "dropdown": "Menu a discesa",
+    "search": {
+      "title": "Aggiungi un brano",
+      "placeholder": "Cerca per brano o artista",
+      "hint": "Digita almeno 2 caratteri",
+      "searching": "Ricerca…",
+      "noResults": "Nessun brano trovato"
+    },
+    "paste": {
+      "label": "Oppure incolla il link di un brano",
+      "placeholder": "https://open.spotify.com/track/…",
+      "find": "Cerca"
+    },
+    "card": {
+      "heading": "Brano",
+      "editHeading": "Modifica brano",
+      "back": "Torna ai risultati",
+      "title": "Titolo del brano",
+      "artist": "Artista",
+      "titleRequired": "Un brano deve avere un titolo",
+      "platforms": "Piattaforme",
+      "platformsHint": "Scegli dove i visitatori possono ascoltare. Trascina per riordinare.",
+      "noPlatforms": "Nessuna piattaforma selezionata",
+      "showMore": "Mostra altro",
+      "showLess": "Mostra meno",
+      "noMore": "Nessun’altra piattaforma per questo brano",
+      "choosePlatform": "Scegli almeno una piattaforma",
+      "select": "Mostra {name}",
+      "hide": "Nascondi {name}",
+      "add": "Aggiungi",
+      "save": "Salva",
+      "refresh": "Aggiorna i link",
+      "refreshed": "Link aggiornati — salva la pagina per applicarli.",
+      "refreshAvailableIn": "Aggiornamento disponibile tra {time}"
+    },
+    "time": {
+      "days": "{n, plural, =1 {1 giorno} other {# giorni}}",
+      "hours": "{n, plural, =1 {1 ora} other {# ore}}",
+      "minutes": "{n, plural, =1 {1 minuto} other {# minuti}}",
+      "seconds": "{n, plural, =1 {1 secondo} other {# secondi}}"
+    },
+    "errors": {
+      "unsupportedLink": "Questo link non può essere cercato. Incolla un link di Spotify, Apple Music, YouTube o Deezer, oppure cerca per nome.",
+      "notATrack": "Incolla il link di un singolo brano, non di un album o di un artista.",
+      "notFound": "Non abbiamo trovato questo brano.",
+      "rateLimited": "Servizio occupato — riprova tra {seconds, plural, =1 {1 secondo} other {# secondi}}.",
+      "rateLimitedNow": "Servizio occupato — ora puoi riprovare.",
+      "inProgress": "Il brano è ancora in fase di recupero — riprova tra un momento.",
+      "notInPlan": "I brani non sono inclusi nel tuo piano.",
+      "disabled": "Al momento non è possibile aggiungere brani.",
+      "invalid": "Questa ricerca non può essere usata — prova con altre parole.",
+      "unauthorized": "La sessione è scaduta — accedi di nuovo.",
+      "network": "Nessuna connessione — controlla internet e riprova.",
+      "server": "Qualcosa è andato storto — riprova più tardi."
+    },
+    "save": {
+      "trackLimit": "Impossibile salvare — il tuo piano consente {limit} brani in questa pagina e ne contiene {count}. Rimuovi {extra, plural, =1 {1 brano} other {# brani}} per salvare.",
+      "trackLimitShort": "Impossibile salvare — questa pagina contiene più brani di quanti ne consenta il tuo piano. Rimuovine alcuni per salvare.",
+      "notInPlan": "Impossibile salvare — i brani non sono inclusi nel tuo piano. Rimuovi i nuovi brani o passa a un piano superiore.",
+      "disabled": "Impossibile salvare — l’aggiunta di brani è disattivata al momento. Rimuovi i nuovi brani per salvare.",
+      "badLink": "un link di un brano non appartiene alla sua piattaforma — rimuovi quel brano e aggiungilo di nuovo"
     }
   }
 }
