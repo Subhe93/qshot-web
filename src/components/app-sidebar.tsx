@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Link2,
   BookUser,
+  IdCard,
 } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useAuthStore } from "@/stores/auth-store";
@@ -25,6 +26,9 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/dashboard", labelKey: "profiles", svg: "/nav/portfolio.svg" },
   { href: "/qr-codes", labelKey: "qrCodes", svg: "/nav/qr_code.svg" },
+  // Platform links (contract: Platform redirects) — an ACCOUNT area, a sibling
+  // of Website and Generate QR; works with zero profiles.
+  { href: "/platform-links", labelKey: "platformLinks", Icon: IdCard },
   { href: "/links", labelKey: "smartLinks", Icon: Link2 },
   { href: "/contacts", labelKey: "contacts", Icon: BookUser },
   { href: "/bookings", labelKey: "bookings", Icon: CalendarCheck },

@@ -399,3 +399,12 @@ summary {
   min-height: 140px;
   font-size: 0.875rem;
 }
+
+/* Reduced motion: sheets and dialogs fade in instead of sliding/scaling, so a
+   user (or OS) that turns animation effects off still sees them appear. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet-up,
+  .animate-popover-in {
+    animation: fade-in 0.2s ease-out;
+  }
+}

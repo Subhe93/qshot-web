@@ -44,6 +44,9 @@ function invalidatePlanDependent(queryClient: QueryClient): void {
   queryClient.invalidateQueries({ queryKey: ["contacts-entitlements"] });
   queryClient.invalidateQueries({ queryKey: ["profiles"] });
   queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
+  // Platform redirect cards reload on the plan-change signal (integration
+  // guide §7.2 "when to reload") — same key as lib/platform-redirect/queries.
+  queryClient.invalidateQueries({ queryKey: ["platform-redirect"] });
 }
 
 const KNOWN_REASONS = new Set([

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ShieldCheck, Users, Globe, Cloud, CreditCard } from "lucide-react";
+import { ShieldCheck, Users, Globe, Cloud, CreditCard, Nfc } from "lucide-react";
 import { AdminProfileSearch } from "@/components/admin/admin-profile-search";
 import {
   AdminShell,
@@ -37,6 +37,7 @@ const TOOLS = [
 
 export default function AdminPage() {
   const t = useTranslations("admin");
+  const tpc = useTranslations("adminPlatformCards");
 
   return (
     <AdminShell>
@@ -76,6 +77,14 @@ export default function AdminPage() {
               accent={tool.accent}
             />
           ))}
+          {/* Platform redirect cards (printed QR cards → owner links). */}
+          <AdminCard
+            Icon={Nfc}
+            title={tpc("hub.title")}
+            description={tpc("hub.desc")}
+            href="/admin/platform-cards"
+            accent="#4488ff"
+          />
         </AdminGrid>
       </div>
     </AdminShell>

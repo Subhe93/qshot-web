@@ -1,13 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { AppShell } from "@/components/app-shell";
 import { UpgradePlanDialog } from "@/components/plan/upgrade-dialog";
 import { PlanLiveUpdates } from "@/components/plan/plan-live-updates";
 import { ContactSaveToast } from "@/components/contacts/save-toast";
+
+/** `/login?next=<path+query>` — only for a real destination; the default
+ *  dashboard needs no return trip. */
+function loginHref(pathname: string): string {
+  const search = typeof window === "undefined" ? "" : window.location.search;
+  const next = `${pathname}${search}`;
+  if (!pathname || pathname === "/" || pathname === "/dashboard") return "/login";
+  return `/login?next=${encodeURIComponent(next)}`;
+}
 
 export default function AppLayout({
   children,
@@ -16,18 +25,22 @@ export default function AppLayout({
 }) {
   const t = useTranslations();
   const router = useRouter();
+  const pathname = usePathname();
   const token = useAuthStore((s) => s.token);
 
-  // Client-side auth guard. Zustand persist hydrates on mount.
+  // Client-side auth guard. Zustand persist hydrates on mount. The page the
+  // user was heading to (locale-less path + query) rides along as `next` so
+  // sign-in can return there — a deep link such as
+  // `/platform-links?platform=…&code=…` must survive the round trip.
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration((state) => {
-      if (!state.token) router.replace("/login");
+      if (!state.token) router.replace(loginHref(pathname));
     });
     if (useAuthStore.persist.hasHydrated() && !useAuthStore.getState().token) {
-      router.replace("/login");
+      router.replace(loginHref(pathname));
     }
     return unsub;
-  }, [router]);
+  }, [router, pathname]);
 
   // Reactive sign-out guard: the hydration check above runs ONCE. A token
   // that empties LATER — the live plan channel detecting an invalid session
@@ -39,9 +52,9 @@ export default function AppLayout({
   // pair would bounce a signed-in user to /login on load.
   useEffect(() => {
     if (useAuthStore.persist.hasHydrated() && !useAuthStore.getState().token) {
-      router.replace("/login");
+      router.replace(loginHref(pathname));
     }
-  }, [token, router]);
+  }, [token, router, pathname]);
 
   if (!token) {
     return (

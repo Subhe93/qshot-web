@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,9 +15,34 @@ import { login, socialLogin } from "@/lib/api/auth";
 import { getGoogleAccessToken } from "@/lib/auth/google-signin";
 import { useAuthStore } from "@/stores/auth-store";
 
+/**
+ * Where to land after sign-in: the `next` the (app) layout guard attached
+ * (a locale-less in-app path, optionally with a query), else the dashboard.
+ * Only a same-origin relative path is honoured — never a scheme or `//host`.
+ */
+function safeNext(raw: string | null): string {
+  if (!raw) return "/dashboard";
+  // `useSearchParams` has already decoded the value once; decoding it again
+  // would mangle a literal `%` in the destination query (and throw on `100%`).
+  const value = raw;
+  if (!/^\/(?![/\\])/.test(value) || /[\u0000-\u001f\u007f\s]/.test(value)) return "/dashboard";
+  // Never bounce back into one of the auth screens themselves.
+  if (/^\/(login|register|forgot-password)(?=[/?#]|$)/.test(value)) return "/dashboard";
+  return value;
+}
+
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const t = useTranslations("auth");
   const router = useRouter();
+  const next = safeNext(useSearchParams().get("next"));
   const setAuth = useAuthStore((s) => s.setAuth);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +55,7 @@ export default function LoginPage() {
       const token = await getGoogleAccessToken();
       const data = await socialLogin({ type: "google", token, version: "1.0.0" });
       setAuth(data.token, data.user ?? null);
-      router.push("/dashboard");
+      router.push(next);
     } catch {
       setServerError(t("errors.generic"));
     } finally {
@@ -54,7 +80,7 @@ export default function LoginPage() {
     try {
       const data = await login(values.email, values.password);
       setAuth(data.token, data.user ?? null);
-      router.push("/dashboard");
+      router.push(next);
     } catch {
       setServerError(t("errors.generic"));
     }
